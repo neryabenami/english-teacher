@@ -1092,7 +1092,15 @@
 
   /* offline support */
   if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
-    navigator.serviceWorker.register('sw.js').then((reg) => {
+    // when a new version takes over, reload once so the user sees it right away
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloaded || RT.session || RT.chatBusy) return;
+      reloaded = true; location.reload();
+    });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && RT.swReg) RT.swReg.update().catch(() => {}); });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
       RT.swReg = reg;
       const conn = navigator.connection;
       if (S.profile.autoWifi && RT.online && !(conn && (conn.type === 'cellular' || conn.saveData))) reg.update().catch(() => {});

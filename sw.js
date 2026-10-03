@@ -1,5 +1,5 @@
 /* Service worker: keeps the app, the dictionary and opened articles on the device (Local First). */
-const VERSION = 'et-v2.0.1';
+const VERSION = 'et-v2.1.0';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js', 'data/dict-en-he.json',
@@ -48,11 +48,13 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // App files: serve from cache instantly, refresh the cache in the background.
-  e.respondWith(caches.open(VERSION).then((c) =>
-    c.match(req, { ignoreSearch: true }).then((hit) => {
-      const net = fetch(req).then((res) => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit || (req.mode === 'navigate' ? c.match('index.html') : undefined));
-      return hit || net;
-    })
-  ));
+  // App files: network first so updates show up right away; the saved copy is used offline or on a slow network.
+  e.respondWith(caches.open(VERSION).then(async (c) => {
+    const hit = await c.match(req, { ignoreSearch: true });
+    const net = fetch(req, { cache: 'no-cache' }).then((res) => { if (res.ok) c.put(req, res.clone()); return res; });
+    const fallback = () => hit || (req.mode === 'navigate' ? c.match('index.html') : undefined);
+    if (!hit) return net.catch(fallback);
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 3000));
+    return Promise.race([net.catch(() => null), timeout]).then((res) => res || fallback());
+  }));
 });
