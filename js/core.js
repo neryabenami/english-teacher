@@ -39,10 +39,11 @@
   const BY_ID = {};
   const BY_TERM = {};
   const add = (it) => { ITEMS.push(it); BY_ID[it.id] = it; BY_TERM[it.t.toLowerCase()] = BY_TERM[it.t.toLowerCase()] || it; };
-  D.CATEGORIES.forEach((cat) => {
-    D.WORDS[cat.id].trim().split('\n').forEach((line) => {
+  Object.keys(D.WORDS).forEach((key) => {
+    const cat = (D.CAT_ALIAS || {})[key] || key;
+    D.WORDS[key].trim().split('\n').forEach((line) => {
       const [t, he, pos, lvl, emoji, ipa, ex, exHe] = line.split('|').map((s) => s.trim());
-      add({ id: 'w:' + t.toLowerCase(), type: 'word', cat: cat.id, t, he, pos, lvl, emoji, ipa, ex, exHe });
+      add({ id: 'w:' + t.toLowerCase(), type: 'word', cat, t, he, pos, lvl, emoji, ipa, ex, exHe });
     });
   });
   D.EXPRESSIONS.trim().split('\n').forEach((line) => {
@@ -61,6 +62,10 @@
   ET.item = (id) => BY_ID[id];
   ET.wordsOf = (cat) => ITEMS.filter((i) => i.type === 'word' && i.cat === cat);
   ET.exprsOf = (kind, cat) => ITEMS.filter((i) => i.type === 'expr' && (kind === 'texting' ? (i.cat === 'texting' || i.cat === 'abbr') : i.kind === kind) && (!cat || i.cat === cat));
+  /* the two phrase areas of the Words tab */
+  const EXPR_KINDS = ['expr', 'spoken', 'phrasal', 'idiom'];
+  ET.EXPR_GROUPS = [['expr', 'ביטויים יום־יומיים'], ['spoken', 'Spoken English'], ['phrasal', 'Phrasal Verbs'], ['idiom', 'Idioms']];
+  ET.sectionItems = (sec) => ITEMS.filter((i) => i.type === 'expr' && (sec === 'expr' ? EXPR_KINDS.includes(i.kind) : i.kind === 'slang' && i.region !== 'בריטניה'));
 
   /* ---------- storage provider (local first) ---------- */
   const StorageProvider = {
@@ -73,8 +78,8 @@
     v: 1, onboarded: false, created: Date.now(),
     profile: { level: 'beginner', cefr: 'A2', goal: 'all', interests: [], dailyMin: 10, accent: 'en-US', theme: 'system',
       correction: 'important', autoWifi: true, reminders: false, ai: 'local', geminiKey: '', geminiModel: 'gemini-2.5-flash', autoSpeak: false },
-    items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {},
-    stats: { quizzes: 0, qRight: 0, qTotal: 0, stories: {}, chats: 0, msgs: 0, games: 0, bestSpeed: 0, bestStreak: 0 },
+    items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {}, saved: {}, resume: null,
+    stats: { quizzes: 0, qRight: 0, qTotal: 0, stories: {}, articles: {}, chats: 0, msgs: 0, games: 0, bestSpeed: 0, bestStreak: 0 },
     sync: { changes: 0, last: 0 }
   });
   const loaded = StorageProvider.load();
@@ -171,18 +176,23 @@
     const score = (i) => (cats.has(i.cat) ? 0 : 2) + (i.type === 'expr' ? (wantExpr ? 0 : 3) : 0) + Math.abs(lvlIdx(i.lvl) - userIdx()) + Math.random() * 2.5;
     return fresh.sort((a, b) => score(a) - score(b)).slice(0, n).map((i) => i.id);
   };
-  ET.sessionSize = () => ({ 5: 8, 10: 12, 15: 15, 20: 20, 30: 25 }[S.profile.dailyMin] || 12);
+  /* the level set in onboarding / profile drives how many new items appear and how hard they are */
+  const LEVEL_FACTOR = { beginner: 0.75, intermediate: 1, advanced: 1.25 };
+  ET.sessionSize = () => Math.round(({ 5: 8, 10: 12, 15: 15, 20: 20, 30: 25 }[S.profile.dailyMin] || 12) * (LEVEL_FACTOR[ET.bandOf(S.profile.cefr)] || 1));
+  ET.levelFit = (it) => { const d = lvlIdx(it.lvl) - userIdx(); return d > 1 ? 10 + d : Math.abs(d); };
   ET.buildSession = (kind, arg) => {
     const size = ET.sessionSize();
     const order = (list) => {
+      const fit = (a, b) => ET.levelFit(a) - ET.levelFit(b) || Math.random() - 0.5;
       const due = list.filter((i) => ET.isDue(i.id));
-      const fresh = list.filter((i) => !S.items[i.id] || !S.items[i.id].last);
-      const rest = shuffle(list.filter((i) => !due.includes(i) && !fresh.includes(i)));
-      return [...due, ...shuffle(fresh), ...rest].map((i) => i.id);
+      const fresh = list.filter((i) => !S.items[i.id] || !S.items[i.id].last).sort(fit);
+      const rest = list.filter((i) => !due.includes(i) && !fresh.includes(i)).sort(fit);
+      return [...due, ...fresh, ...rest].map((i) => i.id);
     };
     if (kind === 'daily') { const due = ET.dueIds().slice(0, Math.ceil(size * 0.6)); return [...due, ...ET.newIds(size - due.length)]; }
     if (kind === 'review') return ET.dueIds().slice(0, 30);
-    if (kind === 'cat') return order(ET.wordsOf(arg)).slice(0, 12);
+    if (kind === 'cat') return order(ET.wordsOf(arg)).slice(0, size);
+    if (kind === 'sec') return order(ET.sectionItems(arg)).slice(0, size);
     if (kind === 'real') { const [k, c] = arg.split('.'); return order(ET.exprsOf(k, c)).slice(0, 15); }
     if (kind === 'list') return shuffle(ET.myList(arg)).slice(0, 25);
     return [];
@@ -213,15 +223,48 @@
       w.replace(/([bcdfgklmnprstvz])\1(ed|ing)$/, '$1'), w.replace(/ly$/, ''), w.replace(/ier$/, 'y'), w.replace(/iest$/, 'y'), w.replace(/er$/, ''), w.replace(/est$/, '')];
     return [...new Set(v)].filter((x) => x.length > 0);
   };
+  /* Dictionary source: curated app words → curated common words → open Wiktionary dictionary (offline, loaded once). */
+  const DictionarySource = {
+    entries: null,
+    loading: null,
+    load() {
+      if (this.entries || this.loading) return this.loading;
+      this.loading = fetch('data/dict-en-he.json').then((r) => r.json()).then((j) => { this.entries = j.entries; }).catch(() => { this.loading = null; });
+      return this.loading;
+    },
+    get(w) { return this.entries ? this.entries[w] : undefined; }
+  };
+  ET.DictionarySource = DictionarySource;
   ET.lookup = (raw) => {
     const w = String(raw).toLowerCase().replace(/[’]/g, "'").replace(/^'+|'+$/g, '');
     if (CONTRACTIONS[w]) return { t: raw, he: CONTRACTIONS[w] };
-    for (const v of variants(w)) {
+    const vs = variants(w);
+    for (const v of vs) {
       const it = BY_TERM[v];
       if (it) return { t: it.t, he: it.he, item: it };
       if (LEX[v]) return { t: v, he: LEX[v] };
     }
+    for (const v of vs) { const d = DictionarySource.get(v); if (d) return { t: v, he: d, dict: true }; }
     return { t: raw, he: null };
+  };
+
+  /* Translation provider for whole sentences (online only). MyMemory: free, no key, ~5000 chars/day per device.
+     Swappable: replace `translate` to use another free service. Results are cached on the device. */
+  ET.TranslationProvider = {
+    name: 'MyMemory',
+    async translate(text) {
+      const key = 'tr:' + text;
+      if (S.aiCache[key]) return S.aiCache[key];
+      if (!navigator.onLine) throw new Error('offline');
+      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 480))}&langpair=en|he`);
+      const j = await res.json();
+      const out = j && j.responseStatus === 200 && j.responseData ? String(j.responseData.translatedText || '') : '';
+      if (!out || /MYMEMORY WARNING|QUOTA/i.test(out)) throw new Error('quota');
+      const keys = Object.keys(S.aiCache).filter((k) => k.startsWith('tr:'));
+      if (keys.length > 300) keys.slice(0, 100).forEach((k) => delete S.aiCache[k]);
+      S.aiCache[key] = out; ET.save();
+      return out;
+    }
   };
   ET.search = (q, filter) => {
     q = q.trim().toLowerCase();
@@ -246,6 +289,54 @@
     const id = 'c:' + word.toLowerCase();
     if (!BY_ID[id]) { const it = { id, type: 'word', cat: 'custom', t: word.toLowerCase(), he, pos: '', lvl: 'B1', emoji: '📌', ipa: '', ex: ex || '', exHe: '' }; S.custom[id] = it; add(it); }
     return id;
+  };
+
+  /* ---------- real articles (collected by tools/fetch-articles.mjs, served next to the app) ---------- */
+  const BAND_ORDER = ['beginner', 'intermediate', 'advanced'];
+  ET.Articles = {
+    index: null,
+    loading: null,
+    failed: false,
+    load(force) {
+      if ((this.index && !force) || this.loading) return this.loading || Promise.resolve(this.index);
+      this.loading = fetch('data/articles/index.json', { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then((j) => { this.index = j; this.failed = false; return j; })
+        .catch(() => { this.failed = true; return null; })
+        .finally(() => { this.loading = null; });
+      return this.loading;
+    },
+    meta(id) { return (this.index && this.index.articles.find((a) => a.id === id)) || (S.saved[id] && S.saved[id]); },
+    /* articles at the user's level; when a topic has too few, the closest level fills in (marked as `stretch`) */
+    forUser(cat) {
+      const band = ET.bandOf(S.profile.cefr);
+      const all = ((this.index && this.index.articles) || []).filter((a) => !cat || a.cat === cat);
+      const mine = all.filter((a) => a.level === band);
+      if (mine.length >= 4 || !cat) return mine.map((a) => ({ ...a, stretch: 0 }));
+      const bi = BAND_ORDER.indexOf(band);
+      const near = all.filter((a) => a.level !== band).sort((x, y) => Math.abs(BAND_ORDER.indexOf(x.level) - bi) - Math.abs(BAND_ORDER.indexOf(y.level) - bi));
+      return [...mine.map((a) => ({ ...a, stretch: 0 })), ...near.slice(0, 6 - mine.length).map((a) => ({ ...a, stretch: BAND_ORDER.indexOf(a.level) - bi }))];
+    },
+    recommended() {
+      const cats = new Set();
+      S.profile.interests.forEach((i) => ((D.INTERESTS.find((x) => x.id === i) || {}).read || []).forEach((c) => cats.add(c)));
+      const list = this.forUser().filter((a) => !S.stats.articles[a.id]);
+      return list.find((a) => cats.has(a.cat)) || list[0] || null;
+    },
+    async body(id) {
+      if (S.saved[id]) return S.saved[id];
+      const r = await fetch(`data/articles/${encodeURIComponent(id)}.json`);
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    },
+    isSaved(id) { return !!S.saved[id]; },
+    save(body) { S.saved[body.id] = body; ET.save(true); },
+    unsave(id) { delete S.saved[id]; ET.save(true); },
+    /* "download new content on Wi-Fi": warms the offline cache with a few articles at the user's level */
+    prefetch(n = 6) {
+      const list = this.forUser().slice(0, n);
+      list.forEach((a) => fetch(`data/articles/${encodeURIComponent(a.id)}.json`).catch(() => {}));
+      return list.length;
+    }
   };
 
   /* ---------- speech (device TTS — free & offline) ---------- */

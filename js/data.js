@@ -4,26 +4,24 @@
 (function () {
   const CATEGORIES = [
     { id: 'nature', he: 'טבע', icon: '🌿' },
-    { id: 'food', he: 'אוכל', icon: '🍽️' },
     { id: 'work', he: 'עבודה', icon: '💼' },
-    { id: 'tech', he: 'טכנולוגיה', icon: '💻' },
-    { id: 'business', he: 'עסקים', icon: '📈' },
-    { id: 'finance', he: 'פיננסים', icon: '💰' },
-    { id: 'sports', he: 'ספורט', icon: '⚽' },
-    { id: 'health', he: 'בריאות', icon: '🩺' },
+    { id: 'travel', he: 'טיולים', icon: '🧳' },
+    { id: 'food', he: 'אוכל', icon: '🍽️' },
     { id: 'family', he: 'משפחה', icon: '👨‍👩‍👧' },
     { id: 'relationships', he: 'זוגיות', icon: '❤️' },
-    { id: 'home', he: 'בית', icon: '🏠' },
-    { id: 'transport', he: 'תחבורה', icon: '🚌' },
+    { id: 'sports', he: 'ספורט', icon: '⚽' },
+    { id: 'tech', he: 'טכנולוגיה', icon: '💻' },
+    { id: 'finance', he: 'פיננסים', icon: '💰' },
+    { id: 'business', he: 'עסקים', icon: '📈' },
     { id: 'airport', he: 'שדה תעופה', icon: '✈️' },
+    { id: 'restaurant', he: 'מסעדות', icon: '🍝' },
     { id: 'hotel', he: 'מלון', icon: '🏨' },
-    { id: 'restaurant', he: 'מסעדה', icon: '🍝' },
     { id: 'shopping', he: 'קניות', icon: '🛍️' },
-    { id: 'travel', he: 'טיולים', icon: '🧳' },
-    { id: 'studies', he: 'לימודים', icon: '🎓' },
-    { id: 'entertainment', he: 'בידור', icon: '🎬' },
-    { id: 'social', he: 'רשתות חברתיות', icon: '📱' }
+    { id: 'health', he: 'בריאות', icon: '🩺' },
+    { id: 'daily', he: 'חיי יום־יום', icon: '☀️' }
   ];
+  /* word groups that live inside a broader topic */
+  const CAT_ALIAS = { home: 'daily', transport: 'daily', studies: 'daily', entertainment: 'daily', social: 'daily' };
 
   const WORDS = {
 nature: `tree|עץ|n|A1|🌳|/triː/|There is a big tree in our garden.|יש עץ גדול בגינה שלנו.
@@ -205,9 +203,9 @@ slang|dating|Ghosting|להיעלם בלי להגיב|להפוך לרוח רפא�
 slang|social|Cringe|מביך|להתכווץ (מבושה)|משהו שגורם לאי־נעימות ומבוכה|His dance moves were so cringe.|הריקוד שלו היה כל כך מביך.|רשתות ודיבור צעיר|1|כללי|3|B1
 slang|daily|Vibe|אווירה, תחושה|רטט|האווירה או האנרגיה של מקום או אדם|I love the vibe of this place.|אני אוהב את האווירה של המקום הזה.|דיבור יומיומי|1|כללי|3|A2
 slang|daily|Chill|רגוע, להירגע|קור|נינוח ורגוע, או בקשה להירגע|Chill, it's not a big deal.|תירגע, זה לא סיפור גדול.|דיבור יומיומי|1|כללי|3|A2
-slang|daily|My bad|טעות שלי|הרע שלי|סליחה, זו אשמתי|My bad, I forgot to call you.|טעות שלי, שכחתי להתקשר אליך.|דיבור יומיומי|1|כללי|3|A2
-slang|friends|I'm down|אני בעניין|אני למטה|אני מסכים ורוצה להצטרף|Pizza tonight? I'm down!|פיצה הערב? אני בעניין!|בין חברים|1|ארה"ב|3|B1
-slang|friends|Hit me up|תשלח לי הודעה|תכה אותי|תתקשר או תשלח לי הודעה|Hit me up when you're free.|תשלח לי הודעה כשאתה פנוי.|בין חברים|1|ארה"ב|3|B1
+expr|expr|My bad|טעות שלי|הרע שלי|סליחה, זו אשמתי|My bad, I forgot to call you.|טעות שלי, שכחתי להתקשר אליך.|דיבור יומיומי|1|כללי|3|A2
+expr|expr|I'm down|אני בעניין|אני למטה|אני מסכים ורוצה להצטרף|Pizza tonight? I'm down!|פיצה הערב? אני בעניין!|בין חברים|1|ארה"ב|3|B1
+expr|expr|Hit me up|תשלח לי הודעה|תכה אותי|תתקשר או תשלח לי הודעה|Hit me up when you're free.|תשלח לי הודעה כשאתה פנוי.|בין חברים|1|ארה"ב|3|B1
 slang|social|Lowkey|בשקט, קצת|בטון נמוך|משהו שמרגישים אבל לא מכריזים עליו|I'm lowkey excited about the trip.|אני בשקט די מתרגש מהטיול.|דיבור צעיר|1|ארה"ב|3|B1
 slang|social|Highkey|לגמרי, בגלוי|בטון גבוה|בצורה ברורה ובלי להסתיר|I highkey love this song.|אני לגמרי אוהב את השיר הזה.|דיבור צעיר|1|ארה"ב|2|B1
 slang|daily|Flex|להשוויץ|לכווץ שריר|להתהדר במשהו כדי שיקנאו|He's just flexing his new car.|הוא סתם משוויץ באוטו החדש שלו.|רשתות ודיבור|1|כללי|3|B1
@@ -273,55 +271,10 @@ expr|expr|Long time no see|מזמן לא התראינו|זמן ארוך לא ל�
 expr|expr|Sounds good|נשמע טוב|נשמע טוב|מסכים להצעה|Lunch at one? Sounds good.|צהריים באחת? נשמע טוב.|יומיומי וגם עבודה|2|כללי|3|A1
 expr|expr|Take care|שמור על עצמך|קח זהירות|ברכת פרידה חמה|Bye, take care!|ביי, שמור על עצמך!|יומיומי|2|כללי|3|A1
 expr|expr|Make yourself at home|תרגיש כמו בבית|תעשה את עצמך בבית|הזמנה לאורח להרגיש בנוח|Come in, make yourself at home.|תיכנס, תרגיש כמו בבית.|אירוח|2|כללי|2|A2
+expr|expr|Give me a sec|שנייה, רגע|תן לי שנייה|בקשה לחכות רגע קצר|Give me a sec, I'm almost ready.|שנייה, אני כמעט מוכן.|יומיומי|1|כללי|3|A2
+expr|expr|I have no idea|אין לי מושג|אין לי רעיון|אני בכלל לא יודע|Where is he? I have no idea.|איפה הוא? אין לי מושג.|יומיומי|2|כללי|3|A2
 expr|expr|I'm good, thanks|לא תודה, אני מסודר|אני טוב, תודה|דרך מנומסת לסרב להצעה|More coffee? I'm good, thanks.|עוד קפה? לא תודה, אני מסודר.|יומיומי|2|כללי|3|A2`;
 
-  const STORIES = [
-    { id: 's1', title: 'A Busy Morning', he: 'בוקר עמוס', level: 'A1', topic: 'home', minutes: 2,
-      text: `Dana wakes up at seven. She is hungry, so she goes to the kitchen. She makes coffee and eats bread with cheese.
-Her brother Tom is still in his bedroom. "Tom, wake up! We are late!" she says.
-Tom comes to the kitchen. He drinks a glass of milk and takes an apple. They leave the house together and walk to the bus station.
-The bus is late, and there is a lot of traffic. Dana looks at her phone. "Don't worry," Tom says. "We have time."
-Finally, the bus comes. They get off near the school. Dana smiles. It is a good day.` },
-    { id: 's2', title: 'My First Flight', he: 'הטיסה הראשונה שלי', level: 'A2', topic: 'travel', minutes: 3,
-      text: `Last summer, I took my first flight abroad. I was excited, but also a little nervous.
-At the airport, I showed my passport and checked in. A friendly woman gave me my boarding pass. "Your gate is number twelve," she said.
-I had a small backpack and one big piece of luggage. Before the flight, I bought a sandwich, but it was really expensive!
-On the plane, I sat next to an old man from London. He told me about his trip to Israel and the beach in Tel Aviv. "The weather here is much better than in England," he said, and we laughed.
-When we landed, I went through customs and found my luggage. My cousin was waiting for me with a big smile. It was the start of an amazing trip.` },
-    { id: 's3', title: 'Plans for Friday', he: 'תוכניות לשישי', level: 'B1', topic: 'social', minutes: 3, slang: true,
-      text: `Noa: Hey! What's up? Any plans for Friday?
-Ben: Not really. I was gonna stay home and binge-watch a series. Why?
-Noa: Some friends wanna hang out at the beach and then grab pizza. You in?
-Ben: I'm down! What time?
-Noa: Around six. Hit me up when you leave work.
-Ben: Bet. Oh wait, my bad, I have a meeting until six thirty.
-Noa: No worries, just come later.
-Ben: Cool. Is Maya coming too? Lowkey, I haven't seen her in ages.
-Noa: Yeah, she is. TBH, she asked about you.
-Ben: No cap?
-Noa: No cap! Now go figure out what to wear, haha.
-Ben: LOL. See you Friday!` },
-    { id: 's4', title: 'The Job Interview', he: 'ראיון העבודה', level: 'B1', topic: 'work', minutes: 5,
-      text: `Daniel had a job interview at a technology company in Tel Aviv. He was nervous, so he prepared for a whole week. He read about the company, its products and its main competitor.
-On the morning of the interview, there was a delay on the train, but he still arrived on time. The manager, Sarah, was friendly. To break the ice, she asked him about his commute. Then the real questions started.
-"Why do you want to work here?" she asked. Daniel explained that he wanted to improve his skills and work on a product that people use every day.
-"What is your biggest weakness?" Daniel smiled. "Sometimes I take on too much work, but I am learning to manage my workload."
-Sarah also asked about salary. Daniel was ready, and he did not give up when she offered a lower number. They negotiated, and in the end they agreed.
-A week later, Sarah called him. "Congratulations, you got the job!" Daniel felt like he was on cloud nine.` },
-    { id: 's5', title: 'Going Viral', he: 'הפכה לוויראלית', level: 'B2', topic: 'social', minutes: 5,
-      text: `Lior never planned to become an influencer. One evening, she posted a short video of her grandmother cooking a traditional recipe.
-The next morning, her phone would not stop buzzing with notifications. The video had gone viral overnight, with thousands of comments and shares.
-At first, it was exciting. New followers appeared every minute, and companies started sending her messages. However, the attention quickly became exhausting. Some people left kind comments, but others were cruel.
-Lior realized that she needed a strategy. She decided to turn off notifications in the evening and to post only when she had something meaningful to share. She also figured out that her audience loved the honest moments more than the perfect ones.
-A year later, Lior had a reliable income and a healthier relationship with her phone. "The trending part didn't last," she says, "but the community did."` },
-    { id: 's6', title: 'The Last Drop', he: 'הטיפה האחרונה', level: 'C1', topic: 'nature', minutes: 7,
-      text: `For three years in a row, the small farming village had suffered from a severe drought. The river that once ran through the valley had shrunk to a narrow stream, and the farmers watched helplessly as their crops dried up.
-Many young people had already moved to the city, convinced that the village had no future. But Amira, a young engineer who had grown up there, refused to accept that.
-After finishing her degree abroad, she returned with an ambitious idea: to collect the little rain that fell during winter and store it underground.
-At first, the stakeholders were skeptical. The plan required a significant budget, and the older farmers doubted that a single person could change anything.
-Amira did not give up. She organized meetings, negotiated with the regional council, and convinced a local company to invest in the project.
-Slowly, the system began to work. The wildlife returned to the valley, and the fields turned green again. The village did not completely recover overnight, but for the first time in years, people believed that the environment and the economy could grow together.` }
-  ];
 
   const PLACEMENT = [
     { q: 'I ___ a student.', o: ['am', 'is', 'are', 'be'], a: 0, lvl: 'A1' },
@@ -427,13 +380,21 @@ Slowly, the system began to work. The wildlife returned to the valley, and the f
   ];
 
   const INTERESTS = [
-    { id: 'tech', he: 'טכנולוגיה', cats: ['tech'] }, { id: 'nature', he: 'טבע', cats: ['nature'] },
-    { id: 'sports', he: 'ספורט', cats: ['sports', 'health'] }, { id: 'finance', he: 'פיננסים', cats: ['finance'] },
-    { id: 'business', he: 'עסקים', cats: ['business', 'work'] }, { id: 'food', he: 'אוכל', cats: ['food', 'restaurant'] },
-    { id: 'travel', he: 'טיולים', cats: ['travel', 'airport', 'hotel'] }, { id: 'entertainment', he: 'בידור', cats: ['entertainment'] },
-    { id: 'culture', he: 'תרבות', cats: ['entertainment', 'studies'] }, { id: 'relationships', he: 'זוגיות', cats: ['relationships', 'family'] },
-    { id: 'news', he: 'חדשות', cats: ['social', 'business'] }
+    { id: 'tech', he: 'טכנולוגיה', cats: ['tech'], read: ['tech', 'science'] }, { id: 'nature', he: 'טבע', cats: ['nature'], read: ['nature', 'science'] },
+    { id: 'sports', he: 'ספורט', cats: ['sports', 'health'], read: ['sports'] }, { id: 'finance', he: 'פיננסים', cats: ['finance'], read: ['finance'] },
+    { id: 'business', he: 'עסקים', cats: ['business', 'work'], read: ['business'] }, { id: 'food', he: 'אוכל', cats: ['food', 'restaurant'], read: ['culture', 'lifestyle'] },
+    { id: 'travel', he: 'טיולים', cats: ['travel', 'airport', 'hotel'], read: ['travel'] }, { id: 'entertainment', he: 'בידור', cats: ['daily'], read: ['entertainment'] },
+    { id: 'culture', he: 'תרבות', cats: ['daily'], read: ['culture'] }, { id: 'relationships', he: 'זוגיות', cats: ['relationships', 'family'], read: ['lifestyle'] },
+    { id: 'news', he: 'חדשות', cats: ['work', 'daily'], read: ['news'] }
   ];
 
-  window.APP_DATA = { CATEGORIES, WORDS, EXPRESSIONS, STORIES, PLACEMENT, SCENARIOS, FREE_QUESTIONS, GOALS, INTERESTS };
+  /* Reading topics (real articles, collected by tools/fetch-articles.mjs) */
+  const READ_CATS = [
+    { id: 'news', he: 'חדשות', icon: '📰' }, { id: 'tech', he: 'טכנולוגיה', icon: '💻' }, { id: 'science', he: 'מדע', icon: '🔬' },
+    { id: 'sports', he: 'ספורט', icon: '⚽' }, { id: 'business', he: 'עסקים', icon: '📈' }, { id: 'finance', he: 'פיננסים', icon: '💰' },
+    { id: 'nature', he: 'טבע', icon: '🌿' }, { id: 'culture', he: 'תרבות', icon: '🎨' }, { id: 'entertainment', he: 'בידור', icon: '🎬' },
+    { id: 'travel', he: 'טיולים', icon: '🧳' }, { id: 'lifestyle', he: 'Lifestyle', icon: '🧘' }
+  ];
+
+  window.APP_DATA = { CATEGORIES, CAT_ALIAS, WORDS, EXPRESSIONS, PLACEMENT, SCENARIOS, FREE_QUESTIONS, GOALS, INTERESTS, READ_CATS };
 })();

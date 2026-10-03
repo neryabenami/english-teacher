@@ -15,8 +15,8 @@
   const RT = {
     online: navigator.onLine, sheet: null, lastSheet: null, session: null, quiz: null, game: null, test: null,
     onb: { step: 'welcome', level: null, goal: 'all', interests: [], dailyMin: 10 },
-    reading: false, rate: 1, chatBusy: false, rec: null, dictQ: '', dictF: 'all', myTab: 'all', slangCat: '', storyLvl: 'all',
-    lastInput: Date.now(), confirmReset: false, myStory: null, after: null, swReg: null
+    reading: false, rate: 1, chatBusy: false, rec: null, dictQ: '', dictF: 'all', myTab: 'all', readCat: 'all', readIdx: 0, wordsSec: 'topics', art: null, lastSessionIds: null,
+    lastInput: Date.now(), confirmReset: false, after: null, swReg: null
   };
 
   /* ---------- icons ---------- */
@@ -88,8 +88,8 @@
   };
 
   /* ---------- tab bar ---------- */
-  const TABS = [['home', 'home', 'בית'], ['learn', 'learn', 'לימוד'], ['reading', 'book', 'קריאה'], ['ai', 'chat', 'AI'], ['profile', 'user', 'פרופיל']];
-  const TAB_OF = { cat: 'learn', real: 'learn', dict: 'learn', mywords: 'learn', games: 'learn', story: 'reading', mystory: 'reading', chat: 'ai', stats: 'profile', storage: 'profile', reports: 'profile', placement: 'profile' };
+  const TABS = [['home', 'home', 'בית'], ['words', 'learn', 'לימוד מילים'], ['reading', 'book', 'קריאה'], ['ai', 'chat', 'AI'], ['profile', 'user', 'פרופיל']];
+  const TAB_OF = { dict: 'words', mywords: 'words', article: 'reading', chat: 'ai', stats: 'profile', storage: 'profile', reports: 'profile', placement: 'profile' };
   const renderTabbar = (name) => {
     const cur = TAB_OF[name] || name;
     tabbarEl.innerHTML = `<nav aria-label="ניווט ראשי">${TABS.map(([id, icon, label]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="go" data-arg="${id}" ${cur === id ? 'aria-current="page"' : ''}>${ic(icon)}<span>${label}</span></button>`).join('')}</nav>`;
@@ -190,16 +190,28 @@
   /* =========================================================
      HOME
      ========================================================= */
-  const ring = (pct) => { const c = 2 * Math.PI * 38; return `<div class="ring" role="img" aria-label="${Math.round(pct * 100)}% מהיעד היומי"><svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="38" stroke="currentColor" stroke-opacity=".25" stroke-width="8" fill="none"/><circle cx="44" cy="44" r="38" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - pct)).toFixed(1)}"/></svg><div class="ring-txt"><b class="tnum">${Math.round(pct * 100)}%</b><span>מהיעד</span></div></div>`; };
-  const topicEmoji = (t) => (catOf(t) || { icon: '📘' }).icon;
-  const storyCard = (s) => { const read = S.stats.stories[s.id]; return `<button class="card story-card" data-act="go" data-arg="story/${s.id}"><div class="cover">${topicEmoji(s.topic)}</div><div style="min-width:0"><div class="title">${esc(s.title)}</div><div class="muted small">${esc(s.he)}</div><div class="row wrap" style="gap:6px;margin-top:6px">${lvlBadge(s.level)}<span class="badge">${s.minutes} דק׳ קריאה</span>${read ? '<span class="badge good">נקרא ✓</span>' : ''}</div></div></button>`; };
-  const recommendedStory = () => {
-    const max = Math.min(5, ET.lvlIdx(S.profile.cefr) + 1);
-    const ok = D.STORIES.filter((s) => ET.lvlIdx(s.level) <= max);
-    const cats = new Set(); S.profile.interests.forEach((i) => (D.INTERESTS.find((x) => x.id === i) || { cats: [] }).cats.forEach((c) => cats.add(c)));
-    return ok.find((s) => !S.stats.stories[s.id] && cats.has(s.topic)) || ok.find((s) => !S.stats.stories[s.id]) || ok[ok.length - 1] || D.STORIES[0];
+  const readCat = (id) => D.READ_CATS.find((c) => c.id === id) || { he: '', icon: '📰' };
+  const BAND_HE = { beginner: 'מתחילים', intermediate: 'בינוני', advanced: 'מתקדמים' };
+  const srcIcon = (a) => (a.source.startsWith('Simple') ? '<i class="src-ic wiki" aria-hidden="true">W</i>' : '<i class="src-ic conv" aria-hidden="true">C</i>');
+  const ago = (iso) => { const h = (Date.now() - new Date(iso)) / 36e5; return h < 1 ? 'עכשיו' : h < 24 ? `לפני ${Math.round(h)} שעות` : h < 48 ? 'אתמול' : `לפני ${Math.round(h / 24)} ימים`; };
+  const articleRow = (a) => {
+    const read = S.stats.articles[a.id];
+    const saved = ET.Articles.isSaved(a.id);
+    return `<button class="card art-card" data-act="go" data-arg="article/${esc(a.id)}"><span class="thumb">${readCat(a.cat).icon}</span><span class="art-main">
+      <span class="src">${srcIcon(a)}${esc(a.source)} · ${readCat(a.cat).he}${a.source === 'The Conversation' ? ' · ' + ago(a.date) : ''}</span>
+      <span class="art-title" lang="en" dir="ltr">${esc(a.title)}</span>
+      <span class="row wrap" style="gap:6px"><span class="badge">${a.minutes} דק׳ קריאה</span>${a.stretch > 0 ? '<span class="badge warn">קצת מאתגר</span>' : a.stretch < 0 ? '<span class="badge">קל יותר</span>' : ''}${saved ? '<span class="badge good">שמורה Offline</span>' : ''}${read ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button>`;
   };
   const stat = (n, label) => `<div class="stat"><b>${n}</b><span>${label}</span></div>`;
+  const ring = (pct, top, sub) => { const c = 2 * Math.PI * 38; return `<div class="ring" role="img" aria-label="${Math.round(pct * 100)}% מהיעד היומי"><svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="38" stroke="currentColor" stroke-opacity=".25" stroke-width="8" fill="none"/><circle cx="44" cy="44" r="38" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - pct)).toFixed(1)}"/></svg><div class="ring-txt"><b class="tnum">${top}</b><span>${sub}</span></div></div>`; };
+  const SEC_HE = { expr: 'ביטויים נפוצים', slang: 'סלנג אמריקאי' };
+  const resumeInfo = () => {
+    const r = S.resume;
+    if (!r || !r.ids || r.i >= r.ids.length) return null;
+    const label = r.kind === 'cat' ? 'נושא: ' + ((catOf(r.arg) || {}).he || '') : r.kind === 'sec' ? SEC_HE[r.arg] : r.kind === 'review' ? 'חזרה על מילים' : 'המסלול היומי';
+    return { path: `session/${r.kind}${r.arg ? '/' + r.arg : ''}`, text: `${label} · כרטיס ${r.i + 1} מתוך ${r.ids.length}` };
+  };
+  const miniCard = (it, eyebrow) => `<button class="card mini-card" data-act="item" data-arg="${esc(it.id)}"><span class="eyebrow">${eyebrow}</span><span class="word">${esc(it.t)}</span><span class="small muted">${esc(it.he)}</span></button>`;
 
   SCREENS.home = () => {
     const t = ET.today();
@@ -207,70 +219,44 @@
     const goal = S.profile.dailyMin;
     const pct = Math.min(1, t.sec / (goal * 60));
     const due = ET.dueIds().length;
-    const wod = ET.wordOfDay();
-    const sod = ET.slangOfDay();
     const h = new Date().getHours();
     const greet = h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב';
-    const started = t.learned + t.reviewed > 0;
-    const quick = (icon, num, label, path) => `<button data-act="go" data-arg="${path}"><span class="q-ico">${ic(icon)}</span>${num !== '' ? `<span class="q-num tnum">${num}</span>` : ''}<span>${label}</span></button>`;
+    const res = resumeInfo();
+    const art = ET.Articles.recommended();
+    if (!ET.Articles.index && !ET.Articles.failed && !ET.Articles.loading) ET.Articles.load().then(() => { if (parse().name === 'home') render(); });
     return `<div class="screen">
-      <div class="hello"><div><p class="muted small">${greet} 👋</p><h1>${started ? 'ממשיכים מאיפה שעצרת' : 'מוכנים ללמוד היום?'}</h1></div>
+      <div class="hello"><div><p class="muted small">${greet} 👋</p><h1>${res || t.learned + t.reviewed ? 'ממשיכים מאיפה שעצרת' : 'מוכנים ללמוד היום?'}</h1></div>
         <div class="streak" aria-label="${ET.streak()} ימים ברצף">${icFill('flame')}<span class="tnum">${ET.streak()}</span></div></div>
       ${RT.online ? '' : '<div class="note">אין חיבור לאינטרנט. הלימוד ממשיך לעבוד כרגיל וההתקדמות נשמרת במכשיר.</div>'}
-      <section class="hero"><div><h2>הלימוד של היום</h2><p>${due ? `${due} מילים מחכות לחזרה · ` : ''}${mins} מתוך ${goal} דקות</p>
-        <button class="btn" data-act="go" data-arg="session/daily">${ic('play')} ${started ? 'המשך ללמוד' : 'התחל ללמוד'}</button></div>${ring(pct)}</section>
-      <div class="quick">${quick('repeat', due, 'לחזרה', 'session/review')}${quick('bookmark', ET.myList('saved').length, 'שמורות', 'mywords')}${quick('search', '', 'מילון', 'dict')}${quick('quiz', '', 'מבחן', 'quiz/mixed')}</div>
-      <section class="section"><div class="section-head"><h2>של היום</h2></div><div class="daily">
-        <button class="card daily-card" data-act="item" data-arg="${esc(wod.id)}"><div class="art">${wod.emoji}</div><div style="min-width:0"><div class="eyebrow">Word of the Day</div><div class="word">${esc(wod.t)}</div><div class="muted small">${esc(wod.he)}</div></div><span class="speak sm" data-act="say" data-arg="${esc(wod.t)}" data-id="${esc(wod.id)}" role="button" aria-label="השמעה">${ic('speaker')}</span></button>
-        <button class="card daily-card" data-act="item" data-arg="${esc(sod.id)}"><div class="art">${sod.emoji}</div><div style="min-width:0"><div class="eyebrow">Slang of the Day</div><div class="word">${esc(sod.t)}</div><div class="muted small">${esc(sod.he)}</div></div><span class="speak sm" data-act="say" data-arg="${esc(sod.t)}" data-id="${esc(sod.id)}" role="button" aria-label="השמעה">${ic('speaker')}</span></button>
-      </div></section>
-      <section class="section"><div class="section-head"><h2>סיפור מומלץ</h2><button class="link" data-act="go" data-arg="reading">לכל הסיפורים</button></div>${storyCard(recommendedStory())}</section>
-      <button class="card daily-card" data-act="go" data-arg="chat/free"><div class="art" style="background:var(--accent-soft);color:var(--accent)">${ic('chat')}</div><div style="min-width:0"><div class="eyebrow">AI</div><div style="font-weight:600">דבר עם AI</div><div class="muted small">שיחה באנגלית עם תיקונים והסברים בעברית</div></div>${ic('chev', 'chev')}</button>
-      <section class="section"><div class="section-head"><h2>ההתקדמות שלי</h2><button class="link" data-act="go" data-arg="stats">כל הסטטיסטיקות</button></div>
-        <div class="grid3">${stat(ET.myList('all').length, 'מילים שנלמדו')}${stat(ET.myList('known').length, 'מילים שאני יודע')}${stat(ET.totalMinutes(), 'דקות לימוד')}</div></section>
+      <section class="hero"><div><h2>${res ? 'המשך מאיפה שהפסקתי' : 'הלימוד של היום'}</h2><p>${res ? esc(res.text) : `${ET.sessionSize()} כרטיסיות לפי הרמה שלך`}</p>
+        <button class="btn" data-act="go" data-arg="${res ? res.path : 'session/daily'}">${ic('play')} ${res ? 'המשך' : 'התחל ללמוד'}</button></div>${ring(pct, `${mins}/${goal}`, 'דקות היום')}</section>
+      ${due ? `<button class="card row-card" data-act="go" data-arg="session/review"><span class="thumb" style="background:var(--sun-soft)">🔁</span><span class="grow"><b>${due} מילים מחכות לחזרה</b><span class="small muted" style="display:block">כ־${Math.max(1, Math.round(due / 4))} דקות</span></span><span class="btn soft small">לחזרה</span></button>` : ''}
+      <div class="grid2">${miniCard(ET.wordOfDay(), 'Word of the Day')}${miniCard(ET.slangOfDay(), 'Slang of the Day')}</div>
+      ${art ? `<section class="section"><div class="section-head"><h2>מומלץ לקריאה</h2></div>${articleRow({ ...art, stretch: 0 })}</section>` : ''}
+      <button class="card row-card" data-act="go" data-arg="chat/free"><span class="thumb" style="background:var(--accent-soft)">💬</span><span class="grow"><b>בוא נדבר באנגלית</b><span class="small muted" style="display:block">שיחה עם AI, עם תיקונים והסברים בעברית</span></span>${ic('chev', 'chev')}</button>
     </div>`;
   };
 
   /* =========================================================
-     LEARN
+     WORDS (topics · common expressions · American slang)
      ========================================================= */
-  const KIND_SUB = { slang: 'אמריקאי, בריטי, רשתות ודייטים', spoken: 'gonna, wanna, lemme…', phrasal: 'give up, figure out…', idiom: 'piece of cake…', texting: 'LOL, BTW, IDK…', expr: 'No worries, Fair enough…' };
-  SCREENS.learn = () => `<div class="screen">${topbar('לימוד')}
-    <button class="search" data-act="go" data-arg="dict" style="display:block;width:100%;text-align:start">${ic('search')}<span class="input" style="display:flex;align-items:center;color:var(--muted)">חיפוש מילה, ביטוי או סלנג…</span></button>
-    <button class="card daily-card" data-act="go" data-arg="session/daily"><div class="art" style="background:var(--accent);color:var(--accent-ink)">${ic('play')}</div><div style="min-width:0"><div style="font-weight:600">המסלול היומי שלי</div><div class="muted small">${ET.sessionSize()} כרטיסיות לפי הרמה ותחומי העניין שלך</div></div>${ic('chev', 'chev')}</button>
-    <section class="section"><div class="section-head"><h2>Real English</h2><span class="muted small">איך באמת מדברים</span></div>
-      <div class="tiles">${['slang', 'spoken', 'phrasal', 'idiom', 'texting', 'expr'].map((k) => `<button class="tile" data-act="go" data-arg="real/${k}"><span class="emo">${ET.KINDS[k].icon}</span><span class="name">${ET.KINDS[k].he}</span><span class="sub">${esc(KIND_SUB[k])}</span><span class="sub">${ET.exprsOf(k).length} ביטויים</span></button>`).join('')}</div></section>
-    <section class="section"><div class="section-head"><h2>לימוד לפי נושאים</h2></div>
-      <div class="cats">${D.CATEGORIES.map((c) => { const p = ET.catProgress(c.id); return `<button class="cat" data-act="go" data-arg="cat/${c.id}"><span class="emo">${c.icon}</span><span class="name">${c.he}</span><div class="bar"><i style="width:${(p.known / p.total) * 100}%"></i></div><span class="small muted tnum">${p.known}/${p.total} מילים</span></button>`; }).join('')}</div></section>
-    <section class="section"><div class="section-head"><h2>תרגול</h2></div><div class="list">
-      ${li('quiz', 'מבחן מעורב', 'בחירה, השלמה, שמיעה, כתיבה ותמונות', 'quiz/mixed')}
-      ${li('game', 'משחקים', 'התאמת זוגות, ניחוש מילה, מהירות ושמיעה', 'games')}
-      ${li('bookmark', 'המילים שלי', `${ET.myList('all').length} מילים`, 'mywords')}
-      ${li('search', 'מילון', 'חיפוש באנגלית ובעברית', 'dict')}
-    </div></section></div>`;
-
-  SCREENS.cat = (id) => {
-    const c = catOf(id);
-    if (!c) return SCREENS.learn();
-    const ws = ET.wordsOf(id);
-    const p = ET.catProgress(id);
-    return `<div class="screen">${topbar(c.he, 'learn')}
-      <div class="card stack"><div class="row"><span style="font-size:2.4rem">${c.icon}</span><div class="grow"><h2>${c.he}</h2><div class="small muted tnum">${p.known} מתוך ${p.total} מילים ידועות</div></div><span class="badge good">${ic('check').replace('<svg', '<svg width="14" height="14"')} זמין Offline</span></div>
-        <div class="bar"><i style="width:${(p.known / p.total) * 100}%"></i></div>
-        <button class="btn block" data-act="go" data-arg="session/cat/${id}">${ic('play')} למד את הנושא</button></div>
-      <div class="list">${ws.map((w) => itemRow(w)).join('')}</div></div>`;
-  };
-
-  SCREENS.real = (kind) => {
-    const k = ET.KINDS[kind] ? kind : 'slang';
-    const cat = k === 'slang' ? RT.slangCat : '';
-    const list = ET.exprsOf(k, cat || undefined);
-    const chips = k === 'slang' ? `<div class="chips"><button class="chip ${!cat ? 'on' : ''}" data-act="slang-cat" data-arg="">הכול</button>${ET.SLANG_CATS.map((c) => `<button class="chip ${cat === c.id ? 'on' : ''}" data-act="slang-cat" data-arg="${c.id}">${c.he}</button>`).join('')}</div>` : '';
-    return `<div class="screen">${topbar(ET.KINDS[k].he, 'learn')}
-      ${k === 'slang' ? '<p class="muted">English Slang: איך מדברים באמת, עם הקשר, רמת רשמיות ואזור שימוש.</p>' : ''}
-      ${chips}
-      <button class="btn block" data-act="go" data-arg="session/real/${k}${cat ? '.' + cat : ''}">${ic('play')} תרגל בכרטיסיות (${Math.min(15, list.length)})</button>
-      <div class="list">${list.map((it) => itemRow(it, it.region && it.region !== 'כללי' ? `<span class="badge">${esc(it.region)}</span>` : '')).join('') || '<div class="empty">אין ביטויים בקטגוריה הזאת</div>'}</div></div>`;
+  const WORD_SECS = [['topics', 'נושאים'], ['expr', 'ביטויים נפוצים'], ['slang', 'סלנג אמריקאי']];
+  SCREENS.words = (sec) => {
+    sec = WORD_SECS.some(([id]) => id === sec) ? sec : RT.wordsSec || 'topics';
+    RT.wordsSec = sec;
+    const head = `<header class="topbar"><h1>לימוד מילים</h1>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<button class="icon-btn" data-act="go" data-arg="dict" aria-label="חיפוש במילון">${ic('search')}</button><button class="icon-btn" data-act="go" data-arg="mywords" aria-label="המילים שלי">${ic('star')}</button></header>`;
+    const seg = `<div class="seg full" role="tablist">${WORD_SECS.map(([id, he]) => `<button role="tab" aria-selected="${sec === id}" class="${sec === id ? 'on' : ''}" data-act="go" data-arg="words/${id}">${he}</button>`).join('')}</div>`;
+    let body;
+    if (sec === 'topics') {
+      body = `<div class="topics">${D.CATEGORIES.map((c) => { const p = ET.catProgress(c.id); return `<button class="topic" data-act="go" data-arg="session/cat/${c.id}"><span class="emo">${c.icon}</span><span class="name">${c.he}</span><div class="bar"><i style="width:${(p.known / p.total) * 100}%"></i></div><span class="small muted tnum">${p.known}/${p.total}</span></button>`; }).join('')}</div>`;
+    } else {
+      const items = ET.sectionItems(sec);
+      const byFit = (l) => l.slice().sort((a, b) => ET.levelFit(a) - ET.levelFit(b));
+      const groups = sec === 'expr' ? ET.EXPR_GROUPS.map(([k, he]) => [he, items.filter((i) => i.kind === k)]) : [['', items]];
+      body = `<button class="btn block" data-act="go" data-arg="session/sec/${sec}">${ic('play')} ${sec === 'slang' ? 'תרגול סלנג בכרטיסיות' : 'תרגול ביטויים בכרטיסיות'}</button>
+        ${groups.filter(([, l]) => l.length).map(([he, l]) => `${he ? `<h3 class="group-h">${he}</h3>` : ''}<div class="list">${byFit(l).map((it) => itemRow(it)).join('')}</div>`).join('')}`;
+    }
+    return `<div class="screen">${head}${seg}${body}</div>`;
   };
 
   /* ---------- flashcards ---------- */
@@ -297,17 +283,26 @@
   };
   SCREENS.session = (kind, arg = '') => {
     const key = kind + '/' + arg;
-    if (!RT.session || RT.session.key !== key) RT.session = { key, kind, arg, ids: ET.buildSession(kind, arg), i: 0, revealed: false, res: { 5: 0, 3: 0, 1: 0 } };
+    if (!RT.session || RT.session.key !== key) {
+      const r = S.resume;
+      RT.session = r && r.key === key && r.i < r.ids.length
+        ? { key, kind, arg, ids: r.ids.filter((id) => ET.item(id)), i: r.i, revealed: false, res: r.res || { 5: 0, 1: 0 } }
+        : { key, kind, arg, ids: ET.buildSession(kind, arg), i: 0, revealed: false, res: { 5: 0, 1: 0 } };
+    }
     const s = RT.session;
     const close = `<button class="icon-btn" data-act="exit-session" aria-label="סגירה">${ic('x')}</button>`;
     if (!s.ids.length) {
-      return `<div class="screen no-tabs"><header class="topbar">${close}<h1>${kind === 'review' ? 'חזרה' : 'כרטיסיות'}</h1></header><div class="empty card"><div class="emo">${kind === 'review' ? '🎉' : '📭'}</div><h2>${kind === 'review' ? 'אין מילים לחזרה כרגע' : 'אין כאן כרטיסיות כרגע'}</h2><p>${kind === 'review' ? 'כל הכבוד! המערכת תזכיר לך כשיגיע הזמן לחזור על מילים.' : 'נסו נושא אחר או את המסלול היומי.'}</p><button class="btn" data-act="go" data-arg="session/daily">למסלול היומי</button></div></div>`;
+      return `<div class="screen no-tabs"><header class="topbar">${close}<h1>${kind === 'review' ? 'חזרה' : 'כרטיסיות'}</h1></header><div class="empty card"><div class="emo">${kind === 'review' ? '🎉' : '📭'}</div><h2>${kind === 'review' ? 'אין מילים לחזרה כרגע' : 'אין כאן כרטיסיות כרגע'}</h2><p>${kind === 'review' ? 'כל הכבוד! המערכת תזכיר לך כשיגיע הזמן לחזור על מילים.' : 'נסו נושא אחר.'}</p><button class="btn" data-act="go" data-arg="words">ללימוד מילים</button></div></div>`;
     }
     if (s.i >= s.ids.length) {
+      if (S.resume && S.resume.key === key) { S.resume = null; ET.save(); }
+      RT.lastSessionIds = s.ids.slice();
       return `<div class="screen no-tabs"><header class="topbar">${close}<h1>סיימת סבב</h1></header>
         <div class="card result"><div class="big-emoji">🎉</div><h1>כל הכבוד!</h1><p class="muted">עברת על ${s.ids.length} כרטיסיות. המערכת תחזיר אליך כל מילה בדיוק בזמן הנכון.</p>
-          <div class="grid3" style="width:100%">${stat(s.res[5], 'ידעתי')}${stat(s.res[3], 'קשה לי')}${stat(s.res[1], 'לא ידעתי')}</div></div>
-        <button class="btn block" data-act="restart-session">עוד סבב</button><button class="btn ghost block" data-act="exit-session">סיום</button></div>`;
+          <div class="grid2" style="width:100%">${stat(s.res[5], 'הכרתי')}${stat(s.res[1], 'לא הכרתי')}</div></div>
+        <button class="btn block" data-act="go" data-arg="quiz/session">${ic('quiz')} בחן את עצמי על המילים האלה</button>
+        <button class="btn ghost block" data-act="restart-session">עוד סבב</button>
+        <button class="link" data-act="go" data-arg="game/match" style="justify-self:center">או משחק התאמה קצר 🧩</button></div>`;
     }
     const it = ET.item(s.ids[s.i]);
     if (!it) { s.i++; return SCREENS.session(kind, arg); }
@@ -316,23 +311,21 @@
       <header class="topbar">${close}<div class="progress-top grow"><div class="bar"><i style="width:${(s.i / s.ids.length) * 100}%"></i></div><span class="small muted tnum">${s.i + 1}/${s.ids.length}</span></div></header>
       ${flashcard(it, s.revealed)}
       ${s.revealed ? '' : '<button class="btn soft block" data-act="reveal">הצג תרגום</button>'}
-      <div class="grade">
-        <button class="g-bad" data-act="grade" data-arg="1">לא ידעתי<small>${ET.preview(it.id, 1)}</small></button>
-        <button class="g-hard" data-act="grade" data-arg="3">קשה לי<small>${ET.preview(it.id, 3)}</small></button>
-        <button class="g-good" data-act="grade" data-arg="5">ידעתי<small>${ET.preview(it.id, 5)}</small></button>
+      <div class="grade two">
+        <button class="g-bad" data-act="grade" data-arg="1">לא הכרתי<small>${ET.preview(it.id, 1)}</small></button>
+        <button class="g-good" data-act="grade" data-arg="5">הכרתי ✓<small>${ET.preview(it.id, 5)}</small></button>
       </div></div>`;
   };
-  const sessionExitPath = () => { const s = RT.session; if (!s) return 'home'; return s.kind === 'cat' ? 'cat/' + s.arg : s.kind === 'real' ? 'real/' + s.arg.split('.')[0] : s.kind === 'list' ? 'mywords' : 'home'; };
-
+  const sessionExitPath = () => { const s = RT.session; if (!s) return 'home'; return s.kind === 'cat' ? 'words/topics' : s.kind === 'sec' ? 'words/' + s.arg : s.kind === 'list' ? 'mywords' : 'home'; };
   /* ---------- my words ---------- */
   const MY_TABS = [['all', 'הכול'], ['new', 'חדשות'], ['hard', 'קשות'], ['known', 'אני יודע'], ['saved', 'שמורות'], ['due', 'לחזרה']];
   SCREENS.mywords = () => {
     const ids = ET.myList(RT.myTab);
     const list = ids.map(ET.item).filter(Boolean).sort((a, b) => ((ET.rec(b.id) || {}).last || 0) - ((ET.rec(a.id) || {}).last || 0));
-    return `<div class="screen">${topbar('המילים שלי', 'learn')}
+    return `<div class="screen">${topbar('המילים שלי', 'words')}
       <div class="chips">${MY_TABS.map(([id, he]) => `<button class="chip ${RT.myTab === id ? 'on' : ''}" data-act="my-tab" data-arg="${id}">${he} <span class="tnum" style="opacity:.7">${ET.myList(id).length}</span></button>`).join('')}</div>
       ${list.length ? `<button class="btn block" data-act="go" data-arg="session/list/${RT.myTab}">${ic('play')} תרגל את הרשימה</button><div class="list">${list.map((it) => itemRow(it)).join('')}</div>`
-        : `<div class="card empty"><div class="emo">🗂️</div><h2>הרשימה ריקה</h2><p>מילים יופיעו כאן כשתלמדו כרטיסיות, תשמרו מילים מהסיפורים או מהמילון.</p><button class="btn" data-act="go" data-arg="session/daily">להתחיל ללמוד</button></div>`}</div>`;
+        : `<div class="card empty"><div class="emo">🗂️</div><h2>הרשימה ריקה</h2><p>מילים יופיעו כאן כשתלמדו כרטיסיות, או כשתשמרו מילים מכתבות ומהמילון.</p><button class="btn" data-act="go" data-arg="words">להתחיל ללמוד</button></div>`}</div>`;
   };
 
   /* ---------- dictionary ---------- */
@@ -347,7 +340,7 @@
     if (!res.length) return `<div class="card empty"><div class="emo">🔎</div><p>לא מצאנו את "${esc(q)}" במילון המקומי.</p>${/^[a-z' -]+$/i.test(q) ? `<button class="btn soft small" data-act="say" data-arg="${esc(q)}">${ic('speaker')} להשמיע בכל זאת</button>` : ''}</div>`;
     return `<div class="list">${res.map((it) => (it.type === 'lex' ? `<button class="li" data-act="lex" data-arg="${esc(it.t)}"><span class="ico">📗</span><span class="main"><span class="t en" style="display:block">${esc(it.t)}</span><span class="s" style="display:block">${esc(it.he)}</span></span><span class="end"><span class="badge">מילון כללי</span></span></button>` : itemRow(it, it.type === 'expr' ? `<span class="badge sun">${ET.KINDS[it.kind].he}</span>` : ''))).join('')}</div>`;
   };
-  SCREENS.dict = () => `<div class="screen">${topbar('מילון', 'learn')}
+  SCREENS.dict = () => `<div class="screen">${topbar('מילון', 'words')}
     <div class="search">${ic('search')}<input class="input" id="dict-q" type="search" placeholder="חפשו באנגלית או בעברית" value="${esc(RT.dictQ)}" data-input="dict" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="חיפוש במילון"></div>
     <div class="chips">${DICT_F.map(([id, he]) => `<button class="chip ${RT.dictF === id ? 'on' : ''}" data-act="dict-filter" data-arg="${id}">${he}</button>`).join('')}</div>
     <div id="dict-res">${dictResults()}</div></div>`;
@@ -385,7 +378,7 @@
   };
   const Q_LABEL = { mc_en: 'מה התרגום?', mc_he: 'איך אומרים באנגלית?', fill: 'השלימו את המשפט', listen: 'הקשיבו ובחרו את מה ששמעתם', write: 'כתבו באנגלית', picture: 'מה רואים בתמונה?', context: 'מה המשמעות בהקשר הזה?' };
   SCREENS.quiz = (mode = 'mixed') => {
-    if (!RT.quiz || RT.quiz.mode !== mode || RT.quiz.restart) RT.quiz = { mode, qs: quizPool(10).map((it) => makeQ(it, mode)), i: 0, right: 0, done: false };
+    if (!RT.quiz || RT.quiz.mode !== mode || RT.quiz.restart) RT.quiz = { mode, qs: (mode === 'session' && RT.lastSessionIds ? ET.sample(RT.lastSessionIds.map(ET.item).filter(Boolean), 10) : quizPool(10)).map((it) => makeQ(it, mode === 'session' ? 'mixed' : mode)), i: 0, right: 0, done: false };
     const z = RT.quiz;
     const close = `<button class="icon-btn" data-act="quiz-exit" aria-label="סגירה">${ic('x')}</button>`;
     if (z.i >= z.qs.length) {
@@ -430,7 +423,7 @@
   /* =========================================================
      GAMES
      ========================================================= */
-  SCREENS.games = () => `<div class="screen">${topbar('משחקים', 'learn')}
+  SCREENS.games = () => `<div class="screen">${topbar('משחקים', 'words')}
     <div class="tiles">
       <button class="tile" data-act="go" data-arg="game/match"><span class="emo">🧩</span><span class="name">התאמת זוגות</span><span class="sub">Word Match: חברו מילה לתרגום</span></button>
       <button class="tile" data-act="go" data-arg="game/guess"><span class="emo">🔤</span><span class="name">Guess the Word</span><span class="sub">בנו את המילה מהאותיות</span></button>
@@ -502,15 +495,42 @@
   /* =========================================================
      READING
      ========================================================= */
-  const PHRASES = ET.ITEMS.filter((i) => i.type === 'expr' || (i.type === 'word' && / /.test(i.t)))
+  SCREENS.reading = (catArg) => {
+    const A = ET.Articles;
+    if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'reading') render(); });
+    const cat = catArg === undefined ? RT.readCat || 'all' : catArg || 'all';
+    RT.readCat = cat;
+    const band = ET.bandOf(S.profile.cefr);
+    const saved = Object.values(S.saved);
+    const chips = `<div class="chips"><button class="chip ${cat === 'all' ? 'on' : ''}" data-act="go" data-arg="reading/all">הכול</button>${D.READ_CATS.map((c) => `<button class="chip ${cat === c.id ? 'on' : ''}" data-act="go" data-arg="reading/${c.id}">${c.he}</button>`).join('')}${saved.length ? `<button class="chip ${cat === 'saved' ? 'on' : ''}" data-act="go" data-arg="reading/saved">שמורות (${saved.length})</button>` : ''}</div>`;
+    let list;
+    if (cat === 'saved') list = saved.map((a) => ({ ...a, stretch: 0 }));
+    else if (A.index) {
+      const interest = new Set(); S.profile.interests.forEach((i) => ((D.INTERESTS.find((x) => x.id === i) || {}).read || []).forEach((c) => interest.add(c)));
+      list = A.forUser(cat === 'all' ? undefined : cat).sort((x, y) => (cat === 'all' ? (interest.has(x.cat) ? 0 : 1) - (interest.has(y.cat) ? 0 : 1) : 0) || new Date(y.date) - new Date(x.date)).slice(0, 40);
+    }
+    let body;
+    if (list && list.length) body = `<div class="stack">${list.map(articleRow).join('')}</div>`;
+    else if (list) body = `<div class="card empty"><div class="emo">📭</div><p>${cat === 'saved' ? 'עדיין לא שמרת כתבות.' : 'אין כרגע כתבות בתחום הזה. נסו תחום אחר.'}</p></div>`;
+    else if (A.failed) body = `<div class="card empty"><div class="emo">📡</div><h2>אין חיבור לאינטרנט</h2><p>כתבות חדשות ייטענו כשהחיבור יחזור.${saved.length ? ' בינתיים אפשר לקרוא את הכתבות ששמרת.' : ''}</p>${saved.length ? '<button class="btn" data-act="go" data-arg="reading/saved">לכתבות השמורות</button>' : ''}</div>`;
+    else body = '<div class="card empty"><p>טוען כתבות…</p></div>';
+    return `<div class="screen">${topbar('קריאה', null, `<span class="badge lvl">מותאם לרמה: ${BAND_HE[band]}</span>`)}
+      ${chips}${body}
+      <p class="note">כתבות אמיתיות מ־The Conversation (רישיון CC BY-ND) ומ־Simple English Wikipedia (רישיון CC BY-SA), מתעדכנות כמה פעמים ביום. רמת הקושי נבחרת לפי הרמה שבפרופיל.</p></div>`;
+  };
+
+  /* words & phrases inside real text */
+  const PHRASES = ET.ITEMS.filter((i) => (i.type === 'expr' && ['phrasal', 'idiom', 'slang'].includes(i.kind)) || (i.type === 'word' && / /.test(i.t)))
     .map((it) => {
       const clean = it.t.replace(/[?.!]+$/, '');
       const parts = clean.split(' ');
-      const IRR = { give: 'gave|given', run: 'ran', come: 'came', find: 'found', hang: 'hung', catch: 'caught', break: 'broke', put: 'put', turn: 'turn\\w*', bite: 'bit', hit: 'hit', get: 'got' };
-      let src = parts.map(escRe).join('\\s+');
-      if (it.kind === 'phrasal' || it.kind === 'idiom' || it.pos === 'phr') src = `(?:${escRe(parts[0])}\\w*${IRR[parts[0].toLowerCase()] ? '|' + IRR[parts[0].toLowerCase()] : ''})` + (parts.length > 1 ? '\\s+' + parts.slice(1).map(escRe).join('\\s+') : '');
-      return { it, multi: parts.length > 1, abbr: /^[A-Z]{2,}$/.test(clean), spoken: it.kind === 'spoken', src };
+      const IRR = { give: 'gave|given|giving', run: 'ran|running', come: 'came|coming', find: 'found', hang: 'hung|hanging', catch: 'caught', break: 'broke|broken|breaking', put: 'putting', bite: 'bit|biting', hit: 'hitting', get: 'got|getting', look: 'looking|looked', work: 'worked|working', try: 'tried|trying' };
+      const first = parts[0].toLowerCase();
+      const head = `(?:${escRe(parts[0])}(?:s|es|ed|d|ing)?${IRR[first] ? '|' + IRR[first] : ''})`;
+      const src = (it.kind === 'phrasal' || it.kind === 'idiom' || it.pos === 'phr' ? head : escRe(parts[0])) + (parts.length > 1 ? '\\s+' + parts.slice(1).map(escRe).join('\\s+') : '');
+      return { it, multi: parts.length > 1, abbr: /^[A-Z]{2,}$/.test(clean), src };
     })
+    .filter((p) => p.multi || p.abbr)
     .sort((a, b) => b.it.t.length - a.it.t.length);
   const wordSpans = (seg) => seg.split(/([A-Za-z][A-Za-z'’]*(?:-[A-Za-z]+)*)/).map((part, i) => {
     if (!(i % 2)) return esc(part);
@@ -518,10 +538,9 @@
     const known = lk.item && ET.status(lk.item.id) === 'known';
     return `<span class="w${known ? ' known' : ''}" data-act="word" data-arg="${esc(part)}">${esc(part)}</span>`;
   }).join('');
-  const tokenize = (text, story) => {
+  const tokenize = (text) => {
     const ranges = [];
     for (const ph of PHRASES) {
-      if (!(ph.multi || ph.abbr || ph.spoken || story.slang)) continue;
       const re = new RegExp(`(^|[^A-Za-z'])(${ph.src})(?=$|[^A-Za-z'])`, ph.abbr ? 'g' : 'gi');
       let m;
       while ((m = re.exec(text))) {
@@ -534,56 +553,53 @@
     for (const r of ranges) { out += wordSpans(text.slice(pos, r.st)); out += `<span class="ph" data-act="phrase" data-arg="${esc(r.id)}">${esc(text.slice(r.st, r.en))}</span>`; pos = r.en; }
     return out + wordSpans(text.slice(pos));
   };
-  const BANDF = [['all', 'הכול'], ['A', 'מתחילים'], ['B', 'בינוני'], ['C', 'מתקדמים']];
-  SCREENS.reading = () => {
-    const list = D.STORIES.filter((s) => RT.storyLvl === 'all' || s.level[0] === RT.storyLvl);
-    return `<div class="screen">${topbar('קריאה')}
-      <div class="chips">${BANDF.map(([id, he]) => `<button class="chip ${RT.storyLvl === id ? 'on' : ''}" data-act="story-lvl" data-arg="${id}">${he}</button>`).join('')}</div>
-      <button class="card daily-card" data-act="go" data-arg="mystory"><div class="art" style="background:var(--sun-soft);color:var(--warn)">${ic('sparkle')}</div><div style="min-width:0"><div style="font-weight:600">צור סיפור מהמילים שלי</div><div class="muted small">טקסט קצר שבנוי מהמילים שלמדת לאחרונה</div></div>${ic('chev', 'chev')}</button>
-      <div class="stack">${list.map(storyCard).join('')}</div>
-      <p class="note">כל הסיפורים שמורים במכשיר וזמינים גם בלי אינטרנט. לחיצה על מילה בסיפור מציגה תרגום, וביטויים מסומנים מקבלים משמעות לפי ההקשר.</p></div>`;
-  };
-  const storyView = (s, back) => {
-    const paras = s.text.split('\n').filter((p) => p.trim());
-    const read = S.stats.stories[s.id];
-    const gem = S.profile.ai === 'gemini' && S.profile.geminiKey && RT.online;
-    return `<div class="screen">${topbar('קריאה', back, lvlBadge(s.level))}
-      <div><h1 class="en" style="text-align:left;font-size:1.8rem">${esc(s.title)}</h1><p class="muted">${esc(s.he)} · ${s.minutes} דק׳ קריאה</p></div>
-      ${s.id === 'my' ? `<p class="note">${esc(s.note || '')}</p>${gem ? `<button class="btn soft block" data-act="ai-story">${ic('sparkle')} כתוב לי סיפור חדש עם AI</button>` : ''}` : ''}
-      <div class="card tight player"><button class="btn small" data-act="read-aloud">${RT.reading ? ic('stop') + ' עצור' : ic('speaker') + ' הקרא לי'}</button>
+  const splitSentences = (text) => text.match(/[^.!?]+(?:[.!?]+["”’)\]]*\s*|$)/g) || [text];
+
+  SCREENS.article = (id) => {
+    const st = RT.art && RT.art.id === id ? RT.art : (RT.art = { id, body: null, err: false, loading: false });
+    if (!st.body && !st.err && !st.loading) {
+      st.loading = true;
+      ET.Articles.body(id).then((b) => { st.body = b; }).catch(() => { st.err = true; }).finally(() => { st.loading = false; if (parse().name === 'article') render(); });
+    }
+    if (!st.body) {
+      return `<div class="screen">${topbar('קריאה', 'reading')}${st.err ? '<div class="card empty"><div class="emo">📡</div><h2>הכתבה לא זמינה כרגע</h2><p>אין חיבור לאינטרנט והכתבה לא נשמרה במכשיר. כתבות ששומרים בכפתור ההורדה זמינות גם בלי אינטרנט.</p></div>' : '<div class="card empty"><p>טוען את הכתבה…</p></div>'}</div>`;
+    }
+    const a = st.body;
+    const saved = ET.Articles.isSaved(id);
+    const read = S.stats.articles[id];
+    const conv = a.source === 'The Conversation';
+    let n = 0;
+    const sents = (t) => splitSentences(t).map((s) => `<span class="sent" data-s="${n++}">${tokenize(s)}</span>`).join('');
+    const paras = a.paragraphs.map((p) => (p.startsWith('## ') ? `<h3 class="r-h">${sents(p.slice(3))}</h3>` : `<p>${sents(p)}</p>`)).join('');
+    const attrib = conv
+      ? `<p class="attrib" dir="ltr">This article is republished from <a href="https://theconversation.com" target="_blank" rel="noopener">The Conversation</a> under a Creative Commons license. Read the <a href="${esc(a.url)}" target="_blank" rel="noopener">original article</a>.</p>${a.note ? `<p class="attrib" dir="ltr">${esc(a.note)}</p>` : ''}${a.pixel && RT.online ? `<img src="${esc(a.pixel)}" alt="" width="1" height="1" class="pixel">` : ''}`
+      : `<p class="attrib">מקור: הערך <a href="${esc(a.url)}" target="_blank" rel="noopener" lang="en">${esc(a.title)}</a> ב־Simple English Wikipedia, ברישיון <a href="${esc(a.licenseUrl)}" target="_blank" rel="noopener">CC BY-SA 4.0</a>.${a.full ? '' : ' מוצג קטע מתחילת הערך.'}</p>`;
+    return `<div class="screen">${topbar('', 'reading', `<span class="badge lvl">${BAND_HE[a.level] || ''}</span><button class="icon-btn ${saved ? 'active' : ''}" data-act="save-article" aria-label="${saved ? 'הסרה מהשמורות' : 'שמירה לקריאה בלי אינטרנט'}">${saved ? ic('check') : ic('download')}</button>`)}
+      <div class="src-line">${srcIcon(a)}<span>מקור: <b lang="en">${esc(a.source)}</b> · ${esc(a.license)} · <a href="${esc(a.url)}" target="_blank" rel="noopener">לכתבה המקורית ↗</a></span></div>
+      <div><h1 class="art-h" lang="en" dir="ltr">${esc(a.title)}</h1><p class="small muted" dir="ltr" style="text-align:left">${esc(a.author)}${conv ? ' · ' + new Date(a.date).toLocaleDateString('en-GB') : ''} · ${a.minutes} min</p></div>
+      <div class="player"><button class="play-btn" data-act="read-aloud" aria-label="${RT.reading ? 'עצירת ההקראה' : 'הקרא לי את הכתבה'}">${RT.reading ? ic('stop') : icFill('play')}</button><b class="small">${RT.reading ? 'מקריא…' : 'הקרא לי את הכתבה'}</b>
         <div class="seg" role="group" aria-label="מהירות הקראה">${[0.75, 1, 1.25, 1.5].map((r) => `<button class="${RT.rate === r ? 'on' : ''}" data-act="rate" data-arg="${r}">${r}x</button>`).join('')}</div></div>
-      <article class="reader" lang="en">${paras.map((p, i) => `<p data-p="${i}">${tokenize(p, s)}</p>`).join('')}</article>
-      ${s.id === 'my' ? '' : `<button class="btn block ${read ? 'soft' : ''}" data-act="story-done" data-arg="${s.id}">${read ? 'נקרא ✓' : 'סיימתי לקרוא'}</button>`}</div>`;
+      <p class="small muted">לחצו על מילה כדי לראות תרגום, משמעות במשפט והגייה.</p>
+      <article class="reader" lang="en">${paras}</article>
+      ${attrib}
+      <button class="btn block ${read ? 'soft' : ''}" data-act="article-done">${read ? 'נקרא ✓' : 'סיימתי לקרוא'}</button></div>`;
   };
-  SCREENS.story = (id) => { const s = D.STORIES.find((x) => x.id === id); return s ? storyView(s, 'reading') : SCREENS.reading(); };
-  const localStory = (items) => {
-    const sents = items.map((it) => it.ex).filter(Boolean);
-    const half = Math.ceil(sents.length / 2);
-    return { id: 'my', title: 'My Words Story', he: 'סיפור מהמילים שלי', level: S.profile.cefr, minutes: 1, slang: true,
-      note: 'טקסט תרגול שנבנה מהמשפטים של המילים שלמדת לאחרונה. לחצו על כל מילה כדי לחזור עליה.',
-      text: `Today I want to practice my new English words.\n${sents.slice(0, half).join(' ')}\n${sents.slice(half).join(' ')}\nWhat a day! Now I know these words: ${items.map((i) => i.t).join(', ')}.` };
-  };
-  SCREENS.mystory = () => {
-    const items = ET.recentIds(8).map(ET.item).filter((i) => i && i.ex);
-    if (items.length < 3) return `<div class="screen">${topbar('סיפור מהמילים שלי', 'reading')}<div class="card empty"><div class="emo">✨</div><h2>צריך עוד כמה מילים</h2><p>למדו לפחות 3 מילים בכרטיסיות, ואז נבנה מהן סיפור.</p><button class="btn" data-act="go" data-arg="session/daily">ללמוד מילים</button></div></div>`;
-    const key = items.map((i) => i.id).join(',');
-    if (!RT.myStory || RT.myStory.key !== key) { RT.myStory = localStory(items); RT.myStory.key = key; const cached = S.aiCache['story:' + key]; if (cached) Object.assign(RT.myStory, cached); }
-    return storyView(RT.myStory, 'reading');
-  };
-  const readAloud = (i = 0) => {
-    const ps = document.querySelectorAll('.reader p');
-    document.querySelectorAll('.reader p.speaking').forEach((p) => p.classList.remove('speaking'));
-    if (!RT.reading || i >= ps.length) { RT.reading = false; const b = $('[data-act="read-aloud"]'); if (b) b.innerHTML = ic('speaker') + ' הקרא לי'; return; }
-    ps[i].classList.add('speaking');
-    ps[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
-    const ok = Speech.speak(ps[i].textContent, { rate: RT.rate, onend: () => readAloud(i + 1) });
+  const readAloud = (i = RT.readIdx || 0) => {
+    const ss = document.querySelectorAll('.reader .sent');
+    document.querySelectorAll('.reader .sent.cur').forEach((s) => s.classList.remove('cur'));
+    if (!RT.reading || i >= ss.length) {
+      if (i >= ss.length) RT.readIdx = 0;
+      RT.reading = false;
+      const b = $('[data-act="read-aloud"]'); if (b) { b.innerHTML = icFill('play'); b.nextElementSibling.textContent = 'הקרא לי את הכתבה'; }
+      return;
+    }
+    RT.readIdx = i;
+    ss[i].classList.add('cur');
+    ss[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const ok = Speech.speak(ss[i].textContent, { rate: RT.rate, onend: () => { if (RT.reading) readAloud(i + 1); } });
     if (!ok) { RT.reading = false; toast('ההקראה לא נתמכת בדפדפן הזה'); }
   };
-  const sentenceOf = (el, word) => {
-    const p = el.closest('p'); if (!p) return '';
-    const sents = p.textContent.match(/[^.!?]+[.!?"]*/g) || [p.textContent];
-    return (sents.find((s) => new RegExp(`\\b${escRe(word)}\\b`, 'i').test(s)) || sents[0]).trim();
-  };
+  const sentenceOf = (el) => { const s = el.closest('.sent'); return s ? s.textContent.trim() : (el.closest('p') || el).textContent.trim(); };
 
   /* =========================================================
      AI
@@ -649,12 +665,15 @@
     const p = S.profile;
     const gem = p.ai === 'gemini';
     return `<div class="screen">${topbar('פרופיל')}
-      <div class="card row"><span style="width:56px;height:56px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none">${ic('user')}</span>
-        <div class="grow"><h2>הפרופיל שלי</h2><div class="small muted">רמה: ${bandHe(p.cefr)} (${p.cefr}) · ${ET.streak()} ימים ברצף</div></div>
-        <button class="btn small soft" data-act="go" data-arg="stats">${ic('chart')} נתונים</button></div>
+      <div class="card stack level-card">
+        <div class="row between"><h2>רמת האנגלית שלי</h2><span class="badge lvl">${p.cefr}</span></div>
+        ${seg('level', [['beginner', 'מתחילים'], ['intermediate', 'בינוני'], ['advanced', 'מתקדמים']])}
+        <p class="small muted">הרמה קובעת את המילים, הביטויים, הכתבות והמבחנים בכל האפליקציה.</p>
+        <button class="link small" data-act="go" data-arg="placement" style="justify-self:start">לא בטוחים? עשו מבחן רמה קצר</button></div>
+      <div class="grid2">${stat(ET.streak() + ' 🔥', 'ימים ברצף')}${stat(ET.myList('all').length, 'מילים שלמדתי')}</div>
+      <button class="card row-card" data-act="go" data-arg="stats"><span class="thumb" style="background:var(--accent-soft)">📊</span><span class="grow"><b>כל הסטטיסטיקות</b></span>${ic('chev', 'chev')}</button>
 
       <section class="section"><h2>לימוד</h2><div class="card stack">
-        <div class="field"><label>רמה</label>${seg('level', [['beginner', 'מתחילים'], ['intermediate', 'בינוני'], ['advanced', 'מתקדמים']])}<button class="link small" data-act="go" data-arg="placement" style="justify-self:start">לא בטוחים? עשו מבחן רמה קצר</button></div>
         <div class="field"><label>יעד לימוד יומי (דקות)</label>${seg('dailyMin', [[5, '5'], [10, '10'], [15, '15'], [20, '20'], [30, '30']])}</div>
         <div class="field"><label>מטרת הלימוד</label><div class="chips wrap">${D.GOALS.map((g) => `<button class="chip ${p.goal === g.id ? 'on' : ''}" data-act="set" data-arg="goal:${g.id}">${g.he}</button>`).join('')}</div></div>
         <div class="field"><label>תחומי עניין</label><div class="chips wrap">${D.INTERESTS.map((g) => `<button class="chip ${p.interests.includes(g.id) ? 'on' : ''}" data-act="toggle-interest" data-arg="${g.id}">${g.he}</button>`).join('')}</div></div>
@@ -704,7 +723,7 @@
         ${stat(ET.myList('all').length, 'מילים שנלמדו')}${stat(ET.myList('known').length, 'מילים שאני יודע')}
         ${stat(ET.myList('saved').length, 'מילים שמורות')}${stat(ET.myList('hard').length, 'מילים קשות')}
         ${stat(ET.totalMinutes(), 'דקות לימוד בסך הכול')}${stat(ET.streak() + ' 🔥', 'ימים ברצף (Streak)')}
-        ${stat(st.bestStreak, 'שיא ימים ברצף')}${stat(Object.keys(st.stories).length, 'סיפורים שנקראו')}
+        ${stat(st.bestStreak, 'שיא ימים ברצף')}${stat(Object.keys(st.articles || {}).length, 'כתבות שנקראו')}
         ${stat(st.chats, 'שיחות AI')}${stat(st.msgs, 'הודעות ששלחתי')}
         ${stat(st.quizzes, 'מבחנים')}${stat(pct, 'אחוז הצלחה במבחנים')}
       </div></div>`;
@@ -716,9 +735,9 @@
     const sw = 'serviceWorker' in navigator && navigator.serviceWorker.controller;
     const exprN = ET.ITEMS.filter((i) => i.type === 'expr').length;
     const packs = [['🗂️', 'כל הנושאים', `${D.CATEGORIES.length} נושאים · ${ET.ITEMS.filter((i) => i.type === 'word').length} מילים`, sizeOf(D.WORDS)],
-      ['🔥', 'סלנג ו־Real English', `${exprN} ביטויים`, sizeOf(D.EXPRESSIONS)],
-      ['📖', 'סיפורים', `${D.STORIES.length} סיפורים`, sizeOf(D.STORIES)],
-      ['📗', 'מילון מקומי', `${Object.keys(ET.LEX).length + ET.ITEMS.length} ערכים`, sizeOf(window.APP_LEX)]];
+      ['🔥', 'ביטויים וסלנג', `${exprN} ביטויים`, sizeOf(D.EXPRESSIONS)],
+      ['📖', 'כתבות שמורות', `${Object.keys(S.saved).length} כתבות לקריאה בלי אינטרנט`, sizeOf(S.saved)],
+      ['📗', 'מילון אנגלית־עברית', ET.DictionarySource.entries ? `${Object.keys(ET.DictionarySource.entries).length.toLocaleString('he-IL')} מילים · Wiktionary` : 'נטען בפתיחה הראשונה', ET.DictionarySource.entries ? 380000 : 0]];
     RT.after = () => {
       if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then((e) => { const el = $('#st-size'); if (el) el.textContent = kb(e.usage || 0); }).catch(() => {});
     };
@@ -761,10 +780,29 @@
         <div class="translation" style="text-align:start">${it.emoji && it.type === 'word' ? it.emoji + ' ' : ''}${esc(it.he)}</div>
         ${ctx.phrase ? `<div class="ctx-box"><span class="lbl">משמעות בהקשר הזה</span><div>${esc(it.real || it.he)}</div>${it.lit ? `<div class="small muted">מילולית: ${esc(it.lit)}</div>` : ''}</div>` : ''}
         ${it.type === 'expr' && !ctx.phrase ? exprDetails(it) : ''}
-        ${ctx.sentence ? `<div class="example"><div class="small muted">מתוך הטקסט</div><div class="en-line">${highlight(ctx.sentence, ctx.word || it.t)}</div></div>` : ''}
+        ${ctx.sentence ? `<div class="example"><div class="small muted">מתוך הטקסט</div><div class="en-line">${highlight(ctx.sentence, ctx.word || it.t)}</div>${sentTrHtml(sh)}</div>` : ''}
         ${exampleBox(it)}
+        <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
         ${pathDots(it.id)}
         <div class="grid2"><button class="btn ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'שמור ✓' : 'שמור למילים שלי'}</button><button class="btn ghost" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button></div>`;
+    }
+    if (sh.type === 'pop') {
+      const lk = ET.lookup(sh.word);
+      const it = lk.item;
+      const he = lk.he || sh.wordTr;
+      const sid = sh.savedId || (it ? it.id : 'c:' + lk.t.toLowerCase());
+      const saved = !!(ET.rec(sid) || {}).saved;
+      const gem = S.profile.ai === 'gemini' && S.profile.geminiKey && RT.online;
+      return `<div class="pop-head"><div class="term">${esc(sh.word)}</div>${it && it.ipa ? `<span class="muted small" dir="ltr">${esc(it.ipa)}</span>` : ''}<span class="grow"></span>
+          ${speakBtn(sh.word, it ? it.id : '', '', '')}
+          <button class="icon-btn flat ${saved ? 'active' : ''}" data-act="save-pop" aria-label="שמירה למילים שלי">${saved ? icFill('star') : ic('star')}</button>
+          <button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
+        <div class="pop-tr">${he ? esc(he) : `<span class="muted small">${ET.DictionarySource.entries ? (RT.online ? 'מחפש תרגום…' : 'אין תרגום למילה הזאת במילון המקומי') : 'טוען מילון…'}</span>`}</div>
+        ${lk.he && lk.t.toLowerCase() !== sh.word.toLowerCase() ? `<div class="small muted">צורת הבסיס: <span class="en">${esc(lk.t)}</span></div>` : ''}
+        ${sh.ai ? `<div class="ctx-box"><span class="lbl">הסבר לפי ההקשר (AI)</span><div>${esc(sh.ai)}</div></div>` : ''}
+        <div class="ctx-box"><span class="lbl">בהקשר של המשפט</span><div class="en-line" dir="ltr">${highlight(sh.sentence, sh.word)}</div>${sentTrHtml(sh)}</div>
+        <div class="row wrap">${speakBtn(sh.sentence, '', 'השמע משפט', 'sm')}${gem && !sh.ai ? `<button class="speak sm" data-act="ai-explain">${sh.aiBusy ? 'בודק…' : ic('sparkle') + ' הסבר עם AI'}</button>` : ''}<button class="speak sm" data-act="report-lex">${ic('flag')} דיווח</button></div>
+        <button class="btn block ${saved ? 'soft' : ''}" data-act="save-pop">${saved ? 'נשמר ב"מילים שלי" ✓' : 'שמור ל"מילים שלי"'}</button>`;
     }
     if (sh.type === 'lex') {
       const lk = ET.lookup(sh.word);
@@ -790,11 +828,35 @@
     if (!RT.sheet) { sheetRoot.innerHTML = ''; RT.lastSheet = null; return; }
     const keepNote = $('#report-note') ? $('#report-note').value : '';
     const same = RT.lastSheet === RT.sheet;
-    sheetRoot.innerHTML = `<div class="backdrop" data-act="close-sheet"></div><div class="sheet" role="dialog" aria-modal="true" ${same ? 'style="animation:none"' : ''}>${sheetContent()}</div>`;
+    const pop = RT.sheet.type === 'pop';
+    sheetRoot.innerHTML = `<div class="backdrop ${pop ? 'clear' : ''}" data-act="close-sheet"></div><div class="sheet ${pop ? 'pop' : ''}" role="dialog" aria-modal="${pop ? 'false' : 'true'}" ${same ? 'style="animation:none"' : ''}>${sheetContent()}</div>`;
     if (keepNote && $('#report-note')) $('#report-note').value = keepNote;
     RT.lastSheet = RT.sheet;
   }
   const openItem = (id, ctx) => { RT.sheet = { type: 'item', id, ctx }; renderSheet(); };
+  function sentTrHtml(sh) {
+    if (sh.sentTr) return `<div>${esc(sh.sentTr)}</div><div class="small muted">תרגום אוטומטי של המשפט</div>`;
+    if (sh.sentBusy) return '<div class="muted small">מתרגם את המשפט…</div>';
+    if (!RT.online) return '<div class="muted small">תרגום המשפט זמין כשיש אינטרנט</div>';
+    if (sh.sentErr) return '<button class="link small" data-act="tr-sentence">לא הצלחנו לתרגם את המשפט. לנסות שוב?</button>';
+    return '';
+  }
+  /* fills the word window: offline dictionary first, then (online, free) word and sentence translation */
+  async function popLookups(sh, force) {
+    const word = sh.word || (sh.ctx && sh.ctx.word);
+    const sentence = sh.sentence || (sh.ctx && sh.ctx.sentence);
+    const refresh = () => { if (RT.sheet === sh) renderSheet(); };
+    if (!ET.DictionarySource.entries) { await ET.DictionarySource.load(); refresh(); }
+    if (sh.type === 'pop' && !ET.lookup(word).he && RT.online && !sh.wordTr) {
+      try { sh.wordTr = await ET.TranslationProvider.translate(word); } catch (e) { /* stays empty */ }
+      refresh();
+    }
+    if (sentence && RT.online && !sh.sentTr && (!sh.trTried || force)) {
+      sh.trTried = true; sh.sentBusy = true; sh.sentErr = false; refresh();
+      try { sh.sentTr = await ET.TranslationProvider.translate(sentence); } catch (e) { sh.sentErr = true; }
+      sh.sentBusy = false; refresh();
+    }
+  }
 
   /* =========================================================
      ACTIONS
@@ -810,14 +872,26 @@
     item: (a) => openItem(a),
     lex: (a) => { RT.sheet = { type: 'lex', word: a }; renderSheet(); },
     word: (a, el) => {
+      const sentence = sentenceOf(el);
+      document.querySelectorAll('.reader .w.sel').forEach((w) => w.classList.remove('sel'));
+      el.classList.add('sel');
       const lk = ET.lookup(a);
-      const sentence = sentenceOf(el, a);
-      if (lk.item) { ET.mark(lk.item.id, 'context'); openItem(lk.item.id, { sentence, word: a }); } else { RT.sheet = { type: 'lex', word: a, sentence }; renderSheet(); }
+      if (lk.item) ET.mark(lk.item.id, 'context');
+      RT.sheet = { type: 'pop', word: a, sentence };
+      renderSheet();
+      popLookups(RT.sheet);
     },
-    phrase: (a, el) => { ET.mark(a, 'context'); openItem(a, { phrase: true, sentence: sentenceOf(el, el.textContent), word: el.textContent }); },
-    'close-sheet': () => { RT.sheet = null; renderSheet(); },
+    phrase: (a, el) => { ET.mark(a, 'context'); RT.sheet = { type: 'item', id: a, ctx: { phrase: true, sentence: sentenceOf(el), word: el.textContent } }; renderSheet(); popLookups(RT.sheet); },
+    'close-sheet': () => { RT.sheet = null; document.querySelectorAll('.reader .w.sel').forEach((w) => w.classList.remove('sel')); renderSheet(); },
     save: (a) => { const on = ET.toggleSave(a); toast(on ? 'נשמר למילים שלי ⭐' : 'הוסר מהשמורים'); render(); },
-    'save-lex': () => { const sh = RT.sheet; const lk = ET.lookup(sh.word); const id = ET.saveLexWord(lk.t, lk.he, sh.sentence); ET.toggleSave(id) || ET.toggleSave(id); ET.mark(id, 'context'); toast('נשמר למילים שלי ⭐'); RT.sheet = null; render(); },
+    'save-pop': () => {
+      const sh = RT.sheet; const lk = ET.lookup(sh.word);
+      let id = lk.item && lk.item.id;
+      if (!id) { const he = lk.he || sh.wordTr; if (!he) { toast('אין תרגום לשמירה כרגע'); return; } id = ET.saveLexWord(lk.t, he, sh.sentence); }
+      const r = ET.ensure(id); r.saved = true; if (!r.seen) r.seen = Date.now(); ET.mark(id, 'context'); ET.save();
+      sh.savedId = id; toast('נשמר למילים שלי ⭐'); renderSheet();
+    },
+    'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); toast(el.dataset.q === '5' ? 'מעולה! סומן כמוכר ✓' : 'נוסף לחזרה 🔁'); render(); },
     report: (a) => { const it = ET.item(a); RT.sheet = { type: 'report', id: a, term: it ? it.t : a, kind: null }; renderSheet(); },
     'report-lex': () => { const w = RT.sheet.word; RT.sheet = { type: 'report', id: 'lex:' + w, term: w, kind: null }; renderSheet(); },
     'report-kind': (a) => { RT.sheet.kind = a; renderSheet(); },
@@ -827,33 +901,38 @@
       ET.save(); RT.sheet = null; toast('הדיווח נשמר. תודה! 🙏'); render();
     },
     reveal: () => { const s = RT.session; if (!s) return; s.revealed = true; ET.mark(s.ids[s.i], 'understood'); render(); },
-    grade: (a) => { const s = RT.session; if (!s) return; ET.grade(s.ids[s.i], +a); s.res[a]++; s.i++; s.revealed = false; Speech.stop(); render(); window.scrollTo(0, 0); },
-    'exit-session': () => { const p = sessionExitPath(); RT.session = null; go(p); },
-    'restart-session': () => { RT.session = null; render(); },
-    'my-tab': (a) => { RT.myTab = a; render(); },
-    'slang-cat': (a) => { RT.slangCat = a; render(); },
-    'dict-filter': (a) => { RT.dictF = a; render(); },
-    'story-lvl': (a) => { RT.storyLvl = a; render(); },
-    'read-aloud': () => { if (RT.reading) { RT.reading = false; Speech.stop(); readAloud(99999); } else { RT.reading = true; $('[data-act="read-aloud"]').innerHTML = ic('stop') + ' עצור'; readAloud(0); } },
-    rate: (a) => { RT.rate = +a; document.querySelectorAll('[data-act="rate"]').forEach((b) => b.classList.toggle('on', +b.dataset.arg === RT.rate)); },
-    'story-done': (a) => { if (!S.stats.stories[a]) { S.stats.stories[a] = Date.now(); ET.activity(); toast('כל הכבוד! עוד סיפור נקרא 📖'); } render(); },
-    'ai-story': async () => {
-      const s = RT.myStory; if (!s) return;
-      toast('כותב סיפור…');
-      try {
-        const items = ET.recentIds(8).map(ET.item).filter(Boolean);
-        const j = await ET.AI.providers.gemini.story(items.map((i) => i.t), S.profile.cefr);
-        const upd = { title: j.title, he: j.titleHe, text: j.text, note: 'סיפור שנכתב עם AI מהמילים שלמדת לאחרונה.' };
-        Object.assign(s, upd); S.aiCache['story:' + s.key] = upd; ET.save(); render();
-      } catch (e) { toast('לא הצלחנו ליצור סיפור עכשיו. בדקו את החיבור והמפתח.'); }
+    grade: (a) => {
+      const s = RT.session; if (!s) return;
+      ET.grade(s.ids[s.i], +a); s.res[a] = (s.res[a] || 0) + 1; s.i++; s.revealed = false; Speech.stop();
+      S.resume = s.i < s.ids.length && s.kind !== 'list' ? { key: s.key, kind: s.kind, arg: s.arg, ids: s.ids, i: s.i, res: s.res } : null;
+      ET.save(); render(); window.scrollTo(0, 0);
     },
+    'exit-session': () => { const p = sessionExitPath(); RT.session = null; go(p); },
+    'restart-session': () => { RT.session = null; if (S.resume) S.resume = null; render(); },
+    'my-tab': (a) => { RT.myTab = a; render(); },
+    'dict-filter': (a) => { RT.dictF = a; render(); },
+    'read-aloud': () => {
+      const b = $('[data-act="read-aloud"]');
+      if (RT.reading) { const at = RT.readIdx || 0; RT.reading = false; Speech.stop(); readAloud(99999); RT.readIdx = at; return; }
+      RT.reading = true; if (b) { b.innerHTML = ic('stop'); b.nextElementSibling.textContent = 'מקריא…'; }
+      readAloud(RT.readIdx || 0);
+    },
+    rate: (a) => { RT.rate = +a; document.querySelectorAll('[data-act="rate"]').forEach((b) => b.classList.toggle('on', +b.dataset.arg === RT.rate)); },
+    'article-done': () => { const id = parse().args[0]; if (!S.stats.articles[id]) { S.stats.articles[id] = Date.now(); ET.activity(); toast('כל הכבוד! עוד כתבה נקראה 📖'); } render(); },
+    'save-article': () => {
+      const id = parse().args[0]; const b = RT.art && RT.art.body; if (!b) return;
+      if (ET.Articles.isSaved(id)) { ET.Articles.unsave(id); toast('הכתבה הוסרה מהשמורות'); } else { ET.Articles.save(b); toast('הכתבה נשמרה וזמינה גם בלי אינטרנט ✓'); }
+      render();
+    },
+    'tr-sentence': () => { const sh = RT.sheet; if (!sh) return; sh.trTried = false; popLookups(sh, true); },
     'ai-explain': async () => {
       const sh = RT.sheet; if (!sh) return;
-      toast('בודק את ההקשר…');
+      sh.aiBusy = true; renderSheet();
       try {
-        const j = await ET.AI.providers.gemini.call('You explain English words to Hebrew speakers. Reply ONLY with JSON: {"he": "short explanation in Hebrew of the meaning in this context"}', [{ role: 'user', parts: [{ text: `Word: "${sh.word}". Sentence: "${sh.sentence || sh.word}". What does the word mean here?` }] }]);
-        sh.ai = j.he; renderSheet();
+        const j = await ET.AI.providers.gemini.call('You explain English words to Hebrew speakers. Reply ONLY with JSON: {"he": "short explanation in Hebrew of the meaning in this context"}', [{ role: 'user', parts: [{ text: `Word: "${sh.word || (sh.ctx && sh.ctx.word)}". Sentence: "${sh.sentence || (sh.ctx && sh.ctx.sentence) || ''}". What does the word mean here?` }] }]);
+        sh.ai = j.he;
       } catch (e) { toast('לא הצלחנו לקבל הסבר עכשיו.'); }
+      sh.aiBusy = false; renderSheet();
     },
     set: (a) => {
       const i = a.indexOf(':'); const k = a.slice(0, i); let v = a.slice(i + 1);
@@ -876,8 +955,8 @@
     answer: (a) => answerQ(a),
     'next-q': () => { RT.quiz.i++; render(); window.scrollTo(0, 0); },
     'quiz-again': () => { RT.quiz.restart = true; render(); window.scrollTo(0, 0); },
-    'quiz-exit': () => { const m = RT.quiz && RT.quiz.mode; RT.quiz = null; go(m === 'listen' ? 'games' : 'learn'); },
-    'game-exit': () => { RT.game = null; clearInterval(speedTimer); go('games'); },
+    'quiz-exit': () => { const m = RT.quiz && RT.quiz.mode; RT.quiz = null; go('words'); },
+    'game-exit': () => { RT.game = null; clearInterval(speedTimer); go('words'); },
     'game-again': () => { const id = RT.game.id; RT.game = newGame(id); render(); },
     'm-pick': (a) => {
       const g = RT.game; const [side, id] = a.split('|');
@@ -996,13 +1075,13 @@
     }
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && RT.sheet) { RT.sheet = null; renderSheet(); } });
-  window.addEventListener('hashchange', () => { Speech.stop(); RT.reading = false; RT.sheet = null; RT.confirmReset = false; render(); window.scrollTo(0, 0); });
+  window.addEventListener('hashchange', () => { Speech.stop(); RT.reading = false; RT.readIdx = 0; RT.sheet = null; RT.confirmReset = false; render(); window.scrollTo(0, 0); });
   window.addEventListener('online', () => { RT.online = true; render(); ET.SyncProvider.sync(); });
   window.addEventListener('offline', () => { RT.online = false; render(); });
   if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
   /* study-time tracker: counts active time on learning screens */
-  const LEARN_ROUTES = new Set(['session', 'story', 'chat', 'quiz', 'game', 'real', 'cat', 'dict', 'mywords', 'mystory']);
+  const LEARN_ROUTES = new Set(['session', 'article', 'reading', 'chat', 'quiz', 'game', 'words', 'dict', 'mywords']);
   ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach((ev) => addEventListener(ev, () => { RT.lastInput = Date.now(); }, { passive: true }));
   setInterval(() => {
     if (document.visibilityState !== 'visible' || !S.onboarded) return;
@@ -1017,8 +1096,10 @@
       RT.swReg = reg;
       const conn = navigator.connection;
       if (S.profile.autoWifi && RT.online && !(conn && (conn.type === 'cellular' || conn.saveData))) reg.update().catch(() => {});
+      if (S.profile.autoWifi && RT.online && !(conn && (conn.type === 'cellular' || conn.saveData))) ET.Articles.load().then(() => ET.Articles.prefetch(6));
     }).catch(() => {});
   }
 
+  ET.DictionarySource.load();
   render();
 })();

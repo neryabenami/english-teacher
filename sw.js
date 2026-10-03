@@ -1,11 +1,12 @@
-/* Service worker: precaches the whole app so it works fully offline (Local First). */
-const VERSION = 'et-v1.0.0';
+/* Service worker: keeps the app, the dictionary and opened articles on the device (Local First). */
+const VERSION = 'et-v2.0.1';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js',
+  'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js', 'data/dict-en-he.json',
   'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'
 ];
 const FONTS = 'et-fonts';
+const ARTICLES = 'et-articles';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(APP)).then(() => self.skipWaiting()));
@@ -13,7 +14,7 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
-    .then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== FONTS).map((k) => caches.delete(k))))
+    .then((keys) => Promise.all(keys.filter((k) => ![VERSION, FONTS, ARTICLES].includes(k)).map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -28,6 +29,24 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (url.origin !== self.location.origin) return;
+
+  // Article list: network first (fresh articles), cached copy when offline.
+  if (url.pathname.endsWith('/data/articles/index.json')) {
+    e.respondWith(caches.open(ARTICLES).then((c) => fetch(req).then((res) => { if (res.ok) c.put(url.pathname, res.clone()); return res; }).catch(() => c.match(url.pathname))));
+    return;
+  }
+  // Article bodies: once opened or prefetched, they stay readable offline. Keep the newest 80.
+  if (url.pathname.includes('/data/articles/')) {
+    e.respondWith(caches.open(ARTICLES).then((c) => c.match(url.pathname).then((hit) => hit || fetch(req).then(async (res) => {
+      if (res.ok) {
+        await c.put(url.pathname, res.clone());
+        const keys = await c.keys();
+        if (keys.length > 80) await Promise.all(keys.slice(0, keys.length - 80).map((k) => c.delete(k)));
+      }
+      return res;
+    }))));
+    return;
+  }
 
   // App files: serve from cache instantly, refresh the cache in the background.
   e.respondWith(caches.open(VERSION).then((c) =>
