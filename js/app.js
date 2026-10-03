@@ -75,7 +75,7 @@
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const topbar = (title, back, extra = '') => `<header class="topbar">${back ? `<button class="icon-btn" data-act="go" data-arg="${back}" aria-label="חזרה">${ic('back')}</button>` : ''}<h1>${title}</h1>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}${extra}</header>`;
   const li = (icon, title, sub, path, end = '') => `<button class="li" data-act="go" data-arg="${path}"><span class="ico">${I[icon] ? ic(icon) : icon}</span><span class="main"><span class="t">${title}</span>${sub ? `<span class="s" style="display:block">${sub}</span>` : ''}</span><span class="end">${end}${ic('chev', 'chev')}</span></button>`;
-  const itemRow = (it, extra = '') => `<button class="li" data-act="item" data-arg="${esc(it.id)}"><span class="ico">${it.emoji || '📌'}</span><span class="main"><span class="t en" style="display:block">${esc(it.t)}</span><span class="s" style="display:block">${esc(it.he)}</span></span><span class="end">${extra}${ET.rec(it.id) ? statusBadge(it.id) : ''}</span></button>`;
+  const itemRow = (it, extra = '') => `<button class="li" data-act="item" data-arg="${esc(it.id)}">${it.emoji ? `<span class="ico">${it.emoji}</span>` : ''}<span class="main"><span class="t en" style="display:block">${esc(it.t)}</span><span class="s" style="display:block">${esc(it.he)}</span></span><span class="end">${extra}${ET.rec(it.id) ? statusBadge(it.id) : ''}</span></button>`;
   const speakBtn = (text, id, label = '', cls = '') => `<button class="speak ${cls}" data-act="say" data-arg="${esc(text)}" ${id ? `data-id="${esc(id)}"` : ''} aria-label="השמעה">${ic('speaker')}${label ? ' ' + label : ''}</button>`;
   const pathDots = (id) => { const p = (ET.rec(id) || {}).p || 0; const n = ET.PATH.filter((_, i) => p & (1 << i)).length; return `<div class="stack" style="gap:6px"><div class="path" title="${ET.PATH.join(' → ')}">${ET.PATH.map((l, i) => `<i class="${p & (1 << i) ? 'on' : ''}" title="${l}"></i>`).join('')}</div><div class="small muted" style="text-align:center">מסלול המילה: ${n ? ET.PATH.filter((_, i) => p & (1 << i)).slice(-1)[0] : 'עוד לא התחלנו'} (${n}/7)</div></div>`; };
 
@@ -240,24 +240,42 @@
   /* =========================================================
      WORDS (topics · common expressions · American slang)
      ========================================================= */
-  const WORD_SECS = [['topics', 'נושאים'], ['expr', 'ביטויים נפוצים'], ['slang', 'סלנג אמריקאי']];
-  SCREENS.words = (sec) => {
-    sec = WORD_SECS.some(([id]) => id === sec) ? sec : RT.wordsSec || 'topics';
-    RT.wordsSec = sec;
-    const head = `<header class="topbar"><h1>לימוד מילים</h1>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<button class="icon-btn" data-act="go" data-arg="dict" aria-label="חיפוש במילון">${ic('search')}</button><button class="icon-btn" data-act="go" data-arg="mywords" aria-label="המילים שלי">${ic('star')}</button></header>`;
-    const seg = `<div class="seg full" role="tablist">${WORD_SECS.map(([id, he]) => `<button role="tab" aria-selected="${sec === id}" class="${sec === id ? 'on' : ''}" data-act="go" data-arg="words/${id}">${he}</button>`).join('')}</div>`;
-    let body;
-    if (sec === 'topics') {
-      body = `<div class="topics">${D.CATEGORIES.map((c) => { const p = ET.catProgress(c.id); return `<button class="topic" data-act="go" data-arg="session/cat/${c.id}"><span class="emo">${c.icon}</span><span class="name">${c.he}</span><div class="bar"><i style="width:${(p.known / p.total) * 100}%"></i></div><span class="small muted tnum">${p.known}/${p.total}</span></button>`; }).join('')}</div>`;
-    } else {
-      const items = ET.sectionItems(sec);
-      const byFit = (l) => l.slice().sort((a, b) => ET.levelFit(a) - ET.levelFit(b));
-      const groups = sec === 'expr' ? ET.EXPR_GROUPS.map(([k, he]) => [he, items.filter((i) => i.kind === k)]) : [['', items]];
-      body = `<button class="btn block" data-act="go" data-arg="session/sec/${sec}">${ic('play')} ${sec === 'slang' ? 'תרגול סלנג בכרטיסיות' : 'תרגול ביטויים בכרטיסיות'}</button>
-        ${groups.filter(([, l]) => l.length).map(([he, l]) => `${he ? `<h3 class="group-h">${he}</h3>` : ''}<div class="list">${byFit(l).map((it) => itemRow(it)).join('')}</div>`).join('')}`;
+  const WORD_SECS = [['topics', 'מילים לפי נושאים', '📚', 'blue'], ['expr', 'ביטויים נפוצים', '💬', 'purple'], ['slang', 'סלנג אמריקאי', '😎', 'yellow']];
+  const fmtDate = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-').map(Number); return `${d}.${m}.${y}`; };
+  const wordsIcons = `<button class="icon-btn" data-act="go" data-arg="dict" aria-label="חיפוש במילון">${ic('search')}</button><button class="icon-btn" data-act="go" data-arg="mywords" aria-label="המילים שלי">${ic('star')}</button>`;
+  SCREENS.words = (sec, arg) => {
+    if (!ET.Vocab.ready && !ET.Vocab.loading) ET.Vocab.load().then(() => { if (parse().name === 'words') render(); });
+    /* hub: three big choices */
+    if (!sec) {
+      return `<div class="screen">
+        <header class="topbar"><span class="grow"></span>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}${wordsIcons}</header>
+        <div class="words-head"><h1>לימוד מילים</h1><p>בחרו מה תרצו ללמוד היום</p>${ET.Vocab.updated ? `<span class="upd">עודכן לאחרונה: ${fmtDate(ET.Vocab.updated)}</span>` : ''}</div>
+        <div class="stack">${WORD_SECS.map(([id, he, emo, color]) => `<button class="big-card" data-act="go" data-arg="words/${id}"><span class="big-tile ${color}" aria-hidden="true">${emo}</span><span class="big-title">${he}</span>${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
     }
-    return `<div class="screen">${head}${seg}${body}</div>`;
+    if (sec === 'topics') {
+      return `<div class="screen">${topbar('מילים לפי נושאים', 'words')}
+        <div class="list">${D.CATEGORIES.map((c) => `<button class="li" data-act="go" data-arg="words/topic/${c.id}"><span class="ico">${c.icon}</span><span class="main"><span class="t">${c.he}</span></span>${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
+    }
+    if (sec === 'topic') {
+      const c = catOf(arg);
+      if (!c) return SCREENS.words('topics');
+      if (!ET.Vocab.ready) return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}<div class="card empty"><p>טוען מילים…</p></div></div>`;
+      const all = ET.wordsOf(c.id).sort((a, b) => ET.levelFit(a) - ET.levelFit(b) || a.t.localeCompare(b.t));
+      const shown = RT.topicShown && RT.topicShown.id === c.id ? RT.topicShown.n : 60;
+      return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}
+        <button class="btn block" data-act="go" data-arg="session/cat/${c.id}">${ic('play')} התחל כרטיסיות</button>
+        <div class="list">${all.slice(0, shown).map((it) => itemRow(it)).join('')}</div>
+        ${all.length > shown ? `<button class="btn ghost block" data-act="more-words" data-arg="${c.id}">הצג עוד מילים</button>` : ''}</div>`;
+    }
+    const items = ET.sectionItems(sec === 'slang' ? 'slang' : 'expr');
+    const byFit = (l) => l.slice().sort((a, b) => ET.levelFit(a) - ET.levelFit(b));
+    const groups = sec === 'expr' ? ET.EXPR_GROUPS.map(([k, he]) => [he, items.filter((i) => i.kind === k)]) : [['', items]];
+    const title = sec === 'slang' ? 'סלנג אמריקאי' : 'ביטויים נפוצים';
+    return `<div class="screen">${topbar(title, 'words')}
+      <button class="btn block" data-act="go" data-arg="session/sec/${sec === 'slang' ? 'slang' : 'expr'}">${ic('play')} התחל כרטיסיות</button>
+      ${groups.filter(([, l]) => l.length).map(([he, l]) => `${he ? `<h3 class="group-h">${he}</h3>` : ''}<div class="list">${byFit(l).map((it) => itemRow(it)).join('')}</div>`).join('')}</div>`;
   };
+
 
   /* ---------- flashcards ---------- */
   const exprDetails = (it) => `<dl class="kv">
@@ -267,7 +285,8 @@
       <dt>רשמיות</dt><dd>${FORMAL[it.formal] || ''}</dd>
       <dt>אזור</dt><dd>${esc(it.region)}</dd>
       <dt>נפוצות</dt><dd>${FREQ[it.freq] || ''}</dd></dl>`;
-  const exampleBox = (it) => (it.ex ? `<div class="example"><div class="row"><div class="en-line grow">${esc(it.ex)}</div>${speakBtn(it.ex, it.id, '', 'sm')}</div>${it.exHe ? `<div class="small muted">${esc(it.exHe)}</div>` : ''}</div>` : '');
+  const exSource = (it) => (it.src === 't' ? '<div class="ex-src">משפט לדוגמה · Tatoeba</div>' : it.src && it.src.s ? `<div class="ex-src">מתוך כתבה ב־<a href="${esc(it.src.u)}" target="_blank" rel="noopener">${esc(it.src.s)}</a>, ${esc(fmtDate(it.src.d))}</div>` : '');
+  const exampleBox = (it) => (it.ex ? `<div class="example"><div class="row"><div class="en-line grow">${esc(it.ex)}</div>${speakBtn(it.ex, it.id, '', 'sm')}</div>${it.exHe ? `<div class="small muted">${esc(it.exHe)}</div>` : ''}${exSource(it)}</div>` : '');
   const flashcard = (it, rev) => {
     const r = ET.rec(it.id) || {};
     return `<article class="flash" ${rev ? '' : 'data-act="reveal"'}>
@@ -282,6 +301,7 @@
     </article>`;
   };
   SCREENS.session = (kind, arg = '') => {
+    if (!ET.Vocab.ready) { ET.Vocab.load().then(() => { if (parse().name === 'session') render(); }); return '<div class="screen no-tabs"><div class="card empty" style="margin-top:40px"><p>טוען מילים…</p></div></div>'; }
     const key = kind + '/' + arg;
     if (!RT.session || RT.session.key !== key) {
       const r = S.resume;
@@ -316,7 +336,7 @@
         <button class="g-good" data-act="grade" data-arg="5">הכרתי ✓<small>${ET.preview(it.id, 5)}</small></button>
       </div></div>`;
   };
-  const sessionExitPath = () => { const s = RT.session; if (!s) return 'home'; return s.kind === 'cat' ? 'words/topics' : s.kind === 'sec' ? 'words/' + s.arg : s.kind === 'list' ? 'mywords' : 'home'; };
+  const sessionExitPath = () => { const s = RT.session; if (!s) return 'home'; return s.kind === 'cat' ? 'words/topic/' + s.arg : s.kind === 'sec' ? 'words/' + s.arg : s.kind === 'list' ? 'mywords' : 'home'; };
   /* ---------- my words ---------- */
   const MY_TABS = [['all', 'הכול'], ['new', 'חדשות'], ['hard', 'קשות'], ['known', 'אני יודע'], ['saved', 'שמורות'], ['due', 'לחזרה']];
   SCREENS.mywords = () => {
@@ -909,6 +929,7 @@
     },
     'exit-session': () => { const p = sessionExitPath(); RT.session = null; go(p); },
     'restart-session': () => { RT.session = null; if (S.resume) S.resume = null; render(); },
+    'more-words': (a) => { RT.topicShown = { id: a, n: ((RT.topicShown && RT.topicShown.id === a) ? RT.topicShown.n : 60) + 100 }; render(); },
     'my-tab': (a) => { RT.myTab = a; render(); },
     'dict-filter': (a) => { RT.dictF = a; render(); },
     'read-aloud': () => {
@@ -1109,5 +1130,6 @@
   }
 
   ET.DictionarySource.load();
+  ET.Vocab.load().then(() => render());
   render();
 })();

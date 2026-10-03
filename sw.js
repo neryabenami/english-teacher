@@ -1,8 +1,8 @@
 /* Service worker: keeps the app, the dictionary and opened articles on the device (Local First). */
-const VERSION = 'et-v2.1.0';
+const VERSION = 'et-v3.0.0';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js', 'data/dict-en-he.json',
+  'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js', 'data/dict-en-he.json', 'data/vocab.json',
   'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'
 ];
 const FONTS = 'et-fonts';

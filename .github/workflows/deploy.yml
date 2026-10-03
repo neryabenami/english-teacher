@@ -34,14 +34,18 @@ jobs:
         if: github.event_name != 'push'
         run: node tools/fetch-articles.mjs
 
-      - name: Save articles to the repository
+      - name: Add today's new words
+        if: github.event_name != 'push'
+        run: node tools/add-daily-words.mjs
+
+      - name: Save articles and words to the repository
         if: github.event_name != 'push'
         run: |
-          if [ -n "$(git status --porcelain data/articles)" ]; then
+          if [ -n "$(git status --porcelain data)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/articles
-            git commit -m "Update articles"
+            git add data
+            git commit -m "Update articles and words"
             git push
           fi
 

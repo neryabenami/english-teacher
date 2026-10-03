@@ -291,6 +291,26 @@
     return id;
   };
 
+  /* ---------- large word database (tools/build-vocab.mjs + daily tools/add-daily-words.mjs) ---------- */
+  ET.Vocab = {
+    ready: false,
+    updated: null,
+    loading: null,
+    load() {
+      if (this.ready || this.loading) return this.loading;
+      this.loading = fetch('data/vocab.json').then((r) => r.json()).then((j) => {
+        this.updated = j.updated;
+        for (const [t, he, lvl, cat, ex, exHe, added, src] of j.words) {
+          const id = 'w:' + t;
+          if (BY_ID[id]) continue;
+          add({ id, type: 'word', cat, t, he, lvl, ex, exHe, added, src, pos: '', emoji: '', ipa: '' });
+        }
+        this.ready = true;
+      }).catch(() => { this.ready = true; }).finally(() => { this.loading = null; });
+      return this.loading;
+    }
+  };
+
   /* ---------- real articles (collected by tools/fetch-articles.mjs, served next to the app) ---------- */
   const BAND_ORDER = ['beginner', 'intermediate', 'advanced'];
   ET.Articles = {

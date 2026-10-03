@@ -444,6 +444,21 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 .ctx-box .en-line { text-align: left; font-weight: 500; }
 .badge.warn { background: var(--warn-soft); color: var(--warn); }
 
+/* ---------- v3: words hub ---------- */
+.words-head { text-align: center; display: grid; gap: 2px; justify-items: center; margin-top: -6px; }
+.words-head h1 { font-size: 1.7rem; }
+.words-head p { color: var(--muted); }
+.words-head .upd { font-size: .74rem; color: var(--muted); margin-top: 4px; }
+.big-card { display: flex; align-items: center; gap: 16px; width: 100%; text-align: start; background: var(--surface); border-radius: 24px; box-shadow: var(--shadow); padding: 16px; min-height: 96px; }
+.big-card .chev { width: 20px; height: 20px; color: var(--ink); }
+.big-title { flex: 1; font-weight: 700; font-size: 1.12rem; }
+.big-tile { width: 66px; height: 66px; border-radius: 19px; display: grid; place-items: center; font-size: 2.1rem; flex: none; box-shadow: inset 0 -6px 12px rgba(0, 0, 0, .08); }
+.big-tile.blue { background: linear-gradient(145deg, #8FA8FF, #5B7BF0); }
+.big-tile.purple { background: linear-gradient(145deg, #C7A3FF, #9A63F2); }
+.big-tile.yellow { background: linear-gradient(145deg, #FFE27A, #F7C531); }
+.ex-src { font-size: .72rem; color: var(--muted); }
+.ex-src a { color: var(--accent); }
+
 .empty { text-align: center; padding: 26px 16px; color: var(--muted); display: grid; gap: 8px; justify-items: center; }
 .empty .emo { font-size: 2.4rem; }
 .offline-pill { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: var(--warn-soft); color: var(--warn); }

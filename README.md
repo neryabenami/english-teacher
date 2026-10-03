@@ -23,12 +23,16 @@
 1. כתבות: The Conversation, ברישיון CC BY-ND 4.0. הכתבות מוצגות במלואן וללא שינוי, עם שם הכותב, קישור למקור והודעת הייחוס.
 2. טקסטים למתחילים: Simple English Wikipedia, ברישיון CC BY-SA 4.0, עם קישור לערך.
 3. מילון אנגלית־עברית: Wiktionary דרך kaikki.org, ברישיון CC BY-SA 4.0. דירוג התרגומים לפי FrequencyWords, ברישיון CC BY-SA 4.0.
-4. תרגום משפטים ברשת: MyMemory, חינמי וללא מפתח. משמש רק כשיש אינטרנט.
+4. מאגר המילים (כ־6,000 מילים בהתחלה): רשימת המילים הנפוצות FrequencyWords, ברישיון CC BY-SA 4.0. התרגום מ־Wiktionary, השיוך לנושאים לפי Open English WordNet (CC BY 4.0), ומשפטים לדוגמה עם תרגום לעברית מ־Tatoeba (CC BY 2.0 FR).
+5. מילים חדשות בכל יום: מילים מתוך הכתבות של אותו יום, עם המשפט מהכתבה, המקור והתאריך.
+6. תרגום משפטים ברשת: MyMemory, חינמי וללא מפתח. משמש רק כשיש אינטרנט.
 
 ## עדכון אוטומטי
 
 1. הקובץ `.github/workflows/deploy.yml` מריץ כל 6 שעות את `tools/fetch-articles.mjs`, שומר את הכתבות החדשות ב־`data/articles` ומפרסם את האתר. הכול ב־GitHub Actions, בחינם.
-2. בניית המילון מחדש: מריצים `node tools/build-dictionary.mjs <kaikki Hebrew jsonl> <he_50k.txt>`.
+2. אותה משימה מריצה גם את `tools/add-daily-words.mjs`, שמוסיף עד 25 מילים חדשות ביום ל־`data/vocab.json`.
+3. בניית מאגר המילים מחדש: מריצים `node tools/build-vocab.mjs <תיקייה עם קובצי המקור>`.
+4. בניית המילון מחדש: מריצים `node tools/build-dictionary.mjs <kaikki Hebrew jsonl> <he_50k.txt>`.
 
 ## מבנה הקוד
 
