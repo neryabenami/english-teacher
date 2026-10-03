@@ -78,7 +78,7 @@
     v: 1, onboarded: false, created: Date.now(),
     profile: { level: 'beginner', cefr: 'A2', goal: 'all', interests: [], dailyMin: 10, accent: 'en-US', theme: 'system',
       correction: 'important', autoWifi: true, reminders: false, ai: 'local', geminiKey: '', geminiModel: 'gemini-2.5-flash', autoSpeak: false },
-    items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {}, saved: {}, resume: null,
+    items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {}, saved: {}, resume: null, daily: null,
     stats: { quizzes: 0, qRight: 0, qTotal: 0, stories: {}, articles: {}, chats: 0, msgs: 0, games: 0, bestSpeed: 0, bestStreak: 0 },
     sync: { changes: 0, last: 0 }
   });
@@ -342,6 +342,15 @@
       const list = this.forUser().filter((a) => !S.stats.articles[a.id]);
       return list.find((a) => cats.has(a.cat)) || list[0] || null;
     },
+    /* the article of the day: at the user's level, unread, from their interests when possible, with a photo when possible */
+    pickDaily(key) {
+      const cats = new Set();
+      S.profile.interests.forEach((i) => ((D.INTERESTS.find((x) => x.id === i) || {}).read || []).forEach((c) => cats.add(c)));
+      const all = this.forUser().filter((a) => !S.stats.articles[a.id]);
+      const tiers = [all.filter((a) => a.image && cats.has(a.cat)), all.filter((a) => a.image), all];
+      const pool = tiers.find((t) => t.length) || [];
+      return pool.length ? pool[hash(key + 'a') % pool.length] : null;
+    },
     async body(id) {
       if (S.saved[id]) return S.saved[id];
       const r = await fetch(`data/articles/${encodeURIComponent(id)}.json`);
@@ -357,6 +366,30 @@
       list.forEach((a) => fetch(`data/articles/${encodeURIComponent(a.id)}.json`).catch(() => {}));
       return list.length;
     }
+  };
+
+  /* ---------- today's picks: word, slang and article change every day and stay fixed until midnight ---------- */
+  ET.daily = () => {
+    const key = dayKey();
+    if (!S.daily || S.daily.date !== key) S.daily = { date: key };
+    const d = S.daily;
+    let changed = false;
+    if ((!d.word || !BY_ID[d.word]) && ET.Vocab.ready) {
+      // a word at the user's level, with an example, not already known; words added today are skipped so the pool is stable all day
+      const pool = ITEMS.filter((i) => i.type === 'word' && i.ex && i.added !== key && ET.levelFit(i) <= 1 && ET.status(i.id) !== 'known');
+      const it = pool.length ? pool[hash(key + 'w') % pool.length] : ET.wordOfDay();
+      d.word = it.id; changed = true;
+    }
+    if (!d.slang || !BY_ID[d.slang]) {
+      const pool = ITEMS.filter((i) => i.type === 'expr' && i.kind === 'slang' && i.region !== 'בריטניה');
+      d.slang = pool[hash(key + 's') % pool.length].id; changed = true;
+    }
+    if (ET.Articles.index && (!d.article || !ET.Articles.meta(d.article))) {
+      const a = ET.Articles.pickDaily(key);
+      if (a) { d.article = a.id; changed = true; }
+    }
+    if (changed) ET.save();
+    return d;
   };
 
   /* ---------- speech (device TTS — free & offline) ---------- */

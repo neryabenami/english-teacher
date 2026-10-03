@@ -82,6 +82,7 @@ function parseConversation(xml, cat) {
     if (!/creative commons/i.test(rights)) continue;
     const html = decode(tag('content'));
     const pixel = (html.match(/https:\/\/counter\.theconversation\.com\/content\/\d+\/count\.gif/) || [])[0] || null;
+    const image = freeConversationImage(html);
     const body = html.replace(/<figure[\s\S]*?<\/figure>/gi, '').replace(/<img[^>]*>/gi, '');
     const paras = [];
     let note = '';
@@ -101,10 +102,61 @@ function parseConversation(xml, cat) {
       date: tag('published') || tag('updated'), url: link,
       source: 'The Conversation', license: 'CC BY-ND 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nd/4.0/',
       full: true, grade: g, level: levelOf(g), words, minutes: Math.max(1, Math.round(words / 200)),
-      paragraphs: paras, note, pixel
+      paragraphs: paras, note, pixel, ...(image ? { image } : {})
     });
   }
   return out;
+}
+
+/* ---------- photos (only openly licensed, always credited) ----------
+   The Conversation's photos are not covered by the article license: we use the lead photo only when its
+   caption names a free license; otherwise a matching photo from Wikimedia Commons. */
+const FREE_LICENSE = /\b(CC\s?BY|CC0|creative\s?commons|public\s?domain|wikimedia|NASA|unsplash)\b/i;
+function freeConversationImage(html) {
+  const fig = html.match(/<figure>[\s\S]*?<\/figure>/i);
+  if (!fig) return null;
+  const src = (fig[0].match(/<img[^>]*src="([^"]+)"/) || [])[1];
+  const attr = strip((fig[0].match(/<span class="attribution">([\s\S]*?)<\/span>\s*<\/figcaption>/) || [])[1] || '');
+  if (!src || !attr || !FREE_LICENSE.test(attr)) return null;
+  return { url: decode(src).replace(/w=\d+/, 'w=600').replace(/h=\d+/, 'h=400'), credit: attr.slice(0, 120) };
+}
+const CAT_QUERY = { news: 'city street people', tech: 'computer technology', science: 'laboratory science', sports: 'stadium sport', business: 'office business', finance: 'money coins', nature: 'forest landscape', culture: 'museum art', entertainment: 'cinema theatre stage', travel: 'travel airport', lifestyle: 'healthy food' };
+const QSTOP = new Set('the a an and or of to in on for with why how what who is are was were be can could will would should this that these those it its as at by from into about after over more most new your you our we they their his her not than just when does do did has have had via amid against between'.split(' '));
+const clean = (h) => strip(String(h || '')).slice(0, 80);
+async function commonsImage(query) {
+  const url = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=8'
+    + '&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=600&gsrsearch=' + encodeURIComponent('filetype:bitmap ' + query);
+  const j = await get(url, 'json');
+  const pages = Object.values(j.query?.pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
+  for (const p of pages) {
+    const ii = (p.imageinfo || [])[0];
+    const md = (ii && ii.extmetadata) || {};
+    const lic = clean(md.LicenseShortName && md.LicenseShortName.value);
+    if (!ii || !ii.thumburl || !/^(CC BY|CC0|Public domain|PD)/i.test(lic) || /NC/.test(lic)) continue;
+    if ((ii.thumbwidth || 0) < (ii.thumbheight || 0)) continue; // landscape photos fit the card
+    const artist = clean(md.Artist && md.Artist.value) || 'Wikimedia Commons';
+    return { url: ii.thumburl, credit: `${artist} · ${lic}`, page: ii.descriptionurl };
+  }
+  return null;
+}
+async function wikiPageImage(title) {
+  const j = await get(`https://simple.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&piprop=thumbnail|name&pithumbsize=600&titles=${encodeURIComponent(title)}`, 'json');
+  const p = Object.values(j.query?.pages || {})[0];
+  if (!p || !p.thumbnail || !p.pageimage) return null;
+  const k = await get(`https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url|extmetadata&titles=${encodeURIComponent('File:' + p.pageimage)}`, 'json');
+  const ii = ((Object.values(k.query?.pages || {})[0] || {}).imageinfo || [])[0];
+  const md = (ii && ii.extmetadata) || {};
+  const lic = clean(md.LicenseShortName && md.LicenseShortName.value);
+  if (!lic || /NC|fair use|non-free/i.test(lic)) return null;
+  return { url: p.thumbnail.source, credit: `${clean(md.Artist && md.Artist.value) || 'Wikimedia Commons'} · ${lic}`, page: ii.descriptionurl };
+}
+const keywords = (title) => title.toLowerCase().replace(/[^a-z\s-]/g, ' ').split(/\s+/).filter((w) => w.length > 3 && !QSTOP.has(w)).sort((a, b) => b.length - a.length).slice(0, 2).join(' ');
+async function findImage(a) {
+  try {
+    if (a.source === 'Simple English Wikipedia') { const im = await wikiPageImage(a.title); if (im) return im; }
+    const kw = keywords(a.title);
+    return (kw && await commonsImage(kw)) || await commonsImage(CAT_QUERY[a.cat] || 'landscape');
+  } catch (e) { console.warn('image failed', a.id, e.message); return null; }
 }
 
 /* ---------- Simple English Wikipedia ---------- */
@@ -167,6 +219,20 @@ for (const a of fresh) {
   known.set(a.id, meta);
   added++;
 }
+
+// photos for articles without one yet (image === undefined means "not looked up yet"); a few per run, politely
+let pics = 0;
+for (const meta of known.values()) {
+  if (meta.image !== undefined || pics >= 150) continue;
+  const file = path.join(OUT, meta.id + '.json');
+  let body;
+  try { body = JSON.parse(await fs.readFile(file, 'utf8')); } catch { continue; }
+  meta.image = body.image !== undefined ? body.image : await findImage(meta);
+  body.image = meta.image;
+  await fs.writeFile(file, JSON.stringify(body));
+  pics++;
+}
+console.log('looked up photos for', pics, 'articles');
 
 // keep it small: newest per category, drop old ones
 const cutoff = Date.now() - MAX_AGE_DAYS * 864e5;

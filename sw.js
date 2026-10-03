@@ -1,5 +1,5 @@
 /* Service worker: keeps the app, the dictionary and opened articles on the device (Local First). */
-const VERSION = 'et-v3.0.0';
+const VERSION = 'et-v3.1.0';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js', 'data/dict-en-he.json', 'data/vocab.json',
@@ -7,6 +7,7 @@ const APP = [
 ];
 const FONTS = 'et-fonts';
 const ARTICLES = 'et-articles';
+const PHOTOS = 'et-photos';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(APP)).then(() => self.skipWaiting()));
@@ -14,7 +15,7 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
-    .then((keys) => Promise.all(keys.filter((k) => ![VERSION, FONTS, ARTICLES].includes(k)).map((k) => caches.delete(k))))
+    .then((keys) => Promise.all(keys.filter((k) => ![VERSION, FONTS, ARTICLES, PHOTOS].includes(k)).map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -26,6 +27,18 @@ self.addEventListener('fetch', (e) => {
   // Google Fonts: cache first, so typography also works offline after the first visit.
   if (url.host === 'fonts.googleapis.com' || url.host === 'fonts.gstatic.com') {
     e.respondWith(caches.open(FONTS).then((c) => c.match(req).then((hit) => hit || fetch(req).then((res) => { c.put(req, res.clone()); return res; }))));
+    return;
+  }
+  // Article photos (Wikimedia / The Conversation): cache first, keep the newest 60 for offline reading.
+  if (/(^|\.)wikimedia\.org$|^images\.theconversation\.com$/.test(url.host) && req.destination === 'image') {
+    e.respondWith(caches.open(PHOTOS).then((c) => c.match(req).then((hit) => hit || fetch(req).then(async (res) => {
+      if (res.ok || res.type === 'opaque') {
+        await c.put(req, res.clone());
+        const keys = await c.keys();
+        if (keys.length > 60) await Promise.all(keys.slice(0, keys.length - 60).map((k) => c.delete(k)));
+      }
+      return res;
+    }))));
     return;
   }
   if (url.origin !== self.location.origin) return;

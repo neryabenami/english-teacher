@@ -52,7 +52,9 @@
     bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
     moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
     logo: '<path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.4A7.5 7.5 0 1 1 20 11.5z"/><path d="M7.8 14l2.2-5.5 2.2 5.5M8.6 12.3h2.8"/><circle cx="15" cy="12.6" r="1.5"/><path d="M16.5 11v3"/>',
-    del: '<path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-5 6M12 9l5 6"/>'
+    del: '<path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-5 6M12 9l5 6"/>',
+    bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+    bubble: '<path d="M4 5h16v11H9l-5 4z"/><path d="M9 10.5h.01M12 10.5h.01M15 10.5h.01" stroke-width="3"/>'
   };
   const ic = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
   const icFill = (n) => `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
@@ -197,7 +199,7 @@
   const articleRow = (a) => {
     const read = S.stats.articles[a.id];
     const saved = ET.Articles.isSaved(a.id);
-    return `<button class="card art-card" data-act="go" data-arg="article/${esc(a.id)}"><span class="thumb">${readCat(a.cat).icon}</span><span class="art-main">
+    return `<button class="card art-card" data-act="go" data-arg="article/${esc(a.id)}">${artImage(a, 'thumb art-thumb')}<span class="art-main">
       <span class="src">${srcIcon(a)}${esc(a.source)} · ${readCat(a.cat).he}${a.source === 'The Conversation' ? ' · ' + ago(a.date) : ''}</span>
       <span class="art-title" lang="en" dir="ltr">${esc(a.title)}</span>
       <span class="row wrap" style="gap:6px"><span class="badge">${a.minutes} דק׳ קריאה</span>${a.stretch > 0 ? '<span class="badge warn">קצת מאתגר</span>' : a.stretch < 0 ? '<span class="badge">קל יותר</span>' : ''}${saved ? '<span class="badge good">שמורה Offline</span>' : ''}${read ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button>`;
@@ -213,27 +215,39 @@
   };
   const miniCard = (it, eyebrow) => `<button class="card mini-card" data-act="item" data-arg="${esc(it.id)}"><span class="eyebrow">${eyebrow}</span><span class="word">${esc(it.t)}</span><span class="small muted">${esc(it.he)}</span></button>`;
 
+  const ROBOT = '<svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><line x1="24" y1="6" x2="24" y2="11" stroke="#5B6EE8" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="5" r="2.6" fill="#E5578A"/><rect x="9" y="11" width="30" height="24" rx="10" fill="#fff" stroke="#5B6EE8" stroke-width="2.5"/><rect x="14" y="17" width="20" height="11" rx="5.5" fill="#2E3A7A"/><circle cx="20" cy="22.5" r="2.4" fill="#6FF2DA"/><circle cx="28" cy="22.5" r="2.4" fill="#6FF2DA"/><rect x="5" y="19" width="4" height="9" rx="2" fill="#5B6EE8"/><rect x="39" y="19" width="4" height="9" rx="2" fill="#5B6EE8"/><path d="M17 41c1.5-3 4-4.5 7-4.5s5.5 1.5 7 4.5" fill="none" stroke="#5B6EE8" stroke-width="2.5" stroke-linecap="round"/></svg>';
+  const artImage = (a, cls) => (a.image ? `<span class="${cls}"><img src="${esc(a.image.url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="img-credit" dir="ltr">${esc(a.image.credit)}</span></span>` : `<span class="${cls} noimg"><span class="img-emo">${readCat(a.cat).icon}</span></span>`);
+  const dayCard = (it, label, cls, icon) => (it ? `<button class="card day-card" data-act="item" data-arg="${esc(it.id)}"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="w">${esc(it.t)}</span><span class="dc-row"><span class="he">${esc(it.he)}</span>${ic('chev', 'chev')}</span></button>` : '');
+
   SCREENS.home = () => {
+    const A = ET.Articles;
+    if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'home') render(); });
+    const d = ET.daily();
     const t = ET.today();
-    const mins = Math.floor(t.sec / 60);
-    const goal = S.profile.dailyMin;
-    const pct = Math.min(1, t.sec / (goal * 60));
+    const size = ET.sessionSize();
+    const done = Math.min(size, t.learned + t.reviewed);
     const due = ET.dueIds().length;
+    const res = resumeInfo();
+    const finished = done >= size && !res;
     const h = new Date().getHours();
     const greet = h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב';
-    const res = resumeInfo();
-    const art = ET.Articles.recommended();
-    if (!ET.Articles.index && !ET.Articles.failed && !ET.Articles.loading) ET.Articles.load().then(() => { if (parse().name === 'home') render(); });
-    return `<div class="screen">
-      <div class="hello"><div><p class="muted small">${greet} 👋</p><h1>${res || t.learned + t.reviewed ? 'ממשיכים מאיפה שעצרת' : 'מוכנים ללמוד היום?'}</h1></div>
+    const sub = finished ? 'כל הכבוד! השלמת את היעד של היום 🎉' : due ? `${due} מילים לחזרה · כ־${Math.max(1, Math.round(due / 2))} דקות` : `${size} מילים חדשות · כ־${S.profile.dailyMin} דקות`;
+    const art = d.article && A.meta(d.article);
+    return `<div class="screen home">
+      <div class="hello"><div><p class="muted small">${greet} 👋</p><h1>${res ? 'ממשיכים מאיפה שעצרת' : 'מוכנים ללמוד היום?'}</h1></div>
         <div class="streak" aria-label="${ET.streak()} ימים ברצף">${icFill('flame')}<span class="tnum">${ET.streak()}</span></div></div>
       ${RT.online ? '' : '<div class="note">אין חיבור לאינטרנט. הלימוד ממשיך לעבוד כרגיל וההתקדמות נשמרת במכשיר.</div>'}
-      <section class="hero"><div><h2>${res ? 'המשך מאיפה שהפסקתי' : 'הלימוד של היום'}</h2><p>${res ? esc(res.text) : `${ET.sessionSize()} כרטיסיות לפי הרמה שלך`}</p>
-        <button class="btn" data-act="go" data-arg="${res ? res.path : 'session/daily'}">${ic('play')} ${res ? 'המשך' : 'התחל ללמוד'}</button></div>${ring(pct, `${mins}/${goal}`, 'דקות היום')}</section>
-      ${due ? `<button class="card row-card" data-act="go" data-arg="session/review"><span class="thumb" style="background:var(--sun-soft)">🔁</span><span class="grow"><b>${due} מילים מחכות לחזרה</b><span class="small muted" style="display:block">כ־${Math.max(1, Math.round(due / 4))} דקות</span></span><span class="btn soft small">לחזרה</span></button>` : ''}
-      <div class="grid2">${miniCard(ET.wordOfDay(), 'Word of the Day')}${miniCard(ET.slangOfDay(), 'Slang of the Day')}</div>
-      ${art ? `<section class="section"><div class="section-head"><h2>מומלץ לקריאה</h2></div>${articleRow({ ...art, stretch: 0 })}</section>` : ''}
-      <button class="card row-card" data-act="go" data-arg="chat/free"><span class="thumb" style="background:var(--accent-soft)">💬</span><span class="grow"><b>בוא נדבר באנגלית</b><span class="small muted" style="display:block">שיחה עם AI, עם תיקונים והסברים בעברית</span></span>${ic('chev', 'chev')}</button>
+      <section class="today-card">
+        <div class="cards-art" aria-hidden="true"><span></span><span></span><span>Aa</span></div>
+        <h2>הלימוד של היום</h2>
+        <p class="sub">${sub}</p>
+        <div class="prog"><div class="pbar"><i style="width:${(done / size) * 100}%"></i></div><span class="tnum">${done}/${size}</span></div>
+        <button class="btn" data-act="go" data-arg="${res ? res.path : 'session/daily'}">${ic('play')} ${res ? 'המשך ללמוד' : finished ? 'עוד סבב' : 'התחל ללמוד'}</button>
+      </section>
+      <div class="day-rows">${dayCard(ET.item(d.slang), 'סלנג היום', 'pink', 'bubble')}${dayCard(ET.item(d.word), 'מילת היום', 'yellow', 'bulb')}</div>
+      ${art ? `<section class="section"><div class="section-head"><h2>קריאה מומלצת</h2><button class="link" data-act="go" data-arg="reading">לכל הכתבות</button></div>
+        <button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage(art, 'ha-img')}<span class="ha-body"><span class="eye">${readCat(art.cat).he} · ${esc(art.source)}</span><span class="t" lang="en" dir="ltr">${esc(art.title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.minutes} דק׳ קריאה</span><span class="badge">${BAND_HE[art.level] || ''}</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button></section>` : ''}
+      <button class="card ai-card" data-act="go" data-arg="chat/free"><span class="robot">${ROBOT}</span><span class="grow"><b>רוצה לתרגל דיבור?</b><span class="small muted" style="display:block">שיחה עם AI, עם תיקונים בעברית</span></span>${ic('chev', 'chev')}</button>
     </div>`;
   };
 
@@ -595,6 +609,7 @@
       ? `<p class="attrib" dir="ltr">This article is republished from <a href="https://theconversation.com" target="_blank" rel="noopener">The Conversation</a> under a Creative Commons license. Read the <a href="${esc(a.url)}" target="_blank" rel="noopener">original article</a>.</p>${a.note ? `<p class="attrib" dir="ltr">${esc(a.note)}</p>` : ''}${a.pixel && RT.online ? `<img src="${esc(a.pixel)}" alt="" width="1" height="1" class="pixel">` : ''}`
       : `<p class="attrib">מקור: הערך <a href="${esc(a.url)}" target="_blank" rel="noopener" lang="en">${esc(a.title)}</a> ב־Simple English Wikipedia, ברישיון <a href="${esc(a.licenseUrl)}" target="_blank" rel="noopener">CC BY-SA 4.0</a>.${a.full ? '' : ' מוצג קטע מתחילת הערך.'}</p>`;
     return `<div class="screen">${topbar('', 'reading', `<span class="badge lvl">${BAND_HE[a.level] || ''}</span><button class="icon-btn ${saved ? 'active' : ''}" data-act="save-article" aria-label="${saved ? 'הסרה מהשמורות' : 'שמירה לקריאה בלי אינטרנט'}">${saved ? ic('check') : ic('download')}</button>`)}
+      ${a.image ? `<figure class="art-hero"><img src="${esc(a.image.url)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"><figcaption dir="ltr">${a.image.page ? `<a href="${esc(a.image.page)}" target="_blank" rel="noopener">${esc(a.image.credit)}</a>` : esc(a.image.credit)}</figcaption></figure>` : ''}
       <div class="src-line">${srcIcon(a)}<span>מקור: <b lang="en">${esc(a.source)}</b> · ${esc(a.license)} · <a href="${esc(a.url)}" target="_blank" rel="noopener">לכתבה המקורית ↗</a></span></div>
       <div><h1 class="art-h" lang="en" dir="ltr">${esc(a.title)}</h1><p class="small muted" dir="ltr" style="text-align:left">${esc(a.author)}${conv ? ' · ' + new Date(a.date).toLocaleDateString('en-GB') : ''} · ${a.minutes} min</p></div>
       <div class="player"><button class="play-btn" data-act="read-aloud" aria-label="${RT.reading ? 'עצירת ההקראה' : 'הקרא לי את הכתבה'}">${RT.reading ? ic('stop') : icFill('play')}</button><b class="small">${RT.reading ? 'מקריא…' : 'הקרא לי את הכתבה'}</b>
