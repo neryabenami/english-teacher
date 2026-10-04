@@ -221,7 +221,7 @@ async function aiShorts(batch) {
   const j = await res.json();
   const items = JSON.parse(j.choices[0].message.content).items || [];
   const out = {};
-  for (const it of items) if (it.id && it.en && it.he && it.en.split(' ').length <= 8) out[it.id] = { en: String(it.en).trim(), he: String(it.he).trim() };
+  for (const it of items) if (it.id && it.en && it.he && it.en.split(' ').length <= 8) out[it.id] = { en: String(it.en).trim().replace(/[.…]+$/, ''), he: String(it.he).trim().replace(/[.…]+$/, ''), ai: true };
   return out;
 }
 async function myMemory(text) {
@@ -306,7 +306,8 @@ const patchBody = async (id, patch) => {
   try { const body = JSON.parse(await fs.readFile(file, 'utf8')); Object.assign(body, patch); await fs.writeFile(file, JSON.stringify(body)); } catch { /* missing body */ }
 };
 // short headline (few English words) + its Hebrew meaning
-const needShort = process.env.NO_SUMMARY ? [] : keep.filter((m) => !m.short).slice(0, 300);
+// headlines made by the fallback are redone once the AI is available
+const needShort = process.env.NO_SUMMARY ? [] : keep.filter((m) => !m.short || (process.env.GITHUB_TOKEN && !m.short.ai)).slice(0, 300);
 const shorts = await summarize(needShort);
 for (const m of needShort) if (shorts[m.id]) { m.short = shorts[m.id]; await patchBody(m.id, { short: m.short }); }
 console.log('short headlines for', Object.keys(shorts).length, 'articles');
