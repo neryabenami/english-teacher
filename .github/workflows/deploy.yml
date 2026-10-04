@@ -12,7 +12,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
-  models: read
+
 
 concurrency:
   group: pages
@@ -35,7 +35,7 @@ jobs:
         if: github.event_name != 'push'
         run: node tools/fetch-articles.mjs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Add today's new words
         if: github.event_name != 'push'

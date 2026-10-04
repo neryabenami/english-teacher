@@ -197,55 +197,78 @@ async function findImage(a) {
   } catch (e) { console.warn('image failed', a.id, e.message); return null; }
 }
 
-/* ---------- short summaries ----------
-   In GitHub Actions: GitHub Models (free, uses the workflow's own token). Elsewhere or on failure:
-   the first part of the title + a free machine translation (MyMemory). */
-async function aiShorts(batch) {
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) return null;
+/* ---------- short headlines ----------
+   Default (free, no key): the title cut at a natural point (a few words, no "…"), and the Hebrew
+   meaning = a free machine translation (MyMemory) of the full title.
+   Optional: if the repository has a free Google Gemini key in the GEMINI_API_KEY secret, Gemini writes
+   the headline and the Hebrew line instead. */
+const SHORT_V = 2;
+async function geminiShorts(batch) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return null;
   const list = batch.map((a) => ({ id: a.id, title: a.title, about: (a.summary || '').slice(0, 220) }));
-  const res = await fetch('https://models.github.ai/inference/chat/completions', {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:generateContent`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
     body: JSON.stringify({
-      model: process.env.SUMMARY_MODEL || 'openai/gpt-4o-mini',
-      temperature: 0.2,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: 'You write very short card headlines for Hebrew-speaking English learners. Do not invent facts beyond the title and description.' },
-        { role: 'user', content: 'For each article return "en": the main idea in 3-6 simple English words (no ending period), and "he": the main idea in natural Hebrew, 3-7 words. Reply ONLY with JSON {"items":[{"id":"...","en":"...","he":"..."}]}.\n' + JSON.stringify(list) }
-      ]
+      systemInstruction: { parts: [{ text: 'You write very short card headlines for Hebrew-speaking English learners. Do not invent facts beyond the title and description.' }] },
+      contents: [{ role: 'user', parts: [{ text: 'For each article return "en": the main idea in 3-6 simple English words (no ending period), and "he": the main idea in natural Hebrew, 4-9 words. Reply ONLY with JSON {"items":[{"id":"...","en":"...","he":"..."}]}.\n' + JSON.stringify(list) }] }],
+      generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
     })
   });
-  if (!res.ok) throw new Error('models ' + res.status);
+  if (!res.ok) throw new Error('gemini ' + res.status);
   const j = await res.json();
-  const items = JSON.parse(j.choices[0].message.content).items || [];
+  const items = JSON.parse(j.candidates[0].content.parts[0].text).items || [];
   const out = {};
-  for (const it of items) if (it.id && it.en && it.he && it.en.split(' ').length <= 8) out[it.id] = { en: String(it.en).trim().replace(/[.…]+$/, ''), he: String(it.he).trim().replace(/[.…]+$/, ''), ai: true };
+  for (const it of items) {
+    if (!it.id || !it.en || !it.he || String(it.en).split(/\s+/).length > 8) continue;
+    out[it.id] = { en: String(it.en).trim().replace(/[.…]+$/, ''), he: String(it.he).trim().replace(/[.…]+$/, ''), ai: true, v: SHORT_V };
+  }
   return out;
 }
 async function myMemory(text) {
   try {
-    const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|he`);
+    const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 450))}&langpair=en|he`);
     const j = await r.json();
     const t = j && j.responseStatus === 200 ? String(j.responseData.translatedText || '') : '';
     return /MYMEMORY|QUOTA|INVALID/i.test(t) ? '' : t;
   } catch { return ''; }
 }
-const headOf = (title) => { const first = title.split(/\s[–—-]\s|:\s|\?\s/)[0].replace(/[?.!]+$/, ''); const w = first.split(/\s+/); return w.length > 8 ? w.slice(0, 7).join(' ') + '…' : first; };
+/* a few words that still read as a phrase: first clause, without leading question words, cut before a weak word */
+const LEAD = /^(how|why|what|when|where|who|here's|here is|the|a|an)\s+/i;
+const WEAK = new Set('a an the of to in on for and or but with after before from by at as is are was were be been that which who whose its their his her our your can could will would may might has have had not into over than about'.split(' '));
+function headOf(title) {
+  const parts = title.split(/\s[–—-]\s|:\s|\?\s|;\s/).map((p) => p.replace(/[?.!,]+$/, '').trim()).filter(Boolean);
+  // "ICYMI: President Trump announces…" → the part after a 1-2 word label
+  const label = /^[A-Z]{2,}$/.test(parts[0] || '') || /^(watch|breaking|live|fact sheet|remarks|update|explainer)$/i.test(parts[0] || '');
+  let first = parts.length > 1 && label ? parts[1] : parts[0];
+  const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+  let words = first.split(/\s+/);
+  if (words.length <= 7) return cap(first);
+  first = first.replace(LEAD, '');
+  words = first.split(/\s+/);
+  const comma = first.split(/,\s|\s(?:but|and|as|while|because|after|before)\s/)[0].split(/\s+/);
+  if (comma.length >= 3 && comma.length <= 7) return cap(comma.join(' '));
+  // "Renoir and Love is a wonderful celebration…" → "Renoir and Love"
+  const copula = first.match(/^(.{6,}?)\s(?:is|are|was|were)\s/i);
+  if (copula && copula[1].split(/\s+/).length >= 2 && copula[1].split(/\s+/).length <= 6) return cap(copula[1]);
+  let cut = words.slice(0, 7);
+  while (cut.length > 3 && WEAK.has(cut[cut.length - 1].toLowerCase())) cut.pop();
+  const out = cut.join(' ');
+  return out.charAt(0).toUpperCase() + out.slice(1);
+}
 async function summarize(metas) {
   const out = {};
-  let aiOk = !!process.env.GITHUB_TOKEN;
+  let aiOk = !!process.env.GEMINI_API_KEY;
   for (let i = 0; i < metas.length; i += 10) {
     const batch = metas.slice(i, i + 10);
     if (aiOk) {
-      try { Object.assign(out, await aiShorts(batch)); await sleep(4500); } catch (e) { console.warn('AI summaries unavailable:', e.message); aiOk = false; }
+      try { Object.assign(out, await geminiShorts(batch)); await sleep(4500); } catch (e) { console.warn('AI headlines unavailable:', e.message); aiOk = false; }
     }
     for (const a of batch) {
       if (out[a.id]) continue;
-      const en = headOf(a.title);
-      const he = await myMemory(en);
-      if (he) out[a.id] = { en, he };
+      const he = await myMemory(a.title);
+      if (he) out[a.id] = { en: headOf(a.title), he, v: SHORT_V };
     }
   }
   return out;
@@ -307,7 +330,7 @@ const patchBody = async (id, patch) => {
 };
 // short headline (few English words) + its Hebrew meaning
 // headlines made by the fallback are redone once the AI is available
-const needShort = process.env.NO_SUMMARY ? [] : keep.filter((m) => !m.short || (process.env.GITHUB_TOKEN && !m.short.ai)).slice(0, 300);
+const needShort = process.env.NO_SUMMARY ? [] : keep.filter((m) => !m.short || m.short.v !== SHORT_V || (process.env.GEMINI_API_KEY && !m.short.ai)).slice(0, 300);
 const shorts = await summarize(needShort);
 for (const m of needShort) if (shorts[m.id]) { m.short = shorts[m.id]; await patchBody(m.id, { short: m.short }); }
 console.log('short headlines for', Object.keys(shorts).length, 'articles');
