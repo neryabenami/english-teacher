@@ -1,44 +1,47 @@
 /* Collects real, legally reusable articles for the Reading tab and writes them to data/articles/.
-   Sources:
+   Sources (full text, republishing allowed):
    - The Conversation (CC BY-ND 4.0): republished in full and unchanged, with author, source and link.
-   - Simple English Wikipedia (CC BY-SA 4.0): excerpts for beginners, with source and link.
-   Each article gets a reading level from its text (Flesch-Kincaid grade).
+   - Global Voices (CC BY 3.0): international news.
+   - The White House (public domain, U.S. Government work): official statements, marked as such.
+   Only articles of at least 5 minutes' reading. Each gets a reading level (Flesch-Kincaid grade),
+   a short headline (few English words + Hebrew meaning) and an openly licensed photo with credit.
    Runs in GitHub Actions on a schedule (free). Node 18+, no dependencies. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const OUT = path.resolve('data/articles');
-const KEEP_PER_CAT = 36;
-const MAX_AGE_DAYS = 120;
+const MIN_WORDS = 1000;            // ≈ 5 minutes at 200 words per minute
+const KEEP_PER_CAT = 60;
+const MAX_AGE_DAYS = 90;
+const MAX_AGE_SLOW_DAYS = 240;     // topics that publish rarely (crypto, bonds) keep articles longer
 const UA = 'english-teacher-app (https://github.com/neryabenami/english-teacher)';
 
+/* Reading tabs: world · tech · science · sports · business (subs: markets, stocks, crypto, bonds) · interesting.
+   Several feeds per tab (US/UK/Australia/Canada/Africa editions + topic feeds) so each tab gets new articles daily. */
 const TC = (p) => `https://theconversation.com/${p}/articles.atom`;
-const CONV = {
-  news: [TC('us/politics'), TC('us/education')],
-  tech: [TC('us/technology')],
-  science: [TC('global/topics/science-1256'), TC('global/topics/space-51')],
-  sports: [TC('global/topics/sports-4768'), TC('global/topics/football-482'), TC('global/topics/sport-480')],
-  business: [TC('us/business')],
-  finance: [TC('global/topics/personal-finance-18907')],
-  nature: [TC('us/environment')],
-  culture: [TC('us/arts'), TC('global/topics/food-260')],
-  entertainment: [TC('global/topics/film-1175'), TC('global/topics/movies-28203'), TC('global/topics/music-12'), TC('global/topics/television-145')],
-  travel: [TC('global/topics/travel-472'), TC('global/topics/tourism-471')],
-  lifestyle: [TC('us/health')]
-};
-const SIMPLE = {
-  tech: ['Technology', 'Computers', 'Internet'],
-  science: ['Science', 'Astronomy', 'Biology'],
-  sports: ['Sports', 'Ball games'],
-  business: ['Business', 'Companies'],
-  finance: ['Money', 'Economics'],
-  nature: ['Animals', 'Plants', 'Nature'],
-  culture: ['Culture', 'Food', 'Holidays'],
-  entertainment: ['Movies', 'Music', 'Television'],
-  travel: ['Tourism', 'Tourist attractions'],
-  lifestyle: ['Health', 'Sleep', 'Exercise'],
-  news: ['Government', 'Elections']
-};
+const T = (slug) => TC('global/topics/' + slug);
+const FEEDS = [
+  ...[T('donald-trump-10206'), T('russia-1376'), T('ukraine-8201'), T('israel-360'), T('middle-east-361'), T('europe-823'), T('china-336'), T('india-1429'),
+    TC('us/politics'), TC('uk/politics'), TC('au/politics')].map((url) => ({ url, cat: 'world' })),
+  ...[TC('us/technology'), TC('uk/technology'), TC('au/technology')].map((url) => ({ url, cat: 'tech' })),
+  ...[T('science-1256'), T('space-51'), TC('us/environment'), TC('uk/environment'), T('climate-change-27')].map((url) => ({ url, cat: 'science' })),
+  ...[T('sports-4768'), T('football-482'), T('sport-480'), T('tennis-2125')].map((url) => ({ url, cat: 'sports' })),
+  ...[TC('us/business'), TC('uk/business'), TC('ca/business'), TC('africa/business'), TC('au/business'), T('economy-254'), T('personal-finance-18907')].map((url) => ({ url, cat: 'business' })),
+  { url: T('stock-markets-13552'), cat: 'business', sub: 'markets', slow: true }, { url: T('interest-rates-1102'), cat: 'business', sub: 'markets', slow: true },
+  { url: T('stocks-6225'), cat: 'business', sub: 'stocks', slow: true },
+  { url: T('cryptocurrency-8321'), cat: 'business', sub: 'crypto', slow: true }, { url: T('bitcoin-1358'), cat: 'business', sub: 'crypto', slow: true },
+  { url: T('bonds-1210'), cat: 'business', sub: 'bonds', slow: true },
+  ...[T('psychology-28'), T('history-180'), T('health-4159'), T('mental-health-343'), T('food-260'), T('parenting-811'), T('animals-3165'), TC('us/arts'), TC('uk/arts')].map((url) => ({ url, cat: 'interesting' }))
+];
+/* Other full-text sources that allow republishing */
+const RSS = [
+  // what the President says: official statements of the US government are public domain (17 U.S.C. § 105)
+  { cat: 'world', url: 'https://www.whitehouse.gov/news/feed/', source: 'The White House', license: 'Public domain (U.S. Government work)', licenseUrl: 'https://www.usa.gov/government-copyright', prefix: 'wh-', official: true },
+  // international news from local writers, CC BY
+  { cat: 'world', url: 'https://globalvoices.org/feed/', source: 'Global Voices', license: 'CC BY 3.0', licenseUrl: 'https://creativecommons.org/licenses/by/3.0/', prefix: 'gv-' }
+];
+/* earlier tab names → current tabs (older saved data) */
+const OLD2NEW = { news: 'world', trump: 'world', markets: 'business', finance: 'business', nature: 'science', culture: 'interesting', entertainment: 'interesting', travel: 'interesting', lifestyle: 'interesting' };
 
 /* ---------- text helpers ---------- */
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“', mdash: '—', ndash: '–', hellip: '…' };
@@ -64,10 +67,45 @@ const grade = (text) => {
 const levelOf = (g) => (g <= 8.5 ? 'beginner' : g <= 12.5 ? 'intermediate' : 'advanced');
 const wordCount = (paras) => paras.join(' ').split(/\s+/).filter(Boolean).length;
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function get(url, type = 'text') {
-  const res = await fetch(url, { headers: { 'User-Agent': UA } });
-  if (!res.ok) throw new Error(`${res.status} ${url}`);
-  return type === 'json' ? res.json() : res.text();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await sleep(attempt ? 6000 * attempt : 350); // polite pacing; back off when the site asks us to
+    const res = await fetch(url, { headers: { 'User-Agent': UA } });
+    if (res.status === 429 || res.status >= 500) continue;
+    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    return type === 'json' ? res.json() : res.text();
+  }
+  throw new Error(`gave up ${url}`);
+}
+
+/* ---------- generic RSS with full text (content:encoded) ---------- */
+function parseRss(xml, feed) {
+  const out = [];
+  for (const item of xml.split('<item>').slice(1)) {
+    const tag = (t) => { const m = item.match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`)); return m ? m[1].replace(/^<!\[CDATA\[|\]\]>$/g, '') : ''; };
+    const link = strip(tag('link'));
+    const html = tag('content:encoded');
+    if (!link || !html) continue;
+    const paras = [];
+    for (const m of html.replace(/<figure[\s\S]*?<\/figure>/gi, '').matchAll(/<(p|h2|h3|li)[^>]*>([\s\S]*?)<\/\1>/gi)) {
+      const txt = strip(m[2]);
+      if (txt.length < 25 || /^(Read more|Related|Share this|Photo:|Image:)/i.test(txt)) continue;
+      paras.push(/^h/i.test(m[1]) ? `## ${txt}` : txt);
+    }
+    if (paras.length < 3) continue;
+    const words = wordCount(paras);
+    if (words < 120) continue;
+    const g = grade(paras.filter((p) => !p.startsWith('## ')).join(' '));
+    const id = feed.prefix + link.replace(/^https?:\/\/[^/]+\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(-70);
+    out.push({
+      id, cat: feed.cat, title: strip(tag('title')), summary: '', author: strip(tag('dc:creator')) || feed.source,
+      date: new Date(strip(tag('pubDate')) || Date.now()).toISOString(), url: link, source: feed.source, license: feed.license,
+      licenseUrl: feed.licenseUrl, full: true, grade: g, level: levelOf(g), words, minutes: Math.max(1, Math.round(words / 200)),
+      paragraphs: paras, note: '', pixel: null, ...(feed.official ? { official: true } : {})
+    });
+  }
+  return out;
 }
 
 /* ---------- The Conversation ---------- */
@@ -120,7 +158,7 @@ function freeConversationImage(html) {
   if (!src || !attr || !FREE_LICENSE.test(attr)) return null;
   return { url: decode(src).replace(/w=\d+/, 'w=600').replace(/h=\d+/, 'h=400'), credit: attr.slice(0, 120) };
 }
-const CAT_QUERY = { news: 'city street people', tech: 'computer technology', science: 'laboratory science', sports: 'stadium sport', business: 'office business', finance: 'money coins', nature: 'forest landscape', culture: 'museum art', entertainment: 'cinema theatre stage', travel: 'travel airport', lifestyle: 'healthy food' };
+const CAT_QUERY = { trump: 'White House Washington', world: 'world map globe', markets: 'stock exchange', news: 'city street people', tech: 'computer technology', science: 'laboratory science', sports: 'stadium sport', business: 'office business', finance: 'money coins', nature: 'forest landscape', culture: 'museum art', entertainment: 'cinema theatre stage', travel: 'travel airport', lifestyle: 'healthy food' };
 const QSTOP = new Set('the a an and or of to in on for with why how what who is are was were be can could will would should this that these those it its as at by from into about after over more most new your you our we they their his her not than just when does do did has have had via amid against between'.split(' '));
 const clean = (h) => strip(String(h || '')).slice(0, 80);
 async function commonsImage(query) {
@@ -159,38 +197,56 @@ async function findImage(a) {
   } catch (e) { console.warn('image failed', a.id, e.message); return null; }
 }
 
-/* ---------- Simple English Wikipedia ---------- */
-const daySeed = Math.floor(Date.now() / 864e5);
-async function simpleWiki(cat, categories) {
-  const titles = [];
-  for (const c of categories) {
-    try {
-      const j = await get(`https://simple.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent('Category:' + c)}&cmtype=page&cmlimit=200&format=json`, 'json');
-      titles.push(...(j.query?.categorymembers || []).map((m) => m.title).filter((t) => !/^(List of|Index of)/.test(t)));
-    } catch (e) { console.warn('simple wiki category failed', c, e.message); }
-  }
-  if (!titles.length) return [];
-  // rotate through the category so new texts appear over time
-  const pick = new Set();
-  for (let i = 0; i < 12 && i < titles.length; i++) pick.add(titles[(daySeed * 7 + i * 13) % titles.length]);
-  const out = [];
-  for (const title of pick) {
-    // the API returns a full-page extract for one title per request
-    let p;
-    try { p = Object.values((await get(`https://simple.wikipedia.org/w/api.php?action=query&prop=extracts|info&inprop=url&explaintext=1&exsectionformat=plain&format=json&titles=${encodeURIComponent(title)}`, 'json')).query?.pages || {})[0]; } catch { continue; }
-    if (!p || !p.extract) continue;
-    const all = p.extract.split('\n').map((s) => s.trim()).filter((s) => s.length > 40 && !/^(References|Related pages|Other websites|Notes|Gallery)$/i.test(s));
-    const paras = [];
-    for (const para of all) { if (wordCount(paras) > 320) break; paras.push(para); }
-    const words = wordCount(paras);
-    if (words < 90) continue;
-    const g = grade(paras.join(' '));
-    out.push({
-      id: 'sw-' + p.pageid, cat, title: p.title, summary: '', author: 'Simple English Wikipedia contributors',
-      date: new Date().toISOString(), url: p.fullurl, source: 'Simple English Wikipedia', license: 'CC BY-SA 4.0',
-      licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', full: words >= wordCount(all), grade: g, level: g <= 10.5 ? 'beginner' : levelOf(g),
-      words, minutes: Math.max(1, Math.round(words / 160)), paragraphs: paras, note: '', pixel: null
-    });
+/* ---------- short summaries ----------
+   In GitHub Actions: GitHub Models (free, uses the workflow's own token). Elsewhere or on failure:
+   the first part of the title + a free machine translation (MyMemory). */
+async function aiShorts(batch) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return null;
+  const list = batch.map((a) => ({ id: a.id, title: a.title, about: (a.summary || '').slice(0, 220) }));
+  const res = await fetch('https://models.github.ai/inference/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: process.env.SUMMARY_MODEL || 'openai/gpt-4o-mini',
+      temperature: 0.2,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: 'You write very short card headlines for Hebrew-speaking English learners. Do not invent facts beyond the title and description.' },
+        { role: 'user', content: 'For each article return "en": the main idea in 3-6 simple English words (no ending period), and "he": the main idea in natural Hebrew, 3-7 words. Reply ONLY with JSON {"items":[{"id":"...","en":"...","he":"..."}]}.\n' + JSON.stringify(list) }
+      ]
+    })
+  });
+  if (!res.ok) throw new Error('models ' + res.status);
+  const j = await res.json();
+  const items = JSON.parse(j.choices[0].message.content).items || [];
+  const out = {};
+  for (const it of items) if (it.id && it.en && it.he && it.en.split(' ').length <= 8) out[it.id] = { en: String(it.en).trim(), he: String(it.he).trim() };
+  return out;
+}
+async function myMemory(text) {
+  try {
+    const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|he`);
+    const j = await r.json();
+    const t = j && j.responseStatus === 200 ? String(j.responseData.translatedText || '') : '';
+    return /MYMEMORY|QUOTA|INVALID/i.test(t) ? '' : t;
+  } catch { return ''; }
+}
+const headOf = (title) => { const first = title.split(/\s[–—-]\s|:\s|\?\s/)[0].replace(/[?.!]+$/, ''); const w = first.split(/\s+/); return w.length > 8 ? w.slice(0, 7).join(' ') + '…' : first; };
+async function summarize(metas) {
+  const out = {};
+  let aiOk = !!process.env.GITHUB_TOKEN;
+  for (let i = 0; i < metas.length; i += 10) {
+    const batch = metas.slice(i, i + 10);
+    if (aiOk) {
+      try { Object.assign(out, await aiShorts(batch)); await sleep(4500); } catch (e) { console.warn('AI summaries unavailable:', e.message); aiOk = false; }
+    }
+    for (const a of batch) {
+      if (out[a.id]) continue;
+      const en = headOf(a.title);
+      const he = await myMemory(en);
+      if (he) out[a.id] = { en, he };
+    }
   }
   return out;
 }
@@ -199,58 +255,73 @@ async function simpleWiki(cat, categories) {
 await fs.mkdir(OUT, { recursive: true });
 let index = { articles: [] };
 try { index = JSON.parse(await fs.readFile(path.join(OUT, 'index.json'), 'utf8')); } catch { /* first run */ }
-const known = new Map(index.articles.map((a) => [a.id, a]));
-const fresh = [];
-
-for (const [cat, feeds] of Object.entries(CONV)) {
-  for (const f of feeds) {
-    try { fresh.push(...parseConversation(await get(f), cat)); } catch (e) { console.warn('feed failed', f, e.message); }
-  }
+const known = new Map();
+for (const m of index.articles) {
+  if (m.id.startsWith('sw-') || (m.words || 0) < MIN_WORDS) continue;   // short texts are no longer shown
+  known.set(m.id, { ...m, cat: m.sub ? 'business' : (OLD2NEW[m.cat] || m.cat) });
 }
-for (const [cat, cats] of Object.entries(SIMPLE)) {
-  try { fresh.push(...await simpleWiki(cat, cats)); } catch (e) { console.warn('simple wiki failed', cat, e.message); }
+
+const fresh = [];
+for (const feed of FEEDS) {
+  try {
+    for (const art of parseConversation(await get(feed.url), feed.cat)) fresh.push({ ...art, ...(feed.sub ? { sub: feed.sub } : {}), ...(feed.slow ? { slow: true } : {}) });
+  } catch (e) { console.warn('feed failed', feed.url, e.message); }
+}
+for (const feed of RSS) {
+  try { fresh.push(...parseRss(await get(feed.url), feed)); } catch (e) { console.warn('feed failed', feed.url, e.message); }
 }
 
 let added = 0;
-for (const a of fresh) {
-  if (known.has(a.id)) continue;
-  const { paragraphs, note, pixel, ...meta } = a;
-  await fs.writeFile(path.join(OUT, a.id + '.json'), JSON.stringify({ ...meta, paragraphs, note, pixel }));
-  known.set(a.id, meta);
+for (const art of fresh) {
+  if (art.words < MIN_WORDS) continue;
+  const prev = known.get(art.id);
+  if (prev) { if (art.sub && !prev.sub) { prev.sub = art.sub; prev.slow = art.slow; prev.cat = 'business'; } continue; }
+  const { paragraphs, note, pixel, ...meta } = art;
+  await fs.writeFile(path.join(OUT, art.id + '.json'), JSON.stringify({ ...meta, paragraphs, note, pixel }));
+  known.set(art.id, meta);
   added++;
 }
 
-// photos for articles without one yet (image === undefined means "not looked up yet"); a few per run, politely
+// keep it fresh and small: per tab (and per finance sub-tab) the newest articles, spread over the three levels
+const groups = {};
+for (const m of known.values()) (groups[m.cat + '/' + (m.sub || '')] = groups[m.cat + '/' + (m.sub || '')] || []).push(m);
+const keep = [];
+for (const list of Object.values(groups)) {
+  list.sort((x, y) => new Date(y.date) - new Date(x.date));
+  const perLevel = { beginner: [], intermediate: [], advanced: [] };
+  for (const m of list) {
+    const maxAge = (m.slow ? MAX_AGE_SLOW_DAYS : MAX_AGE_DAYS) * 864e5;
+    if (Date.now() - new Date(m.date).getTime() <= maxAge) perLevel[m.level].push(m);
+  }
+  for (const l of Object.values(perLevel)) keep.push(...l.slice(0, Math.ceil(KEEP_PER_CAT / 3)));
+}
+const keepIds = new Set(keep.map((m) => m.id));
+for (const file of await fs.readdir(OUT)) {
+  if (file === 'index.json') continue;
+  if (!keepIds.has(file.replace(/.json$/, ''))) await fs.unlink(path.join(OUT, file));
+}
+
+const patchBody = async (id, patch) => {
+  const file = path.join(OUT, id + '.json');
+  try { const body = JSON.parse(await fs.readFile(file, 'utf8')); Object.assign(body, patch); await fs.writeFile(file, JSON.stringify(body)); } catch { /* missing body */ }
+};
+// short headline (few English words) + its Hebrew meaning
+const needShort = process.env.NO_SUMMARY ? [] : keep.filter((m) => !m.short).slice(0, 300);
+const shorts = await summarize(needShort);
+for (const m of needShort) if (shorts[m.id]) { m.short = shorts[m.id]; await patchBody(m.id, { short: m.short }); }
+console.log('short headlines for', Object.keys(shorts).length, 'articles');
+// openly licensed photo with credit (image === undefined means "not looked up yet")
 let pics = 0;
-for (const meta of known.values()) {
-  if (meta.image !== undefined || pics >= 150) continue;
-  const file = path.join(OUT, meta.id + '.json');
-  let body;
-  try { body = JSON.parse(await fs.readFile(file, 'utf8')); } catch { continue; }
-  meta.image = body.image !== undefined ? body.image : await findImage(meta);
-  body.image = meta.image;
-  await fs.writeFile(file, JSON.stringify(body));
+for (const m of keep) {
+  if (process.env.NO_PHOTOS || m.image !== undefined || pics >= 200) continue;
+  m.image = await findImage(m);
+  await patchBody(m.id, { image: m.image, cat: m.cat, ...(m.sub ? { sub: m.sub } : {}) });
   pics++;
 }
 console.log('looked up photos for', pics, 'articles');
+for (const m of keep) await patchBody(m.id, { cat: m.cat, ...(m.sub ? { sub: m.sub } : {}) });
 
-// keep it small: newest per category, drop old ones
-const cutoff = Date.now() - MAX_AGE_DAYS * 864e5;
-const byCat = {};
-for (const a of known.values()) (byCat[a.cat] = byCat[a.cat] || []).push(a);
-const keep = [];
-for (const list of Object.values(byCat)) {
-  list.sort((x, y) => new Date(y.date) - new Date(x.date));
-  const perLevel = { beginner: [], intermediate: [], advanced: [] };
-  for (const a of list) if (new Date(a.date).getTime() >= cutoff || a.source !== 'The Conversation') perLevel[a.level].push(a);
-  for (const l of Object.values(perLevel)) keep.push(...l.slice(0, Math.ceil(KEEP_PER_CAT / 3)));
-}
-const keepIds = new Set(keep.map((a) => a.id));
-for (const f of await fs.readdir(OUT)) {
-  if (f === 'index.json') continue;
-  if (!keepIds.has(f.replace(/\.json$/, ''))) await fs.unlink(path.join(OUT, f));
-}
 keep.sort((x, y) => new Date(y.date) - new Date(x.date));
 await fs.writeFile(path.join(OUT, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), articles: keep }));
-const lv = keep.reduce((m, a) => ((m[a.level] = (m[a.level] || 0) + 1), m), {});
-console.log(`added ${added}, total ${keep.length}`, lv);
+const tally = keep.reduce((t, m) => { const k = m.cat + (m.sub ? '/' + m.sub : ''); t[k] = (t[k] || 0) + 1; return t; }, {});
+console.log(`added ${added}, total ${keep.length}`, tally);

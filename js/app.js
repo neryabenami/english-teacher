@@ -194,15 +194,23 @@
      ========================================================= */
   const readCat = (id) => D.READ_CATS.find((c) => c.id === id) || { he: '', icon: '📰' };
   const BAND_HE = { beginner: 'מתחילים', intermediate: 'בינוני', advanced: 'מתקדמים' };
-  const srcIcon = (a) => (a.source.startsWith('Simple') ? '<i class="src-ic wiki" aria-hidden="true">W</i>' : '<i class="src-ic conv" aria-hidden="true">C</i>');
+  const SRC_IC = { 'The Conversation': ['C', 'conv'], 'Global Voices': ['GV', 'gv'], 'The White House': ['WH', 'wh'] };
+  const srcIcon = (a) => { const [t, cls] = SRC_IC[a.source] || ['W', 'wiki']; return `<i class="src-ic ${cls}" aria-hidden="true">${t}</i>`; };
   const ago = (iso) => { const h = (Date.now() - new Date(iso)) / 36e5; return h < 1 ? 'עכשיו' : h < 24 ? `לפני ${Math.round(h)} שעות` : h < 48 ? 'אתמול' : `לפני ${Math.round(h / 24)} ימים`; };
+  const subHe = (id) => (D.READ_SUBS.find((x) => x.id === id) || {}).he || '';
+  const headline = (a) => (a.short && a.short.en) || a.title;
+  /* card: photo · source · short headline (tap → Hebrew meaning + full title) · favorites star */
   const articleRow = (a) => {
     const read = S.stats.articles[a.id];
-    const saved = ET.Articles.isSaved(a.id);
-    return `<button class="card art-card" data-act="go" data-arg="article/${esc(a.id)}">${artImage(a, 'thumb art-thumb')}<span class="art-main">
-      <span class="src">${srcIcon(a)}${esc(a.source)} · ${readCat(a.cat).he}${a.source === 'The Conversation' ? ' · ' + ago(a.date) : ''}</span>
-      <span class="art-title" lang="en" dir="ltr">${esc(a.title)}</span>
-      <span class="row wrap" style="gap:6px"><span class="badge">${a.minutes} דק׳ קריאה</span>${a.stretch > 0 ? '<span class="badge warn">קצת מאתגר</span>' : a.stretch < 0 ? '<span class="badge">קל יותר</span>' : ''}${saved ? '<span class="badge good">שמורה Offline</span>' : ''}${read ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button>`;
+    const fav = ET.Articles.isSaved(a.id);
+    const open = RT.openTitle === a.id;
+    const pos = Math.round(((S.readPos || {})[a.id] || 0) * 100);
+    return `<div class="card art-card" data-act="go" data-arg="article/${esc(a.id)}" role="link" tabindex="0">${artImage(a, 'thumb art-thumb')}<span class="art-main">
+      <span class="src">${srcIcon(a)}${esc(a.source)} · ${a.sub ? subHe(a.sub) : readCat(a.cat).he}${a.official ? ' · הודעה רשמית' : ''} · ${ago(a.date)}</span>
+      <button class="art-title" lang="en" dir="ltr" data-act="toggle-title" data-arg="${esc(a.id)}" aria-expanded="${open}">${esc(headline(a))}</button>
+      ${open ? `<span class="title-he">${a.short && a.short.he ? `<b>${esc(a.short.he)}</b>` : ''}<span class="full-title" lang="en" dir="ltr">${esc(a.title)}</span></span>` : ''}
+      <span class="row wrap" style="gap:6px"><span class="badge">${a.minutes} דק׳ קריאה</span>${a.stretch > 0 ? '<span class="badge warn">קצת מאתגר</span>' : a.stretch < 0 ? '<span class="badge">קל יותר</span>' : ''}${fav && pos > 3 && pos < 97 ? `<span class="badge sun">נקרא ${pos}%</span>` : ''}${read ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span>
+      <button class="star-btn ${fav ? 'on' : ''}" data-act="fav-article" data-arg="${esc(a.id)}" aria-label="${fav ? 'הסרה מהמועדפים' : 'שמירה למועדפים'}" aria-pressed="${fav}">${fav ? icFill('star') : ic('star')}</button></div>`;
   };
   const stat = (n, label) => `<div class="stat"><b>${n}</b><span>${label}</span></div>`;
   const ring = (pct, top, sub) => { const c = 2 * Math.PI * 38; return `<div class="ring" role="img" aria-label="${Math.round(pct * 100)}% מהיעד היומי"><svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="38" stroke="currentColor" stroke-opacity=".25" stroke-width="8" fill="none"/><circle cx="44" cy="44" r="38" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - pct)).toFixed(1)}"/></svg><div class="ring-txt"><b class="tnum">${top}</b><span>${sub}</span></div></div>`; };
@@ -246,7 +254,7 @@
       </section>
       <div class="day-rows">${dayCard(ET.item(d.slang), 'סלנג היום', 'pink', 'bubble')}${dayCard(ET.item(d.word), 'מילת היום', 'yellow', 'bulb')}</div>
       ${art ? `<section class="section"><div class="section-head"><h2>קריאה מומלצת</h2><button class="link" data-act="go" data-arg="reading">לכל הכתבות</button></div>
-        <button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage(art, 'ha-img')}<span class="ha-body"><span class="eye">${readCat(art.cat).he} · ${esc(art.source)}</span><span class="t" lang="en" dir="ltr">${esc(art.title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.minutes} דק׳ קריאה</span><span class="badge">${BAND_HE[art.level] || ''}</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button></section>` : ''}
+        <button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage(art, 'ha-img')}<span class="ha-body"><span class="eye">${readCat(art.cat).he} · ${esc(art.source)}</span><span class="t" lang="en" dir="ltr">${esc(headline(art))}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.minutes} דק׳ קריאה</span><span class="badge">${BAND_HE[art.level] || ''}</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button></section>` : ''}
       <button class="card ai-card" data-act="go" data-arg="chat/free"><span class="robot">${ROBOT}</span><span class="grow"><b>רוצה לתרגל דיבור?</b><span class="small muted" style="display:block">שיחה עם AI, עם תיקונים בעברית</span></span>${ic('chev', 'chev')}</button>
     </div>`;
   };
@@ -529,28 +537,33 @@
   /* =========================================================
      READING
      ========================================================= */
-  SCREENS.reading = (catArg) => {
+  SCREENS.reading = (catArg, subArg) => {
     const A = ET.Articles;
     if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'reading') render(); });
     const cat = catArg === undefined ? RT.readCat || 'all' : catArg || 'all';
-    RT.readCat = cat;
+    const sub = cat === 'business' ? (subArg === undefined ? RT.readSub || '' : subArg === 'all' ? '' : subArg) : '';
+    RT.readCat = cat; RT.readSub = sub;
     const band = ET.bandOf(S.profile.cefr);
-    const saved = Object.values(S.saved);
-    const chips = `<div class="chips"><button class="chip ${cat === 'all' ? 'on' : ''}" data-act="go" data-arg="reading/all">הכול</button>${D.READ_CATS.map((c) => `<button class="chip ${cat === c.id ? 'on' : ''}" data-act="go" data-arg="reading/${c.id}">${c.he}</button>`).join('')}${saved.length ? `<button class="chip ${cat === 'saved' ? 'on' : ''}" data-act="go" data-arg="reading/saved">שמורות (${saved.length})</button>` : ''}</div>`;
+    const favs = Object.values(S.saved).sort((x, y) => (y.savedAt || 0) - (x.savedAt || 0));
+    const chip = (id, he, arg) => `<button class="chip ${cat === id ? 'on' : ''}" data-act="go" data-arg="reading/${arg || id}">${he}</button>`;
+    const chips = `<div class="chips">${chip('all', 'הכל')}${D.READ_CATS.map((c) => chip(c.id, c.he)).join('')}${chip('favorites', '⭐ מועדפים')}</div>`;
+    const subChips = cat === 'business' ? `<div class="chips subchips"><button class="chip ${!sub ? 'on' : ''}" data-act="go" data-arg="reading/business/all">הכול</button>${D.READ_SUBS.map((x) => `<button class="chip ${sub === x.id ? 'on' : ''}" data-act="go" data-arg="reading/business/${x.id}">${x.he}</button>`).join('')}</div>` : '';
     let list;
-    if (cat === 'saved') list = saved.map((a) => ({ ...a, stretch: 0 }));
+    if (cat === 'favorites') list = favs.map((a) => ({ ...a, stretch: 0 }));
     else if (A.index) {
       const interest = new Set(); S.profile.interests.forEach((i) => ((D.INTERESTS.find((x) => x.id === i) || {}).read || []).forEach((c) => interest.add(c)));
-      list = A.forUser(cat === 'all' ? undefined : cat).sort((x, y) => (cat === 'all' ? (interest.has(x.cat) ? 0 : 1) - (interest.has(y.cat) ? 0 : 1) : 0) || new Date(y.date) - new Date(x.date)).slice(0, 40);
+      list = A.forUser(cat === 'all' ? undefined : cat, sub || undefined).sort((x, y) => (cat === 'all' ? (interest.has(x.cat) ? 0 : 1) - (interest.has(y.cat) ? 0 : 1) : 0) || new Date(y.date) - new Date(x.date)).slice(0, 50);
     }
     let body;
     if (list && list.length) body = `<div class="stack">${list.map(articleRow).join('')}</div>`;
-    else if (list) body = `<div class="card empty"><div class="emo">📭</div><p>${cat === 'saved' ? 'עדיין לא שמרת כתבות.' : 'אין כרגע כתבות בתחום הזה. נסו תחום אחר.'}</p></div>`;
-    else if (A.failed) body = `<div class="card empty"><div class="emo">📡</div><h2>אין חיבור לאינטרנט</h2><p>כתבות חדשות ייטענו כשהחיבור יחזור.${saved.length ? ' בינתיים אפשר לקרוא את הכתבות ששמרת.' : ''}</p>${saved.length ? '<button class="btn" data-act="go" data-arg="reading/saved">לכתבות השמורות</button>' : ''}</div>`;
+    else if (list) body = `<div class="card empty"><div class="emo">${cat === 'favorites' ? '⭐' : '📭'}</div><p>${cat === 'favorites' ? 'עוד אין כתבות במועדפים. לחצו על הכוכבית בכתבה כדי לשמור אותה, ותוכלו לחזור אליה ולהמשיך לקרוא, גם בלי אינטרנט.' : 'אין כרגע כתבות כאן ברמה שלך. נסו תחום אחר.'}</p></div>`;
+    else if (A.failed) body = `<div class="card empty"><div class="emo">📡</div><h2>אין חיבור לאינטרנט</h2><p>כתבות חדשות ייטענו כשהחיבור יחזור.${favs.length ? ' בינתיים אפשר לקרוא את המועדפים.' : ''}</p>${favs.length ? '<button class="btn" data-act="go" data-arg="reading/favorites">למועדפים</button>' : ''}</div>`;
     else body = '<div class="card empty"><p>טוען כתבות…</p></div>';
-    return `<div class="screen">${topbar('קריאה', null, `<span class="badge lvl">מותאם לרמה: ${BAND_HE[band]}</span>`)}
-      ${chips}${body}
-      <p class="note">כתבות אמיתיות מ־The Conversation (רישיון CC BY-ND) ומ־Simple English Wikipedia (רישיון CC BY-SA), מתעדכנות כמה פעמים ביום. רמת הקושי נבחרת לפי הרמה שבפרופיל.</p></div>`;
+    const upd = A.index && A.index.updated ? ET.dayKey(new Date(A.index.updated)) : '';
+    return `<div class="screen">
+      <header class="topbar read-head"><div class="grow"><h1>קריאה</h1>${upd ? `<span class="upd">עודכן לאחרונה: ${fmtDate(upd)}</span>` : ''}</div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<span class="badge lvl">מותאם לרמה: ${BAND_HE[band]}</span></header>
+      ${chips}${subChips}${body}
+      <p class="note">כתבות אמיתיות של 5 דקות קריאה ומעלה: The Conversation (CC BY-ND), Global Voices (CC BY) והודעות רשמיות של הבית הלבן (נחלת הכלל). מתעדכנות כל יום.</p></div>`;
   };
 
   /* words & phrases inside real text */
@@ -596,22 +609,29 @@
       ET.Articles.body(id).then((b) => { st.body = b; }).catch(() => { st.err = true; }).finally(() => { st.loading = false; if (parse().name === 'article') render(); });
     }
     if (!st.body) {
-      return `<div class="screen">${topbar('קריאה', 'reading')}${st.err ? '<div class="card empty"><div class="emo">📡</div><h2>הכתבה לא זמינה כרגע</h2><p>אין חיבור לאינטרנט והכתבה לא נשמרה במכשיר. כתבות ששומרים בכפתור ההורדה זמינות גם בלי אינטרנט.</p></div>' : '<div class="card empty"><p>טוען את הכתבה…</p></div>'}</div>`;
+      return `<div class="screen">${topbar('קריאה', 'reading')}${st.err ? '<div class="card empty"><div class="emo">📡</div><h2>הכתבה לא זמינה כרגע</h2><p>אין חיבור לאינטרנט והכתבה לא נשמרה במכשיר. כתבות שמסמנים בכוכבית זמינות גם בלי אינטרנט.</p></div>' : '<div class="card empty"><p>טוען את הכתבה…</p></div>'}</div>`;
     }
     const a = st.body;
     const saved = ET.Articles.isSaved(id);
+    const pos = (S.readPos || {})[id] || 0;
+    if (!st.restored) { st.restored = true; if (pos > 0.03 && pos < 0.97) RT.after = () => { const h = document.documentElement.scrollHeight - innerHeight; window.scrollTo(0, pos * h); toast('ממשיכים מאיפה שהפסקת 📖'); }; }
     const read = S.stats.articles[id];
     const conv = a.source === 'The Conversation';
     let n = 0;
     const sents = (t) => splitSentences(t).map((s) => `<span class="sent" data-s="${n++}">${tokenize(s)}</span>`).join('');
     const paras = a.paragraphs.map((p) => (p.startsWith('## ') ? `<h3 class="r-h">${sents(p.slice(3))}</h3>` : `<p>${sents(p)}</p>`)).join('');
-    const attrib = conv
+    const attrib = a.source === 'Global Voices'
+      ? `<p class="attrib" dir="ltr">Written by ${esc(a.author)} for <a href="${esc(a.url)}" target="_blank" rel="noopener">Global Voices</a>, published under <a href="${esc(a.licenseUrl)}" target="_blank" rel="noopener">CC BY 3.0</a>.</p>`
+      : a.official
+      ? `<p class="attrib">הודעה רשמית של הבית הלבן. מסמכי הממשל האמריקאי הם נחלת הכלל. <a href="${esc(a.url)}" target="_blank" rel="noopener">למקור באתר הבית הלבן ↗</a></p>`
+      : conv
       ? `<p class="attrib" dir="ltr">This article is republished from <a href="https://theconversation.com" target="_blank" rel="noopener">The Conversation</a> under a Creative Commons license. Read the <a href="${esc(a.url)}" target="_blank" rel="noopener">original article</a>.</p>${a.note ? `<p class="attrib" dir="ltr">${esc(a.note)}</p>` : ''}${a.pixel && RT.online ? `<img src="${esc(a.pixel)}" alt="" width="1" height="1" class="pixel">` : ''}`
       : `<p class="attrib">מקור: הערך <a href="${esc(a.url)}" target="_blank" rel="noopener" lang="en">${esc(a.title)}</a> ב־Simple English Wikipedia, ברישיון <a href="${esc(a.licenseUrl)}" target="_blank" rel="noopener">CC BY-SA 4.0</a>.${a.full ? '' : ' מוצג קטע מתחילת הערך.'}</p>`;
-    return `<div class="screen">${topbar('', 'reading', `<span class="badge lvl">${BAND_HE[a.level] || ''}</span><button class="icon-btn ${saved ? 'active' : ''}" data-act="save-article" aria-label="${saved ? 'הסרה מהשמורות' : 'שמירה לקריאה בלי אינטרנט'}">${saved ? ic('check') : ic('download')}</button>`)}
+    return `<div class="screen">${topbar('', 'reading', `<span class="badge lvl">${BAND_HE[a.level] || ''}</span><button class="icon-btn ${saved ? 'active' : ''}" data-act="fav-article" data-arg="${esc(a.id)}" aria-label="${saved ? 'הסרה מהמועדפים' : 'שמירה למועדפים'}" aria-pressed="${saved}">${saved ? icFill('star') : ic('star')}</button>`)}
       ${a.image ? `<figure class="art-hero"><img src="${esc(a.image.url)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"><figcaption dir="ltr">${a.image.page ? `<a href="${esc(a.image.page)}" target="_blank" rel="noopener">${esc(a.image.credit)}</a>` : esc(a.image.credit)}</figcaption></figure>` : ''}
       <div class="src-line">${srcIcon(a)}<span>מקור: <b lang="en">${esc(a.source)}</b> · ${esc(a.license)} · <a href="${esc(a.url)}" target="_blank" rel="noopener">לכתבה המקורית ↗</a></span></div>
-      <div><h1 class="art-h" lang="en" dir="ltr">${esc(a.title)}</h1><p class="small muted" dir="ltr" style="text-align:left">${esc(a.author)}${conv ? ' · ' + new Date(a.date).toLocaleDateString('en-GB') : ''} · ${a.minutes} min</p></div>
+      ${a.official ? '<span class="badge sun" style="justify-self:start">הודעה רשמית של הבית הלבן</span>' : ''}
+      <div><h1 class="art-h" lang="en" dir="ltr">${esc(a.title)}</h1>${a.short && a.short.he ? `<p class="art-he">${esc(a.short.he)}</p>` : ''}<p class="small muted" dir="ltr" style="text-align:left">${esc(a.author)}${conv ? ' · ' + new Date(a.date).toLocaleDateString('en-GB') : ''} · ${a.minutes} min</p></div>
       <div class="player"><button class="play-btn" data-act="read-aloud" aria-label="${RT.reading ? 'עצירת ההקראה' : 'הקרא לי את הכתבה'}">${RT.reading ? ic('stop') : icFill('play')}</button><b class="small">${RT.reading ? 'מקריא…' : 'הקרא לי את הכתבה'}</b>
         <div class="seg" role="group" aria-label="מהירות הקראה">${[0.75, 1, 1.25, 1.5].map((r) => `<button class="${RT.rate === r ? 'on' : ''}" data-act="rate" data-arg="${r}">${r}x</button>`).join('')}</div></div>
       <p class="small muted">לחצו על מילה כדי לראות תרגום, משמעות במשפט והגייה.</p>
@@ -713,6 +733,10 @@
         <div class="field"><label>מטרת הלימוד</label><div class="chips wrap">${D.GOALS.map((g) => `<button class="chip ${p.goal === g.id ? 'on' : ''}" data-act="set" data-arg="goal:${g.id}">${g.he}</button>`).join('')}</div></div>
         <div class="field"><label>תחומי עניין</label><div class="chips wrap">${D.INTERESTS.map((g) => `<button class="chip ${p.interests.includes(g.id) ? 'on' : ''}" data-act="toggle-interest" data-arg="${g.id}">${g.he}</button>`).join('')}</div></div>
         <div class="field"><label>מבטא להגייה</label>${seg('accent', [['en-US', 'אמריקאי 🇺🇸'], ['en-GB', 'בריטי 🇬🇧']])}<button class="link small" data-act="say" data-arg="Hello! How are you today?" style="justify-self:start">השמע דוגמה</button></div>
+        <div class="field"><label for="voice-sel">קול ההקראה</label>
+          <select class="input" id="voice-sel" data-change="voice">${voiceOptions()}</select>
+          <button class="link small" data-act="say" data-arg="Hi! It's nice to meet you. Let's learn some English together." style="justify-self:start">השמע את הקול</button>
+          <p class="note">לקול הכי טבעי באייפון: הגדרות ← נגישות ← Spoken Content ← Voices ← English, ומורידים בחינם קול כמו Ava (Premium) או Zoe (Premium). אחרי ההורדה בוחרים אותו כאן.</p></div>
       </div></section>
 
       <section class="section"><h2>תצוגה</h2><div class="card stack"><div class="field"><label>ערכת נושא</label>${seg('theme', [['system', 'לפי המכשיר'], ['light', 'בהיר'], ['dark', 'כהה']])}</div></div></section>
@@ -744,6 +768,11 @@
       <p class="small muted" style="text-align:center">גרסה 1.0 · חינמית לגמרי · בלי פרסומות ובלי מנויים</p></div>`;
   };
 
+  const voiceOptions = () => {
+    const list = Speech.list(S.profile.accent);
+    const cur = S.profile.voiceName;
+    return `<option value="" ${!cur ? 'selected' : ''}>אוטומטי: הקול הנשי הטבעי ביותר במכשיר</option>` + list.map((v) => `<option value="${esc(v.name)}" ${cur === v.name ? 'selected' : ''}>${esc(v.name.replace(/\s*\(.*?\)\s*/g, ' ').trim())}${/premium|enhanced|natural/i.test(v.name) ? ' ✨' : ''}</option>`).join('');
+  };
   const DAYS_HE = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   SCREENS.stats = () => {
     const st = S.stats;
@@ -955,11 +984,18 @@
     },
     rate: (a) => { RT.rate = +a; document.querySelectorAll('[data-act="rate"]').forEach((b) => b.classList.toggle('on', +b.dataset.arg === RT.rate)); },
     'article-done': () => { const id = parse().args[0]; if (!S.stats.articles[id]) { S.stats.articles[id] = Date.now(); ET.activity(); toast('כל הכבוד! עוד כתבה נקראה 📖'); } render(); },
-    'save-article': () => {
-      const id = parse().args[0]; const b = RT.art && RT.art.body; if (!b) return;
-      if (ET.Articles.isSaved(id)) { ET.Articles.unsave(id); toast('הכתבה הוסרה מהשמורות'); } else { ET.Articles.save(b); toast('הכתבה נשמרה וזמינה גם בלי אינטרנט ✓'); }
+    'fav-article': async (a) => {
+      const A = ET.Articles;
+      if (A.isSaved(a)) { A.unsave(a); toast('הוסר מהמועדפים'); render(); return; }
+      try {
+        const body = RT.art && RT.art.id === a && RT.art.body ? RT.art.body : await A.body(a);
+        A.save({ ...body, savedAt: Date.now() });
+        toast('נשמר במועדפים ⭐ זמין גם בלי אינטרנט');
+      } catch (e) { toast('לא הצלחנו לשמור עכשיו. נסו שוב כשיש אינטרנט'); }
       render();
     },
+    'toggle-title': (a) => { RT.openTitle = RT.openTitle === a ? null : a; render(); },
+
     'tr-sentence': () => { const sh = RT.sheet; if (!sh) return; sh.trTried = false; popLookups(sh, true); },
     'ai-explain': async () => {
       const sh = RT.sheet; if (!sh) return;
@@ -975,7 +1011,7 @@
       if (k === 'dailyMin') v = +v;
       S.profile[k] = v;
       if (k === 'level') S.profile.cefr = ET.BANDS[v].cefr;
-      if (k === 'accent') say('Hello! How are you today?');
+      if (k === 'accent') { S.profile.voiceName = ''; say('Hello! How are you today?'); }
       ET.save(); render();
     },
     'toggle-interest': (a) => { const l = S.profile.interests; const i = l.indexOf(a); if (i >= 0) l.splice(i, 1); else l.push(a); ET.save(); render(); },
@@ -1105,6 +1141,7 @@
   document.addEventListener('change', (e) => {
     const k = e.target.dataset.change;
     if (k === 'autowifi') { S.profile.autoWifi = e.target.checked; ET.save(); }
+    if (k === 'voice') { S.profile.voiceName = e.target.value; ET.save(); Speech.speak('Hi! Nice to meet you.'); }
     if (k === 'import') {
       const f = e.target.files[0]; if (!f) return;
       f.text().then((t) => { ET.importData(t); toast('הגיבוי שוחזר ✓'); setTimeout(() => location.reload(), 600); }).catch(() => toast('הקובץ לא תקין'));
@@ -1112,6 +1149,7 @@
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && RT.sheet) { RT.sheet = null; renderSheet(); } });
   window.addEventListener('hashchange', () => { Speech.stop(); RT.reading = false; RT.readIdx = 0; RT.sheet = null; RT.confirmReset = false; render(); window.scrollTo(0, 0); });
+  window.addEventListener('et-voices', () => { if (parse().name === 'profile') render(); });
   window.addEventListener('online', () => { RT.online = true; render(); ET.SyncProvider.sync(); });
   window.addEventListener('offline', () => { RT.online = false; render(); });
   if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
@@ -1125,6 +1163,16 @@
     ET.today().sec += 10; ET.save();
   }, 10000);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') ET.save(true); });
+  let posTimer = null;
+  addEventListener('scroll', () => {
+    if (parse().name !== 'article' || posTimer) return;
+    posTimer = setTimeout(() => {
+      posTimer = null;
+      const r = parse(); if (r.name !== 'article') return;
+      const h = document.documentElement.scrollHeight - innerHeight;
+      if (h > 200) { S.readPos = S.readPos || {}; S.readPos[r.args[0]] = Math.round((scrollY / h) * 100) / 100; ET.save(); }
+    }, 1200);
+  }, { passive: true });
 
   /* offline support */
   if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {

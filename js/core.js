@@ -76,9 +76,9 @@
   };
   const defaults = () => ({
     v: 1, onboarded: false, created: Date.now(),
-    profile: { level: 'beginner', cefr: 'A2', goal: 'all', interests: [], dailyMin: 10, accent: 'en-US', theme: 'system',
+    profile: { level: 'beginner', cefr: 'A2', goal: 'all', interests: [], dailyMin: 10, accent: 'en-US', voiceName: '', theme: 'system',
       correction: 'important', autoWifi: true, reminders: false, ai: 'local', geminiKey: '', geminiModel: 'gemini-2.5-flash', autoSpeak: false },
-    items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {}, saved: {}, resume: null, daily: null,
+    items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {}, saved: {}, resume: null, daily: null, readPos: {},
     stats: { quizzes: 0, qRight: 0, qTotal: 0, stories: {}, articles: {}, chats: 0, msgs: 0, games: 0, bestSpeed: 0, bestStreak: 0 },
     sync: { changes: 0, last: 0 }
   });
@@ -327,9 +327,9 @@
     },
     meta(id) { return (this.index && this.index.articles.find((a) => a.id === id)) || (S.saved[id] && S.saved[id]); },
     /* articles at the user's level; when a topic has too few, the closest level fills in (marked as `stretch`) */
-    forUser(cat) {
+    forUser(cat, sub) {
       const band = ET.bandOf(S.profile.cefr);
-      const all = ((this.index && this.index.articles) || []).filter((a) => !cat || a.cat === cat);
+      const all = ((this.index && this.index.articles) || []).filter((a) => (!cat || a.cat === cat) && (!sub || a.sub === sub));
       const mine = all.filter((a) => a.level === band);
       if (mine.length >= 4 || !cat) return mine.map((a) => ({ ...a, stretch: 0 }));
       const bi = BAND_ORDER.indexOf(band);
@@ -400,12 +400,24 @@
       if (!this.ok) return;
       const load = () => { this.voices = speechSynthesis.getVoices(); };
       load();
-      speechSynthesis.onvoiceschanged = load;
+      speechSynthesis.onvoiceschanged = () => { load(); window.dispatchEvent(new Event('et-voices')); };
+    },
+    /* English voices of the accent, best first: the user's choice, then natural female voices
+       (iOS Premium/Enhanced like Ava, Zoe, Serena; Microsoft Natural; Google), then any female voice. */
+    FEMALE: /\b(ava|zoe|allison|samantha|susan|nicky|joelle|evelyn|noelle|serena|kate|stephanie|martha|karen|moira|tessa|fiona|veena|aria|jenny|michelle|sonia|libby|maisie|emma|ana|zira|hazel|heather|catherine|linda|eva|clara|natasha|emily|olivia|sara|amy|salli|joanna|kendra|kimberly|ivy|ruth|female|woman)\b/i,
+    MALE: /\b(david|mark|daniel|alex|fred|tom|aaron|arthur|oliver|george|james|ryan|guy|eric|thomas|rishi|gordon|lee|matthew|joey|justin|brian|male)\b/i,
+    list(lang) {
+      const v = this.voices.filter((x) => x.lang.replace('_', '-').startsWith(lang));
+      const score = (x) => (/premium/i.test(x.name) ? 0 : /enhanced|natural|neural/i.test(x.name) ? 1 : /google/i.test(x.name) ? 2 : 3)
+        + (this.FEMALE.test(x.name) ? 0 : this.MALE.test(x.name) ? 20 : 10) + (x.localService ? 0 : 0.5);
+      return v.slice().sort((a, b) => score(a) - score(b));
     },
     voice(lang) {
-      const v = this.voices;
-      const same = v.filter((x) => x.lang.replace('_', '-') === lang);
-      return same.find((x) => /enhanced|premium|natural|samantha|daniel/i.test(x.name)) || same[0] || v.find((x) => x.lang.startsWith('en'));
+      const chosen = S.profile.voiceName && this.voices.find((x) => x.name === S.profile.voiceName);
+      // the accent's best voice; if it's not a female voice, a female voice of another English accent is preferred
+      const best = this.list(lang)[0];
+      const femaleAny = this.list('en').find((x) => this.FEMALE.test(x.name));
+      return chosen || (best && this.FEMALE.test(best.name) ? best : femaleAny || best) || this.voices.find((x) => x.lang.startsWith('en'));
     },
     speak(text, opts = {}) {
       if (!this.ok) { opts.onerror && opts.onerror(); return false; }
@@ -413,7 +425,7 @@
       const u = new SpeechSynthesisUtterance(text);
       u.lang = opts.lang || S.profile.accent;
       const v = this.voice(u.lang);
-      if (v) u.voice = v;
+      if (v) { u.voice = v; u.lang = v.lang; }
       u.rate = (opts.rate || 1) * 0.92;
       u.onend = () => opts.onend && opts.onend();
       u.onerror = () => opts.onend && opts.onend();

@@ -380,21 +380,21 @@ expr|expr|I'm good, thanks|לא תודה, אני מסודר|אני טוב, תו�
   ];
 
   const INTERESTS = [
-    { id: 'tech', he: 'טכנולוגיה', cats: ['tech'], read: ['tech', 'science'] }, { id: 'nature', he: 'טבע', cats: ['nature'], read: ['nature', 'science'] },
-    { id: 'sports', he: 'ספורט', cats: ['sports', 'health'], read: ['sports'] }, { id: 'finance', he: 'פיננסים', cats: ['finance'], read: ['finance'] },
-    { id: 'business', he: 'עסקים', cats: ['business', 'work'], read: ['business'] }, { id: 'food', he: 'אוכל', cats: ['food', 'restaurant'], read: ['culture', 'lifestyle'] },
-    { id: 'travel', he: 'טיולים', cats: ['travel', 'airport', 'hotel'], read: ['travel'] }, { id: 'entertainment', he: 'בידור', cats: ['daily'], read: ['entertainment'] },
-    { id: 'culture', he: 'תרבות', cats: ['daily'], read: ['culture'] }, { id: 'relationships', he: 'זוגיות', cats: ['relationships', 'family'], read: ['lifestyle'] },
-    { id: 'news', he: 'חדשות', cats: ['work', 'daily'], read: ['news'] }
+    { id: 'tech', he: 'טכנולוגיה', cats: ['tech'], read: ['tech', 'science'] }, { id: 'nature', he: 'טבע', cats: ['nature'], read: ['science'] },
+    { id: 'sports', he: 'ספורט', cats: ['sports', 'health'], read: ['sports'] }, { id: 'finance', he: 'פיננסים', cats: ['finance'], read: ['business'] },
+    { id: 'business', he: 'עסקים', cats: ['business', 'work'], read: ['business'] }, { id: 'food', he: 'אוכל', cats: ['food', 'restaurant'], read: ['interesting'] },
+    { id: 'travel', he: 'טיולים', cats: ['travel', 'airport', 'hotel'], read: ['world', 'interesting'] }, { id: 'entertainment', he: 'בידור', cats: ['daily'], read: ['interesting'] },
+    { id: 'culture', he: 'תרבות', cats: ['daily'], read: ['interesting'] }, { id: 'relationships', he: 'זוגיות', cats: ['relationships', 'family'], read: ['interesting'] },
+    { id: 'news', he: 'חדשות', cats: ['work', 'daily'], read: ['world'] }
   ];
 
   /* Reading topics (real articles, collected by tools/fetch-articles.mjs) */
   const READ_CATS = [
-    { id: 'news', he: 'חדשות', icon: '📰' }, { id: 'tech', he: 'טכנולוגיה', icon: '💻' }, { id: 'science', he: 'מדע', icon: '🔬' },
-    { id: 'sports', he: 'ספורט', icon: '⚽' }, { id: 'business', he: 'עסקים', icon: '📈' }, { id: 'finance', he: 'פיננסים', icon: '💰' },
-    { id: 'nature', he: 'טבע', icon: '🌿' }, { id: 'culture', he: 'תרבות', icon: '🎨' }, { id: 'entertainment', he: 'בידור', icon: '🎬' },
-    { id: 'travel', he: 'טיולים', icon: '🧳' }, { id: 'lifestyle', he: 'Lifestyle', icon: '🧘' }
+    { id: 'world', he: 'עולם', icon: '🌍' }, { id: 'tech', he: 'טכנולוגיה', icon: '💻' }, { id: 'science', he: 'מדע', icon: '🔬' },
+    { id: 'sports', he: 'ספורט', icon: '⚽' }, { id: 'business', he: 'עסקים ופיננסים', icon: '📈' }, { id: 'interesting', he: 'מעניין', icon: '✨' }
   ];
+  /* sub-tabs under business & finance */
+  const READ_SUBS = [{ id: 'markets', he: 'שוק ההון' }, { id: 'stocks', he: 'מניות' }, { id: 'crypto', he: 'קריפטו' }, { id: 'bonds', he: 'איגרות חוב' }];
 
-  window.APP_DATA = { CATEGORIES, CAT_ALIAS, WORDS, EXPRESSIONS, PLACEMENT, SCENARIOS, FREE_QUESTIONS, GOALS, INTERESTS, READ_CATS };
+  window.APP_DATA = { CATEGORIES, CAT_ALIAS, WORDS, EXPRESSIONS, PLACEMENT, SCENARIOS, FREE_QUESTIONS, GOALS, INTERESTS, READ_CATS, READ_SUBS };
 })();
