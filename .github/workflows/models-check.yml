@@ -1,0 +1,18 @@
+name: Models check (temporary)
+on: workflow_dispatch
+permissions:
+  models: read
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for m in openai/gpt-4o-mini openai/gpt-4.1-mini; do
+            echo "== $m"
+            curl -sS -i -X POST https://models.github.ai/inference/chat/completions \
+              -H "Authorization: Bearer $GITHUB_TOKEN" -H "Content-Type: application/json" -H "Accept: application/json" \
+              -d "{\"model\":\"$m\",\"messages\":[{\"role\":\"user\",\"content\":\"Say hi in two words\"}]}" | head -c 900; echo
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
