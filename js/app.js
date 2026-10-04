@@ -225,7 +225,7 @@
 
   const ROBOT = '<svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><line x1="24" y1="6" x2="24" y2="11" stroke="#5B6EE8" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="5" r="2.6" fill="#E5578A"/><rect x="9" y="11" width="30" height="24" rx="10" fill="#fff" stroke="#5B6EE8" stroke-width="2.5"/><rect x="14" y="17" width="20" height="11" rx="5.5" fill="#2E3A7A"/><circle cx="20" cy="22.5" r="2.4" fill="#6FF2DA"/><circle cx="28" cy="22.5" r="2.4" fill="#6FF2DA"/><rect x="5" y="19" width="4" height="9" rx="2" fill="#5B6EE8"/><rect x="39" y="19" width="4" height="9" rx="2" fill="#5B6EE8"/><path d="M17 41c1.5-3 4-4.5 7-4.5s5.5 1.5 7 4.5" fill="none" stroke="#5B6EE8" stroke-width="2.5" stroke-linecap="round"/></svg>';
   const artImage = (a, cls) => (a.image ? `<span class="${cls}"><img src="${esc(a.image.url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="img-credit" dir="ltr">${esc(a.image.credit)}</span></span>` : `<span class="${cls} noimg"><span class="img-emo">${readCat(a.cat).icon}</span></span>`);
-  const dayCard = (it, label, cls, icon) => (it ? `<button class="card day-card" data-act="item" data-arg="${esc(it.id)}"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="w">${esc(it.t)}</span><span class="dc-row"><span class="he">${esc(it.he)}</span>${ic('chev', 'chev')}</span></button>` : '');
+  const dayCard = (it, label, cls, icon) => (it ? `<button class="card day-card" data-act="item" data-arg="${esc(it.id)}"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="w">${esc(it.t)}</span><span class="dc-row"><span class="he">${esc(it.he)}</span><span class="dc-say" data-act="say" data-arg="${esc(it.t)}" data-id="${esc(it.id)}" role="button" tabindex="0" aria-label="השמעת ${esc(it.t)}">${ic('speaker')}</span></span></button>` : '');
 
   SCREENS.home = () => {
     const A = ET.Articles;
@@ -264,39 +264,55 @@
      ========================================================= */
   const WORD_SECS = [['topics', 'מילים לפי נושאים', '📚', 'blue'], ['expr', 'ביטויים נפוצים', '💬', 'purple'], ['slang', 'סלנג אמריקאי', '😎', 'yellow']];
   const fmtDate = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-').map(Number); return `${d}.${m}.${y}`; };
-  const wordsIcons = `<button class="icon-btn" data-act="go" data-arg="dict" aria-label="חיפוש במילון">${ic('search')}</button><button class="icon-btn" data-act="go" data-arg="mywords" aria-label="המילים שלי">${ic('star')}</button>`;
+  const newBadge = (it) => (ET.isNewToday(it) ? '<span class="badge new">חדש</span>' : '');
+  const favEmpty = (what) => `<div class="card empty"><div class="emo">⭐</div><p>עוד אין כאן ${what} במועדפים. לחצו על הכוכבית בכרטיס כדי לשמור.</p></div>`;
   SCREENS.words = (sec, arg) => {
     if (!ET.Vocab.ready && !ET.Vocab.loading) ET.Vocab.load().then(() => { if (parse().name === 'words') render(); });
     /* hub: three big choices */
     if (!sec) {
       return `<div class="screen">
-        <header class="topbar"><span class="grow"></span>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}${wordsIcons}</header>
+        <header class="topbar"><span class="grow"></span>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<button class="icon-btn" data-act="go" data-arg="dict" aria-label="חיפוש במילון">${ic('search')}</button></header>
         <div class="words-head"><h1>לימוד מילים</h1><p>בחרו מה תרצו ללמוד היום</p>${ET.Vocab.updated ? `<span class="upd">עודכן לאחרונה: ${fmtDate(ET.Vocab.updated)}</span>` : ''}</div>
         <div class="stack">${WORD_SECS.map(([id, he, emo, color]) => `<button class="big-card" data-act="go" data-arg="words/${id}"><span class="big-tile ${color}" aria-hidden="true">${emo}</span><span class="big-title">${he}</span>${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
     }
+    if (!ET.Vocab.ready) return `<div class="screen">${topbar('לימוד מילים', 'words')}<div class="card empty"><p>טוען מילים…</p></div></div>`;
     if (sec === 'topics') {
       return `<div class="screen">${topbar('מילים לפי נושאים', 'words')}
-        <div class="list">${D.CATEGORIES.map((c) => `<button class="li" data-act="go" data-arg="words/topic/${c.id}"><span class="ico">${c.icon}</span><span class="main"><span class="t">${c.he}</span></span>${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
+        <div class="list"><button class="li" data-act="go" data-arg="words/topic/favorites"><span class="ico">⭐</span><span class="main"><span class="t">מועדפים</span></span>${ic('chev', 'chev')}</button></div>
+        <div class="list">${D.CATEGORIES.map((c) => `<button class="li" data-act="go" data-arg="words/topic/${c.id}"><span class="ico">${c.icon}</span><span class="main"><span class="t">${c.he}</span></span>${D.CATEGORIES && ET.wordsOf(c.id).some(ET.isNewToday) ? '<span class="badge new">חדש</span>' : ''}${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
     }
     if (sec === 'topic') {
-      const c = catOf(arg);
+      const fav = arg === 'favorites';
+      const c = fav ? { icon: '⭐', he: 'מועדפים' } : catOf(arg);
       if (!c) return SCREENS.words('topics');
-      if (!ET.Vocab.ready) return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}<div class="card empty"><p>טוען מילים…</p></div></div>`;
-      const all = ET.wordsOf(c.id).sort((a, b) => ET.levelFit(a) - ET.levelFit(b) || a.t.localeCompare(b.t));
-      const shown = RT.topicShown && RT.topicShown.id === c.id ? RT.topicShown.n : 60;
+      const all = ET.byNewest(fav ? ET.favorites('words') : ET.wordsOf(arg));
+      const shown = RT.topicShown && RT.topicShown.id === arg ? RT.topicShown.n : 60;
+      if (!all.length) return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}${fav ? favEmpty('מילים') : '<div class="card empty"><p>כל המילים בנושא הזה כבר מוכרות לך 🎉 מילים חדשות יתווספו מחר.</p></div>'}</div>`;
       return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}
-        <button class="btn block" data-act="go" data-arg="session/cat/${c.id}">${ic('play')} התחל כרטיסיות</button>
-        <div class="list">${all.slice(0, shown).map((it) => itemRow(it)).join('')}</div>
-        ${all.length > shown ? `<button class="btn ghost block" data-act="more-words" data-arg="${c.id}">הצג עוד מילים</button>` : ''}</div>`;
+        <button class="btn block" data-act="go" data-arg="${fav ? 'session/fav/words' : 'session/cat/' + arg}">${ic('play')} התחל כרטיסיות</button>
+        <div class="list">${all.slice(0, shown).map((it) => itemRow(it, newBadge(it))).join('')}</div>
+        ${all.length > shown ? `<button class="btn ghost block" data-act="more-words" data-arg="${arg}">הצג עוד מילים</button>` : ''}</div>`;
     }
-    const items = ET.sectionItems(sec === 'slang' ? 'slang' : 'expr');
-    const byFit = (l) => l.slice().sort((a, b) => ET.levelFit(a) - ET.levelFit(b));
-    const groups = sec === 'expr' ? ET.EXPR_GROUPS.map(([k, he]) => [he, items.filter((i) => i.kind === k)]) : [['', items]];
-    const title = sec === 'slang' ? 'סלנג אמריקאי' : 'ביטויים נפוצים';
-    return `<div class="screen">${topbar(title, 'words')}
-      <button class="btn block" data-act="go" data-arg="session/sec/${sec === 'slang' ? 'slang' : 'expr'}">${ic('play')} התחל כרטיסיות</button>
-      ${groups.filter(([, l]) => l.length).map(([he, l]) => `${he ? `<h3 class="group-h">${he}</h3>` : ''}<div class="list">${byFit(l).map((it) => itemRow(it)).join('')}</div>`).join('')}</div>`;
+    /* expressions / slang: All | Favorites */
+    const isSlang = sec === 'slang';
+    const tab = arg === 'favorites' ? 'favorites' : 'all';
+    const title = isSlang ? 'סלנג אמריקאי' : 'ביטויים נפוצים';
+    const tabs = `<div class="seg full" role="tablist"><button class="${tab === 'all' ? 'on' : ''}" data-act="go" data-arg="words/${sec}">הכול</button><button class="${tab === 'favorites' ? 'on' : ''}" data-act="go" data-arg="words/${sec}/favorites">⭐ מועדפים</button></div>`;
+    if (tab === 'favorites') {
+      const favs = ET.byNewest(ET.favorites(isSlang ? 'slang' : 'expr'));
+      return `<div class="screen">${topbar(title, 'words')}${tabs}
+        ${favs.length ? `<button class="btn block" data-act="go" data-arg="session/fav/${isSlang ? 'slang' : 'expr'}">${ic('play')} התחל כרטיסיות</button><div class="list">${favs.map((it) => itemRow(it, newBadge(it))).join('')}</div>` : favEmpty(isSlang ? 'סלנג' : 'ביטויים')}</div>`;
+    }
+    const items = ET.byNewest(ET.sectionItems(isSlang ? 'slang' : 'expr'));
+    const fresh = items.filter(ET.isNewToday);
+    const rest = items.filter((i) => !ET.isNewToday(i));
+    const groups = isSlang ? [['', rest]] : ET.EXPR_GROUPS.map(([k, he]) => [he, rest.filter((i) => i.kind === k || (k === 'idiom' && i.kind === 'idiom'))]);
+    return `<div class="screen">${topbar(title, 'words')}${tabs}
+      <button class="btn block" data-act="go" data-arg="session/sec/${isSlang ? 'slang' : 'expr'}">${ic('play')} התחל כרטיסיות</button>
+      ${fresh.length ? `<h3 class="group-h">נוספו היום</h3><div class="list">${fresh.map((it) => itemRow(it, newBadge(it))).join('')}</div>` : ''}
+      ${groups.filter(([, l]) => l.length).map(([he, l]) => `${he ? `<h3 class="group-h">${he}</h3>` : ''}<div class="list">${l.map((it) => itemRow(it)).join('')}</div>`).join('')}</div>`;
   };
+
 
 
   /* ---------- flashcards ---------- */
@@ -358,7 +374,7 @@
         <button class="g-good" data-act="grade" data-arg="5">הכרתי ✓<small>${ET.preview(it.id, 5)}</small></button>
       </div></div>`;
   };
-  const sessionExitPath = () => { const s = RT.session; if (!s) return 'home'; return s.kind === 'cat' ? 'words/topic/' + s.arg : s.kind === 'sec' ? 'words/' + s.arg : s.kind === 'list' ? 'mywords' : 'home'; };
+  const sessionExitPath = () => { const s = RT.session; if (!s) return 'home'; return s.kind === 'cat' ? 'words/topic/' + s.arg : s.kind === 'fav' ? (s.arg === 'words' ? 'words/topic/favorites' : 'words/' + s.arg + '/favorites') : s.kind === 'sec' ? 'words/' + s.arg : s.kind === 'list' ? 'mywords' : 'home'; };
   /* ---------- my words ---------- */
   const MY_TABS = [['all', 'הכול'], ['new', 'חדשות'], ['hard', 'קשות'], ['known', 'אני יודע'], ['saved', 'שמורות'], ['due', 'לחזרה']];
   SCREENS.mywords = () => {
@@ -955,7 +971,7 @@
       const r = ET.ensure(id); r.saved = true; if (!r.seen) r.seen = Date.now(); ET.mark(id, 'context'); ET.save();
       sh.savedId = id; toast('נשמר למילים שלי ⭐'); renderSheet();
     },
-    'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); toast(el.dataset.q === '5' ? 'מעולה! סומן כמוכר ✓' : 'נוסף לחזרה 🔁'); render(); },
+    'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); if (el.dataset.q === '5') { RT.sheet = null; toast('מעולה! המילה סומנה כמוכרת ולא תופיע שוב ✓'); } else toast('נוסף לחזרה 🔁'); render(); },
     report: (a) => { const it = ET.item(a); RT.sheet = { type: 'report', id: a, term: it ? it.t : a, kind: null }; renderSheet(); },
     'report-lex': () => { const w = RT.sheet.word; RT.sheet = { type: 'report', id: 'lex:' + w, term: w, kind: null }; renderSheet(); },
     'report-kind': (a) => { RT.sheet.kind = a; renderSheet(); },

@@ -156,7 +156,8 @@
     const t = today(); if (first) t.learned++; else t.reviewed++;
     ET.activity();
   };
-  ET.isDue = (id) => { const r = S.items[id]; return !!(r && r.last && r.due <= Date.now()); };
+  ET.isKnown = (id) => !!(S.items[id] && S.items[id].s === 'known');
+  ET.isDue = (id) => { const r = S.items[id]; return !!(r && r.last && r.s !== 'known' && r.due <= Date.now()); };
   ET.dueIds = () => Object.keys(S.items).filter((id) => BY_ID[id] && ET.isDue(id)).sort((a, b) => S.items[a].due - S.items[b].due);
   ET.toggleSave = (id) => { const r = ensure(id); r.saved = !r.saved; if (!r.seen) r.seen = Date.now(); ET.save(); return r.saved; };
   ET.status = (id) => { const r = S.items[id]; if (!r || !r.last) return r && r.saved ? 'saved' : 'new'; return r.s; };
@@ -182,8 +183,10 @@
   ET.levelFit = (it) => { const d = lvlIdx(it.lvl) - userIdx(); return d > 1 ? 10 + d : Math.abs(d); };
   ET.buildSession = (kind, arg) => {
     const size = ET.sessionSize();
-    const order = (list) => {
-      const fit = (a, b) => ET.levelFit(a) - ET.levelFit(b) || Math.random() - 0.5;
+    const order = (all) => {
+      const list = all.filter((i) => !ET.isKnown(i.id));
+      // newest additions first, then by fit to the user's level
+      const fit = (a, b) => (b.added || '').localeCompare(a.added || '') || ET.levelFit(a) - ET.levelFit(b) || Math.random() - 0.5;
       const due = list.filter((i) => ET.isDue(i.id));
       const fresh = list.filter((i) => !S.items[i.id] || !S.items[i.id].last).sort(fit);
       const rest = list.filter((i) => !due.includes(i) && !fresh.includes(i)).sort(fit);
@@ -195,8 +198,15 @@
     if (kind === 'sec') return order(ET.sectionItems(arg)).slice(0, size);
     if (kind === 'real') { const [k, c] = arg.split('.'); return order(ET.exprsOf(k, c)).slice(0, 15); }
     if (kind === 'list') return shuffle(ET.myList(arg)).slice(0, 25);
+    if (kind === 'fav') return order(ET.favorites(arg)).slice(0, 25);
     return [];
   };
+  /* favourites of one section: word topics, common expressions or slang (known items are excluded) */
+  ET.favorites = (sec) => ITEMS.filter((i) => S.items[i.id] && S.items[i.id].saved && !ET.isKnown(i.id)
+    && (sec === 'words' ? i.type === 'word' : sec === 'slang' ? i.type === 'expr' && i.kind === 'slang' : i.type === 'expr' && i.kind !== 'slang'));
+  /* newest additions first, then the best fit for the user's level */
+  ET.byNewest = (list) => list.filter((i) => !ET.isKnown(i.id)).sort((a, b) => (b.added || '').localeCompare(a.added || '') || ET.levelFit(a) - ET.levelFit(b) || a.t.localeCompare(b.t));
+  ET.isNewToday = (it) => it.added === dayKey();
   ET.myList = (tab) => {
     const ids = Object.keys(S.items).filter((id) => BY_ID[id]);
     const r = (id) => S.items[id];
@@ -304,6 +314,13 @@
           const id = 'w:' + t;
           if (BY_ID[id]) continue;
           add({ id, type: 'word', cat, t, he, lvl, ex, exHe, added, src, pos: '', emoji: '', ipa: '' });
+        }
+        // daily expressions & slang from Wiktionary: [kind, term, hebrew, english definition, example, example hebrew, level, added]
+        for (const [kind, t, he, def, ex, exHe, lvl, added] of j.exprs || []) {
+          const id = 'x:' + t.toLowerCase();
+          if (BY_ID[id]) continue;
+          add({ id, type: 'expr', kind, cat: kind === 'slang' ? 'american' : kind, t, he, lit: '', real: he, def, ex, exHe, ctx: 'מקור: Wiktionary', formal: kind === 'slang' ? 1 : 2,
+            region: kind === 'slang' ? 'ארה"ב' : 'כללי', freq: 2, lvl, added, emoji: KINDS[kind].icon, pos: 'phr' });
         }
         this.ready = true;
       }).catch(() => { this.ready = true; }).finally(() => { this.loading = null; });

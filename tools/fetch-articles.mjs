@@ -202,7 +202,7 @@ async function findImage(a) {
    meaning = a free machine translation (MyMemory) of the full title.
    Optional: if the repository has a free Google Gemini key in the GEMINI_API_KEY secret, Gemini writes
    the headline and the Hebrew line instead. */
-const SHORT_V = 2;
+const SHORT_V = 3;
 async function geminiShorts(batch) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
@@ -242,7 +242,7 @@ function headOf(title) {
   // "ICYMI: President Trump announces…" → the part after a 1-2 word label
   const label = /^[A-Z]{2,}$/.test(parts[0] || '') || /^(watch|breaking|live|fact sheet|remarks|update|explainer)$/i.test(parts[0] || '');
   let first = parts.length > 1 && label ? parts[1] : parts[0];
-  const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+  const cap = (x) => x.replace(/^([‘'"“(]*)([a-z])/, (m, q, c) => q + c.toUpperCase());
   let words = first.split(/\s+/);
   if (words.length <= 7) return cap(first);
   first = first.replace(LEAD, '');

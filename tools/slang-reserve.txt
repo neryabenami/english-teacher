@@ -1,0 +1,106 @@
+# Curated everyday American slang, released 5 a day by add-daily-words.mjs (before falling back to Wiktionary).
+# term|Hebrew meaning|English meaning|example|example in Hebrew
+rizz|כריזמה, קסם אישי בפלרטוט|charm, the ability to attract someone|He's got so much rizz.|יש לו המון קסם אישי.
+bussin|טעים בטירוף|really good (about food)|This pizza is bussin!|הפיצה הזאת טעימה בטירוף!
+mid|בינוני, לא משהו|average, not great|Honestly, the movie was mid.|האמת, הסרט היה ככה-ככה.
+FOMO|פחד להחמיץ|fear of missing out|I only went to the party because of FOMO.|הלכתי למסיבה רק בגלל הפחד להחמיץ.
+YOLO|חיים רק פעם אחת|you only live once|Let's try skydiving, YOLO!|בוא ננסה צניחה, חיים רק פעם אחת!
+bae|אהוב, אהובה|boyfriend or girlfriend|I'm going out with bae tonight.|אני יוצא עם האהובה שלי הערב.
+extra|מוגזם, דרמטי|over the top, too much|She's so extra about her birthday.|היא כל כך מוגזמת עם יום ההולדת שלה.
+basic|שגרתי, חסר מקוריות|unoriginal, mainstream|That outfit is kind of basic.|הלבוש הזה די שגרתי.
+squad|החבר'ה|a close group of friends|The whole squad is coming tonight.|כל החבר'ה באים הערב.
+BFF|החבר הכי טוב|best friend forever|She's been my BFF since high school.|היא החברה הכי טובה שלי מאז התיכון.
+shook|בהלם|shocked, very surprised|I was shook when I heard the news.|הייתי בהלם כששמעתי את החדשות.
+tea|רכילות|gossip|Okay, what's the tea?|טוב, מה הרכילות?
+receipts|הוכחות|proof, evidence|Don't believe me? I have the receipts.|לא מאמין לי? יש לי הוכחות.
+glow up|שינוי מרשים לטובה|a big positive transformation|He had a serious glow up this year.|הוא עבר שדרוג רציני השנה.
+on point|מושלם, מדויק|perfect, exactly right|Your outfit is on point today.|הלבוש שלך מושלם היום.
+deadass|ברצינות|seriously, for real|I'm deadass exhausted.|אני ברצינות מותש.
+periodt|נקודה, וזהו|end of discussion|She's the best singer ever, periodt.|היא הזמרת הכי טובה שיש, נקודה.
+ick|משהו שפתאום מגעיל ומכבה|a sudden feeling of disgust toward someone|When he chewed so loudly, I got the ick.|כשהוא לעס ברעש, זה פתאום כיבה אותי.
+situationship|קשר לא מוגדר|a romantic relationship without a clear label|We're not dating, it's more of a situationship.|אנחנו לא זוג, זה יותר קשר לא מוגדר.
+main character|מרגיש כמו הגיבור של הסרט|acting like the star of the story|Walking in the rain makes me feel like the main character.|ללכת בגשם גורם לי להרגיש כמו הגיבור של הסרט.
+touch grass|צא קצת מהמסך|go outside and get offline|You've been online all day, go touch grass.|אתה ברשת כל היום, צא קצת החוצה.
+ratio|תגובה שקיבלה יותר לייקים מהפוסט|a reply that gets more likes than the original post|His tweet got ratioed in an hour.|הציוץ שלו קיבל תגובה עם יותר לייקים תוך שעה.
+stan|מעריץ מושבע|to be a big fan of someone|I totally stan this band.|אני מעריץ מושבע של הלהקה הזאת.
+ate|ביצע בצורה מושלמת|did something amazingly well|She ate that performance.|היא קרעה את ההופעה.
+it's giving|זה משדר|it has the vibe of|This jacket? It's giving rock star.|המעיל הזה? משדר כוכב רוק.
+hits different|מרגיש אחרת, יותר מיוחד|feels special or better than usual|Coffee in the morning just hits different.|קפה בבוקר פשוט מרגיש אחרת.
+rent free|לא יוצא מהראש|stuck in your mind|That song lives in my head rent free.|השיר הזה לא יוצא לי מהראש.
+understood the assignment|עשה בדיוק את מה שצריך|did exactly what was needed, perfectly|Wow, your costume understood the assignment.|וואו, התחפושת שלך בדיוק במקום.
+caught in 4K|נתפס על חם|caught with clear proof|He said he was sick but got caught in 4K at the beach.|הוא אמר שהוא חולה אבל נתפס על חם בחוף.
+yikes|אוי, מביך|an expression of embarrassment or shock|Yikes, that was awkward.|אוי, זה היה מביך.
+bruh|אחי (בתדהמה או בתסכול)|an expression of disbelief|Bruh, you missed the bus again?|אחי, שוב פספסת את האוטובוס?
+fam|חבר'ה, אחים|close friends, like family|What's up, fam?|מה קורה, חבר'ה?
+homie|חבר קרוב|a close friend|He's been my homie since we were kids.|הוא החבר הקרוב שלי מאז שהיינו ילדים.
+dude|אחי, בנאדם|guy, friend|Dude, that was awesome!|אחי, זה היה מדהים!
+lit|מטורף, מלא אנרגיה|exciting and fun|The party last night was lit.|המסיבה אתמול הייתה מטורפת.
+savage|אכזרי בצורה מגניבה|boldly harsh or impressive|That comeback was savage.|התשובה הזאת הייתה אכזרית.
+throw shade|לעקוץ|to insult someone indirectly|Are you throwing shade at me?|אתה עוקץ אותי?
+clap back|להחזיר תשובה חדה|to respond sharply to criticism|She clapped back at the mean comment.|היא החזירה תשובה חדה לתגובה המרושעת.
+gas up|לפרגן ולהלהיב|to hype someone up|My friends always gas me up before a date.|החברים שלי תמיד מלהיבים אותי לפני דייט.
+sketchy|מפוקפק|suspicious, not safe|That website looks sketchy.|האתר הזה נראה מפוקפק.
+hangry|עצבני מרעב|angry because you're hungry|Feed me, I'm getting hangry.|תאכילו אותי, אני מתעצבן מרעב.
+adulting|להתנהל כמו מבוגר|doing grown-up tasks|I paid all my bills today. Adulting is hard.|שילמתי היום את כל החשבונות. להיות מבוגר זה קשה.
+bougie|יוקרתי, מתנשא|fancy, upscale|This café is a little bougie.|בית הקפה הזה קצת יוקרתי מדי.
+drip|סטייל, לבוש מגניב|stylish clothes and accessories|Nice drip, where did you get that jacket?|איזה סטייל, מאיפה המעיל?
+L|הפסד, פדיחה|a loss|Missing the last train was a big L.|לפספס את הרכבת האחרונה היה פדיחה.
+W|ניצחון|a win|Free pizza at work? That's a W.|פיצה בחינם בעבודה? זה ניצחון.
+no shot|אין סיכוי|no way, impossible|No shot he finishes on time.|אין סיכוי שהוא יסיים בזמן.
+say less|הבנתי, אין צורך להסביר|I'm in, no need to explain|Party tonight? Say less.|מסיבה הערב? הבנתי, אני שם.
+slaps|מעולה (בעיקר על שיר)|is excellent|This song really slaps.|השיר הזה ממש מעולה.
+valid|לגיטימי, מוצדק|acceptable, fair|Your feelings are valid.|הרגשות שלך מוצדקים.
+yeet|לזרוק בכוח|to throw something forcefully|He yeeted the ball across the field.|הוא העיף את הכדור לצד השני של המגרש.
+TMI|יותר מדי מידע|too much information|Okay, that's TMI!|אוקיי, זה יותר מדי מידע!
+SMH|אין מילים (מנענע בראש)|shaking my head|He forgot his keys again, SMH.|הוא שוב שכח את המפתחות, אין מילים.
+IMO|לדעתי|in my opinion|IMO, the book is better than the movie.|לדעתי, הספר טוב יותר מהסרט.
+IKR|נכון?!|I know, right?|IKR, it was amazing!|נכון?! זה היה מדהים!
+JK|סתם, צוחק|just kidding|JK, I'm not mad at you.|סתם, אני לא כועס עליך.
+NVM|לא משנה|never mind|NVM, I found it.|לא משנה, מצאתי.
+HMU|תשלח לי הודעה|hit me up|HMU when you're free.|תשלח לי הודעה כשאתה פנוי.
+ICYMI|למקרה שפספסת|in case you missed it|ICYMI, the show starts at eight.|למקרה שפספסת, ההופעה מתחילה בשמונה.
+FR|באמת, ברצינות|for real|That test was hard fr.|המבחן הזה היה קשה באמת.
+IYKYK|מי שיודע, יודע|if you know, you know|That café's secret menu, IYKYK.|התפריט הסודי של בית הקפה, מי שיודע יודע.
+POV|נקודת מבט|point of view (used in video captions)|POV: you just woke up late for work.|נקודת מבט: התעוררת מאוחר לעבודה.
+GG|משחק טוב|good game|GG, everyone, see you tomorrow.|משחק טוב כולם, נתראה מחר.
+AFK|לא ליד המחשב|away from keyboard|I'll be AFK for ten minutes.|לא אהיה ליד המחשב עשר דקות.
+OP|חזק מדי|overpowered|That character is way too OP.|הדמות הזאת חזקה מדי.
+noob|מתחיל, חסר ניסיון|a beginner|I'm a total noob at chess.|אני מתחיל לגמרי בשחמט.
+rage quit|לעזוב בעצבים|to quit angrily|He lost twice and rage quit the game.|הוא הפסיד פעמיים ועזב את המשחק בעצבים.
+clutch|מושלם ברגע המכריע|done perfectly at the crucial moment|That last-second goal was so clutch.|הגול בשנייה האחרונה הגיע בדיוק ברגע המכריע.
+sleep on|לזלזל ב־|to underestimate|Don't sleep on this new singer.|אל תזלזל בזמר החדש הזה.
+ride or die|נאמן עד הסוף|a very loyal friend|She's my ride or die.|היא חברה נאמנה עד הסוף.
+bail|לבטל ברגע האחרון|to leave or cancel plans|Sorry, I have to bail tonight.|סליחה, אני חייב לבטל הערב.
+crash|לישון אצל מישהו|to sleep at someone's place|Can I crash at your place tonight?|אפשר לישון אצלך הלילה?
+hang|לבלות|to spend time together|Wanna hang this weekend?|רוצה לבלות בסוף השבוע?
+beef|ריב, סכסוך|a conflict between people|Those two have beef with each other.|יש ריב בין השניים האלה.
+bummer|באסה|a disappointment|The concert got canceled? What a bummer.|ההופעה בוטלה? איזו באסה.
+busted|נתפס|caught doing something wrong|You ate my cookies? Busted!|אכלת לי את העוגיות? נתפסת!
+cheesy|קיטשי, מתקתק|corny, too sweet|That movie was so cheesy.|הסרט הזה היה קיטשי לגמרי.
+couch potato|עצלן מול הטלוויזיה|a lazy person who watches a lot of TV|Don't be a couch potato all weekend.|אל תהיה עצלן מול הטלוויזיה כל הסופ"ש.
+cram|ללמוד ברגע האחרון|to study a lot at the last minute|I crammed all night for the exam.|למדתי כל הלילה למבחן.
+dibs|תפסתי!|to claim something first|Dibs on the front seat!|תפסתי את המושב הקדמי!
+epic|אדיר|amazing, impressive|That road trip was epic.|הטיול הזה היה אדיר.
+freak out|להתחרפן, להיבהל|to panic or get very upset|Don't freak out, it's just a spider.|אל תתחרפן, זה רק עכביש.
+grind|עבודה קשה ומתמדת|hard, steady work|Back to the grind on Monday.|חוזרים לעבודה הקשה ביום שני.
+hyped|מתלהב מאוד|very excited|I'm so hyped for the trip!|אני כל כך מתלהב לקראת הטיול!
+legit|אמיתי, באמת|genuine, really|That's legit the best burger in town.|זה באמת ההמבורגר הכי טוב בעיר.
+my jam|השיר האהוב עליי|my favorite song|Turn it up, this is my jam!|תגביר, זה השיר שלי!
+no biggie|לא נורא|no big deal|You're five minutes late? No biggie.|איחרת בחמש דקות? לא נורא.
+pumped|נרגש ומלא אנרגיה|very excited|I'm pumped for the game tonight.|אני נרגש לקראת המשחק הערב.
+screw up|לפשל|to make a mistake|I really screwed up the presentation.|ממש פישלתי במצגת.
+shady|חשוד, לא הוגן|suspicious or dishonest|That deal sounds shady.|העסקה הזאת נשמעת חשודה.
+swag|סטייל וביטחון עצמי|style and confidence|He walks in with so much swag.|הוא נכנס עם המון סטייל.
+sweet|מגניב|cool, great|Sweet, see you there!|מגניב, נתראה שם!
+totes|לגמרי|totally|I'm totes coming to your party.|אני לגמרי בא למסיבה שלך.
+vibing|נהנה מהאווירה|enjoying the mood|We're just vibing to the music.|אנחנו פשוט נהנים מהמוזיקה.
+whatever|לא אכפת לי|a dismissive "I don't care"|Whatever, do what you want.|לא אכפת לי, תעשה מה שאתה רוצה.
+wicked|ממש, מאוד|very (common in Boston)|That's wicked cool.|זה מגניב ממש.
+zone out|לרחף, להתנתק|to lose focus|I zoned out during the meeting.|ריחפתי במהלך הפגישה.
+chill out|להירגע|to relax|Chill out, everything is fine.|תירגע, הכול בסדר.
+hit the road|לזוז, לצאת לדרך|to leave|It's late, let's hit the road.|מאוחר, בוא נזוז.
+my two cents|הדעה שלי|my opinion|Just my two cents, but I'd take the job.|זאת רק הדעה שלי, אבל הייתי לוקח את העבודה.
+spot on|מדויק לגמרי|exactly right|Your guess was spot on.|הניחוש שלך היה מדויק לגמרי.
+go-to|הבחירה הקבועה|your usual first choice|This is my go-to coffee place.|זה בית הקפה הקבוע שלי.
+next level|ברמה אחרת|much better than usual|This burger is next level.|ההמבורגר הזה ברמה אחרת.
+low-hanging fruit|הדבר הקל להשגה|an easy goal|Let's start with the low-hanging fruit.|בוא נתחיל מהדברים הקלים.
