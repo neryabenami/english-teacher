@@ -34,6 +34,8 @@ jobs:
       - name: Fetch new articles
         if: github.event_name != 'push'
         run: node tools/fetch-articles.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add today's new words
         if: github.event_name != 'push'
