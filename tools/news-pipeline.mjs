@@ -134,33 +134,41 @@ async function pageText(url) {
 
 /* ---------- Gemini ---------- */
 let geminiCalls = 0;
-// Google retires model names over time, so the newest stable Flash model on this key is picked at run time.
-async function pickModel() {
+// Google retires model names over time, so the stable Flash models on this key are listed at run time, newest first.
+// A model that is retired or overloaded is dropped for the rest of the run and the next one is used.
+let MODELS = null;
+async function listModels() {
   const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': KEY } });
-  if (!r.ok) throw new Error('gemini models ' + r.status);
-  const ok = ((await r.json()).models || [])
+  const ok = r.ok ? ((await r.json()).models || [])
     .filter((m) => (m.supportedGenerationMethods || []).includes('generateContent'))
     .map((m) => m.name.replace(/^models\//, ''))
-    .filter((n) => /^gemini-[\d.]+-flash$/.test(n));
+    .filter((n) => /^gemini-[\d.]+-flash(-lite)?$/.test(n)) : [];
   const ver = (n) => parseFloat((n.match(/gemini-([\d.]+)/) || [0, 0])[1]);
-  ok.sort((a, b) => ver(b) - ver(a) || a.length - b.length);
-  return ok[0] || 'gemini-flash-latest';
+  ok.sort((a, b) => (a.includes('lite') - b.includes('lite')) || ver(b) - ver(a));
+  return [...new Set([MODEL, ...ok, 'gemini-flash-latest'].filter(Boolean))];
 }
 async function gemini(system, user) {
-  if (!MODEL) { MODEL = await pickModel(); console.log('model ' + MODEL); }
-  for (let a = 0; a < 3; a++) {
-    geminiCalls++;
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.3 } })
-    });
-    if (r.status === 429) { await sleep(20000 * (a + 1)); continue; }
-    if (!r.ok) throw new Error('gemini ' + r.status + ' ' + (await r.text()).slice(0, 200));
-    const j = await r.json();
-    return JSON.parse(j.candidates[0].content.parts[0].text);
+  if (!MODELS) { MODELS = await listModels(); console.log('models ' + MODELS.join(', ')); }
+  while (MODELS.length) {
+    const model = MODELS[0];
+    let last = '';
+    for (let a = 0; a < 4; a++) {
+      geminiCalls++;
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.3 } })
+      });
+      if (r.ok) { MODEL = model; const j = await r.json(); return JSON.parse(j.candidates[0].content.parts[0].text); }
+      last = r.status + ' ' + (await r.text()).slice(0, 160);
+      if (r.status === 429 || r.status >= 500) { await sleep(8000 * (a + 1)); continue; }
+      break;
+    }
+    if (/^4(00|01|03)\b/.test(last)) throw new Error('gemini ' + last);
+    console.log(`model ${model} unavailable (${last.slice(0, 40)}), trying the next one`);
+    MODELS.shift();
   }
-  throw new Error('gemini quota');
+  throw new Error('gemini: no model available');
 }
 const LEVEL_GUIDE = {
   A1: 'CEFR A1: very short simple sentences, present tense mostly, the 1000 most common words, 150-250 words.',
