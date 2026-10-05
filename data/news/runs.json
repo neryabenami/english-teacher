@@ -1,5 +1,40 @@
 [
  {
+  "run_id": "2026-10-05T19:15:49.685Z",
+  "level": "C1",
+  "sources_checked": 43,
+  "sources_failed": [],
+  "candidates": 1067,
+  "rejected": 4,
+  "duplicates": 94,
+  "verified": 18,
+  "created": 8,
+  "published_by_cat": {
+   "tech": 1,
+   "finance": 1,
+   "travel": 1,
+   "world": 1,
+   "gaming": 1,
+   "sports": 1,
+   "fashion": 1,
+   "business": 1
+  },
+  "errors": [
+   "Expected double-quoted property name in JSON at position 6136",
+   "Republicans and Democrats find a unifying target: Pharmacy b: stray letters in the Hebrew text",
+   "Bad control character in string literal in JSON at position 1789",
+   "‘Exceptionally crafted’: why Little Shop of Horrors is my fe: The lesson text states the film is a 'cult 1982 musical adapted for the screen', but the source states it is a 'cult 1982 musical that translates to the screen' (the film was released in 1986, while the stage musical premiered in 1982).",
+   "Expected ',' or '}' after property value in JSON at position 5197",
+   "How the TikTok algorithm changed political campaigning in 20: too close to the source wording",
+   "Unexpected token 'u', ...\" \"lemma\": ultimately\"... is not valid JSON",
+   "Unexpected token 'e', ...\" \"lemma\": evoke,\n   \"... is not valid JSON",
+   "Nvidia’s Shield TV Pro just got a $100 price hike: The lesson text contains a foreign word ('Con одномоменно') which is not natural English and violates source text and language constraints.",
+   "Bad control character in string literal in JSON at position 1727"
+  ],
+  "gemini_calls": 45,
+  "end": "2026-10-05T19:25:56.236Z"
+ },
+ {
   "run_id": "2026-10-05T16:31:32.010Z",
   "level": "B1",
   "sources_checked": 43,
