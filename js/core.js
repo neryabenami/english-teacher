@@ -391,7 +391,8 @@
     /* the user's level only (never mixed levels), newest first, last FEED_DAYS days */
     forUser(cat) {
       const cutoff = Date.now() - FEED_DAYS * DAY;
-      return this.all().filter((a) => a.english_level === S.profile.cefr && (!cat || a.category === cat) && new Date(a.first_published_in_app_at).getTime() >= cutoff)
+      const shown = new Set(D.READ_CATS.map((c) => c.id)); // removed categories leave the feed (favourites keep them)
+      return this.all().filter((a) => a.english_level === S.profile.cefr && shown.has(a.category) && (!cat || a.category === cat) && new Date(a.first_published_in_app_at).getTime() >= cutoff)
         .sort((x, y) => new Date(y.first_published_in_app_at) - new Date(x.first_published_in_app_at) || (y.interest_score || 0) - (x.interest_score || 0));
     },
     levelsAvailable() { return [...new Set(this.all().map((a) => a.english_level))]; },

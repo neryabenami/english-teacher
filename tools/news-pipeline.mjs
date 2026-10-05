@@ -13,34 +13,27 @@ const OUT = path.resolve('data/news');
 const LEVEL = /^(A1|A2|B1|B2|C1|C2)$/.test(process.env.READING_LEVEL || '') ? process.env.READING_LEVEL : 'B1';
 let MODEL = process.env.GEMINI_MODEL || '';
 const KEY = process.env.GEMINI_API_KEY || '';
-const DAILY_MAX = +(process.env.DAILY_MAX || 18);   // articles per day (free Gemini quota: 2 calls per article)
+const DAILY_MAX = +(process.env.DAILY_MAX || 16);   // articles per day: 2 per category (free Gemini quota: 2-3 calls per article)
 const PER_CAT_DAY = 2;                               // keeps the feed balanced
 const UA = 'Mozilla/5.0 (compatible; english-teacher-app; +https://github.com/neryabenami/english-teacher)';
 
-export const CATS = ['tech', 'finance', 'business', 'travel', 'health', 'sports', 'entertainment', 'science', 'psychology', 'relationships', 'world', 'gaming', 'food', 'cars', 'fashion'];
+export const CATS = ['world', 'business', 'finance', 'tech', 'sports', 'gaming', 'travel', 'health'];
 const BBC = (p) => `https://feeds.bbci.co.uk/${p}`;
 const GU = (p) => `https://www.theguardian.com/${p}/rss`;
 const FEEDS = [
   [BBC('news/world/rss.xml'), 'BBC News', 'world', 3], [BBC('news/technology/rss.xml'), 'BBC News', 'tech', 3], [BBC('news/business/rss.xml'), 'BBC News', 'business', 3],
-  [BBC('news/science_and_environment/rss.xml'), 'BBC News', 'science', 3], [BBC('news/health/rss.xml'), 'BBC News', 'health', 3],
-  [BBC('news/entertainment_and_arts/rss.xml'), 'BBC News', 'entertainment', 3], [BBC('sport/rss.xml'), 'BBC Sport', 'sports', 3],
-  [GU('world'), 'The Guardian', 'world', 3], [GU('technology'), 'The Guardian', 'tech', 3], [GU('business'), 'The Guardian', 'business', 3],
-  [GU('science'), 'The Guardian', 'science', 3], [GU('travel'), 'The Guardian', 'travel', 3], [GU('food'), 'The Guardian', 'food', 3],
-  [GU('fashion'), 'The Guardian', 'fashion', 3], [GU('games'), 'The Guardian', 'gaming', 3], [GU('money'), 'The Guardian', 'finance', 3],
-  [GU('sport'), 'The Guardian', 'sports', 3], [GU('film'), 'The Guardian', 'entertainment', 3], [GU('lifeandstyle/relationships'), 'The Guardian', 'relationships', 3],
-  [GU('science/psychology'), 'The Guardian', 'psychology', 3], [GU('lifeandstyle/health-and-wellbeing'), 'The Guardian', 'health', 3], [GU('technology/motoring'), 'The Guardian', 'cars', 3],
-  ['https://feeds.npr.org/1001/rss.xml', 'NPR', 'world', 3], ['https://feeds.npr.org/1019/rss.xml', 'NPR', 'tech', 3], ['https://feeds.npr.org/1006/rss.xml', 'NPR', 'business', 3],
-  ['https://feeds.npr.org/1007/rss.xml', 'NPR', 'science', 3], ['https://feeds.npr.org/1128/rss.xml', 'NPR', 'health', 3],
-  ['https://www.cnbc.com/id/100003114/device/rss/rss.html', 'CNBC', 'business', 3], ['https://www.cnbc.com/id/10000664/device/rss/rss.html', 'CNBC', 'finance', 3],
-  ['https://www.cnbc.com/id/19854910/device/rss/rss.html', 'CNBC', 'tech', 3],
-  ['https://techcrunch.com/feed/', 'TechCrunch', 'tech', 2], ['https://www.theverge.com/rss/index.xml', 'The Verge', 'tech', 2], ['https://www.wired.com/feed/rss', 'Wired', 'tech', 2],
-  ['https://arstechnica.com/feed/', 'Ars Technica', 'tech', 2], ['https://www.espn.com/espn/rss/news', 'ESPN', 'sports', 3],
-  ['https://www.polygon.com/rss/index.xml', 'Polygon', 'gaming', 2], ['https://feeds.feedburner.com/ign/news', 'IGN', 'gaming', 2],
-  ['https://electrek.co/feed/', 'Electrek', 'cars', 2], ['https://www.motor1.com/rss/news/all/', 'Motor1', 'cars', 2], ['https://www.eater.com/rss/index.xml', 'Eater', 'food', 2],
-  ['https://www.psypost.org/feed/', 'PsyPost', 'psychology', 2], ['https://www.sciencedaily.com/rss/top/science.xml', 'ScienceDaily', 'science', 2],
-  ['https://www.sciencedaily.com/rss/mind_brain.xml', 'ScienceDaily', 'psychology', 2]
+  [BBC('news/health/rss.xml'), 'BBC News', 'health', 3], [BBC('sport/rss.xml'), 'BBC Sport', 'sports', 3], [GU('world'), 'The Guardian', 'world', 3],
+  [GU('technology'), 'The Guardian', 'tech', 3], [GU('business'), 'The Guardian', 'business', 3], [GU('travel'), 'The Guardian', 'travel', 3],
+  [GU('games'), 'The Guardian', 'gaming', 3], [GU('money'), 'The Guardian', 'finance', 3], [GU('sport'), 'The Guardian', 'sports', 3],
+  [GU('lifeandstyle/health-and-wellbeing'), 'The Guardian', 'health', 3], ['https://feeds.npr.org/1001/rss.xml', 'NPR', 'world', 3], ['https://feeds.npr.org/1019/rss.xml', 'NPR', 'tech', 3],
+  ['https://feeds.npr.org/1006/rss.xml', 'NPR', 'business', 3], ['https://feeds.npr.org/1128/rss.xml', 'NPR', 'health', 3], ['https://www.cnbc.com/id/100003114/device/rss/rss.html', 'CNBC', 'business', 3],
+  ['https://www.cnbc.com/id/10000664/device/rss/rss.html', 'CNBC', 'finance', 3], ['https://www.cnbc.com/id/19854910/device/rss/rss.html', 'CNBC', 'tech', 3], ['https://techcrunch.com/feed/', 'TechCrunch', 'tech', 2],
+  ['https://www.theverge.com/rss/index.xml', 'The Verge', 'tech', 2], ['https://www.wired.com/feed/rss', 'Wired', 'tech', 2], ['https://arstechnica.com/feed/', 'Ars Technica', 'tech', 2],
+  ['https://www.espn.com/espn/rss/news', 'ESPN', 'sports', 3], ['https://www.polygon.com/rss/index.xml', 'Polygon', 'gaming', 2], ['https://feeds.feedburner.com/ign/news', 'IGN', 'gaming', 2]
 ].map(([url, source, cat, weight]) => ({ url, source, cat, weight }));
-/* topic words (the spec's per-category queries) used to place a story in the right category */
+/* topic words (the spec's per-category queries) used to place a story in the right category.
+   Topics that are not in CATS stay here on purpose: a film or recipe story is recognised as such and skipped,
+   instead of being pushed into a reading category. */
 const TOPIC_WORDS = {
   tech: 'technology artificial intelligence ai apple google microsoft cybersecurity startup app apps gadget smartphone software chip openai',
   finance: 'finance market markets investing investor stocks shares economy inflation interest rate rates bank banking cryptocurrency bitcoin bond bonds',
@@ -170,17 +163,30 @@ async function gemini(system, user) {
   }
   throw new Error('gemini: no model available');
 }
-const LEVEL_GUIDE = {
-  A1: 'CEFR A1: very short simple sentences, present tense mostly, the 1000 most common words, 150-250 words.',
-  A2: 'CEFR A2: short simple sentences, common words, simple past and future, 200-350 words.',
-  B1: 'CEFR B1: clear sentences, everyday vocabulary plus key topic words, some linking words, 300-450 words.',
-  B2: 'CEFR B2: varied sentences, wider vocabulary, some complex structures, 350-550 words.',
-  C1: 'CEFR C1: natural, rich and precise language, complex structures allowed, 400-600 words.',
-  C2: 'CEFR C2: sophisticated, idiomatic, nuanced language, 450-600 words.'
+/* Every level gets a light, enjoyable 3-4 minute daily read. Higher levels read faster, so their articles are longer.
+   min/max: article length in words; wpm: learner reading speed used for the reading time shown in the app. */
+export const LEVEL_SPEC = {
+  A1: { min: 150, max: 250, wpm: 60 },
+  A2: { min: 250, max: 350, wpm: 85 },
+  B1: { min: 350, max: 450, wpm: 110 },
+  B2: { min: 400, max: 500, wpm: 130 },
+  C1: { min: 450, max: 550, wpm: 145 },
+  C2: { min: 500, max: 600, wpm: 160 }
 };
+const SPEC = LEVEL_SPEC[LEVEL];
+const LEVEL_GUIDE = {
+  A1: 'CEFR A1: very short simple sentences, present tense mostly, the 1000 most common words.',
+  A2: 'CEFR A2: short simple sentences, common words, simple past and future.',
+  B1: 'CEFR B1: clear sentences, everyday vocabulary plus key topic words, some linking words.',
+  B2: 'CEFR B2: varied sentences, wider vocabulary, some complex structures.',
+  C1: 'CEFR C1: natural, rich and precise language, complex structures allowed.',
+  C2: 'CEFR C2: sophisticated, idiomatic, nuanced language.'
+};
+const LENGTH_RULE = `LENGTH: the article MUST be ${SPEC.min}-${SPEC.max} words (a light, enjoyable 3-4 minute read). Count carefully. If the facts are rich, explain them clearly with context from the sources; never pad with invented details.`;
 async function writeArticle(cluster, material) {
   const system = 'You turn verified news reporting into ORIGINAL English reading lessons for Hebrew-speaking learners. You never invent events, facts, numbers, dates, quotes, people, organizations, sources or URLs. You do not copy sentences or distinctive phrasing from the sources; you write a new text from the facts.';
   const user = `Reader level: ${LEVEL}. ${LEVEL_GUIDE[LEVEL]}
+${LENGTH_RULE}
 Category must be one of: ${CATS.join(', ')}.
 Sources (the only allowed facts):
 ${material}
@@ -196,6 +202,21 @@ Return ONLY JSON:
 Glossary: every content word and every multi-word expression (phrasal verbs, compound nouns like "interest rate", idioms, names like "New York") that appears in the article; skip only very basic words (the, a, is, and, of, to, in...). Up to 220 entries.
 If the material is not a real, specific news story or the facts are too thin, set is_real_news false.`;
   return gemini(system, user);
+}
+async function resizeArticle(a, material, n) {
+  const system = 'You edit English reading lessons for Hebrew-speaking learners. You never invent events, facts, numbers, dates, quotes, people or organizations; you only use the sources.';
+  const user = `Reader level: ${LEVEL}. ${LEVEL_GUIDE[LEVEL]}
+${LENGTH_RULE}
+The lesson below has ${n} words. Rewrite it to ${SPEC.min}-${SPEC.max} words, at the same level, using ONLY facts from the sources${n < SPEC.min ? ' (add more of the real details, background and quotes that the sources contain)' : ' (keep the most important facts)'}. Do not copy sentences from the sources.
+
+Sources:
+${material}
+
+Lesson:
+${a.article}
+
+Return ONLY JSON {"article": "paragraphs separated by a blank line", "glossary": [same format as before: {"text","lemma","pos","he","name"} for every content word and multi-word expression in the NEW text, up to 220 entries]}`;
+  try { return await gemini(system, user); } catch (e) { return null; }
 }
 async function checkArticle(material, a) {
   const system = 'You are a strict fact checker for news-based reading lessons.';
@@ -220,7 +241,7 @@ function localChecks(a, material) {
   let shared = 0; for (const x of as) if (ss.has(x)) shared++;
   if (as.size && shared / as.size > 0.04) problems.push('too close to the source wording');
   const n = words(a.article);
-  if (n < 120 || n > 750) problems.push('length ' + n);
+  if (n < SPEC.min || n > SPEC.max + 80) problems.push('length ' + n);
   if (!a.display_title || a.display_title.split(/\s+/).length > 8) problems.push('title');
   // Hebrew text may hold only Hebrew, Latin letters, digits and punctuation (smaller models sometimes slip in Thai or Sinhala letters).
   if (FOREIGN.test(a.display_title_he || '') || FOREIGN.test(a.short_summary || '')) problems.push('stray letters in the Hebrew text');
@@ -283,6 +304,7 @@ const perCatToday = {};
 for (const a of publishedToday) perCatToday[a.category] = (perCatToday[a.category] || 0) + 1;
 for (const c of clusters) {
   c.cat = categorize(c.items[0]);
+  if (!CATS.includes(c.cat)) c.cat = null;
   c.newest = Math.min(...c.items.map((x) => hoursAgo(x.date)));
   c.score = Math.max(...c.items.map((x) => x.weight)) + Math.min(3, c.items.length - 1) * 1.5 - Math.min(c.newest, 168) / 24 + Math.min(1, c.items[0].desc.length / 300);
 }
@@ -319,6 +341,12 @@ if (!KEY) {
       // 5. original learning article at the reader's level
       const a = await writeArticle(c, material);
       if (!a.is_real_news || !CATS.includes(a.category) || !a.article || (a.quality_score || 0) < 6) { run.rejected++; continue; }
+      // a too-short or too-long text gets one rewrite at the right length (same facts only)
+      const n0 = words(a.article);
+      if (n0 < SPEC.min || n0 > SPEC.max + 80) {
+        const fixed = await resizeArticle(a, material, n0);
+        if (fixed && fixed.article) Object.assign(a, { article: fixed.article, glossary: fixed.glossary || a.glossary });
+      }
       // 6. QA: local checks + independent fact check
       const problems = localChecks(a, material);
       if (!problems.length) { const qa = await checkArticle(material, a); if (!qa.ok) problems.push(...(qa.problems || ['fact check failed'])); }
@@ -329,7 +357,7 @@ if (!KEY) {
       const n = words(a.article);
       const meta = {
         id, category: a.category, display_title: a.display_title.trim(), display_title_he: (a.display_title_he || '').trim(), short_summary: a.short_summary,
-        english_level: LEVEL, words: n, reading_time: Math.max(1, Math.round(n / 150)),
+        english_level: LEVEL, words: n, reading_time: Math.max(1, Math.round(n / SPEC.wpm)),
         image: await commonsImage(a.display_title + ' ' + c.items[0].title),
         sources: c.items.map((it) => ({ name: it.source, domain: new URL(it.url).hostname.replace(/^www\./, ''), url: it.url, title: it.title, published_at: it.date })),
         published_at: c.items.map((x) => x.date).sort()[0], first_published_in_app_at: new Date().toISOString(),

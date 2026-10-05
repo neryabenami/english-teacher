@@ -391,11 +391,9 @@ expr|expr|I'm good, thanks|לא תודה, אני מסודר|אני טוב, תו�
   /* Reading topics (real articles, collected by tools/fetch-articles.mjs) */
   /* Reading categories (same ids in the pipeline tools/news-pipeline.mjs and the app) */
   const READ_CATS = [
-    { id: 'world', he: 'חדשות בעולם', icon: '🌍' }, { id: 'tech', he: 'טכנולוגיה', icon: '💻' }, { id: 'finance', he: 'פיננסים', icon: '💰' },
-    { id: 'business', he: 'עסקים וקריירה', icon: '💼' }, { id: 'science', he: 'מדע', icon: '🔬' }, { id: 'health', he: 'בריאות וכושר', icon: '🏃' },
-    { id: 'sports', he: 'ספורט', icon: '⚽' }, { id: 'entertainment', he: 'בידור', icon: '🎬' }, { id: 'psychology', he: 'פסיכולוגיה', icon: '🧠' },
-    { id: 'relationships', he: 'זוגיות', icon: '❤️' }, { id: 'travel', he: 'טיולים', icon: '✈️' }, { id: 'gaming', he: 'גיימינג', icon: '🎮' },
-    { id: 'food', he: 'אוכל', icon: '🍽️' }, { id: 'cars', he: 'רכב', icon: '🚗' }, { id: 'fashion', he: 'אופנה', icon: '👗' }
+    { id: 'world', he: 'חדשות בעולם', icon: '🌍' }, { id: 'business', he: 'עסקים וקריירה', icon: '💼' }, { id: 'finance', he: 'פיננסים', icon: '💰' },
+    { id: 'tech', he: 'טכנולוגיה', icon: '💻' }, { id: 'sports', he: 'ספורט', icon: '⚽' }, { id: 'gaming', he: 'גיימינג', icon: '🎮' },
+    { id: 'travel', he: 'טיולים', icon: '✈️' }, { id: 'health', he: 'בריאות וכושר', icon: '🏃' }
   ];
   const READ_SUBS = [];
 
