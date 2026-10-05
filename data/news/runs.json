@@ -1,5 +1,40 @@
 [
  {
+  "run_id": "2026-10-05T16:31:32.010Z",
+  "level": "B1",
+  "sources_checked": 43,
+  "sources_failed": [],
+  "candidates": 1071,
+  "rejected": 7,
+  "duplicates": 97,
+  "verified": 18,
+  "created": 7,
+  "published_by_cat": {
+   "travel": 1,
+   "health": 1,
+   "sports": 1,
+   "gaming": 1,
+   "food": 1,
+   "tech": 1,
+   "business": 1
+  },
+  "errors": [
+   "fetch failed",
+   "A job that changed me: I mulched city parks in the dead of w: number not in sources: 19",
+   "Average five-year mortgage rate hits 6% for first time in th: too close to the source wording",
+   "‘Exceptionally crafted’: why Little Shop of Horrors is my fe: number not in sources: 1986",
+   "Nobel prize in medicine 2026 awarded for research into myste: too close to the source wording",
+   "Two decades of U.S. data challenge an evolutionary explanati: too close to the source wording",
+   "Is your partner on their phone and ignoring you? I’ve got a : The lesson text states: 'However, experts remind people that paying attention to each other remains important.' This claim is not supported by the source text, which contains no mention of 'experts remind people that paying attention to each other remains important'.",
+   "Cannot read properties of undefined (reading '0')",
+   "Unexpected token 'ג', ...\"     \"he\":גדלו\",\n   \"... is not valid JSON",
+   "No number after minus sign in JSON at position 12086",
+   "BT to buy broadband supplier TalkTalk in £400m rescue deal, : too close to the source wording"
+  ],
+  "gemini_calls": 46,
+  "end": "2026-10-05T16:48:24.975Z"
+ },
+ {
   "run_id": "2026-10-05T16:25:57.632Z",
   "level": "B1",
   "sources_checked": 43,
