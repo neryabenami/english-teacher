@@ -210,6 +210,7 @@ Check: 1) every name, number, date and claim in the lesson is supported by the s
 Return ONLY JSON {"ok": true|false, "problems": ["..."]}`;
   return gemini(system, user);
 }
+const FOREIGN = /[^\s -ɏ֐-׿ -⁯₪€]/;
 function localChecks(a, material) {
   const problems = [];
   const src = material.toLowerCase();
@@ -221,6 +222,9 @@ function localChecks(a, material) {
   const n = words(a.article);
   if (n < 120 || n > 750) problems.push('length ' + n);
   if (!a.display_title || a.display_title.split(/\s+/).length > 8) problems.push('title');
+  // Hebrew text may hold only Hebrew, Latin letters, digits and punctuation (smaller models sometimes slip in Thai or Sinhala letters).
+  if (FOREIGN.test(a.display_title_he || '') || FOREIGN.test(a.short_summary || '')) problems.push('stray letters in the Hebrew text');
+  a.glossary = (a.glossary || []).filter((g) => !FOREIGN.test(g.he || ''));
   return problems;
 }
 
