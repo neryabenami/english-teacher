@@ -252,9 +252,11 @@ const index = await readJson('index.json', { articles: [] });
 const runs = await readJson('runs.json', []);
 const run = { run_id: new Date().toISOString(), level: LEVEL, sources_checked: 0, sources_failed: [], candidates: 0, rejected: 0, duplicates: 0, verified: 0, created: 0, published_by_cat: {}, errors: [] };
 const today = run.run_id.slice(0, 10);
-const publishedToday = index.articles.filter((a) => a.first_published_in_app_at.slice(0, 10) === today);
-const knownUrls = new Set(index.articles.flatMap((a) => a.sources.map((s) => s.url)));
-const recentTitles = index.articles.filter((a) => hoursAgo(a.first_published_in_app_at) < 24 * 10).map((a) => { const t = a.sources.map((s) => s.title).join(' '); return { tokens: tokens(t), names: names(t) }; });
+// Everything below is per reading level: after the reader changes level, a full set of articles is written at the new level.
+const mine = index.articles.filter((a) => a.english_level === LEVEL);
+const publishedToday = mine.filter((a) => a.first_published_in_app_at.slice(0, 10) === today);
+const knownUrls = new Set(mine.flatMap((a) => a.sources.map((s) => s.url)));
+const recentTitles = mine.filter((a) => hoursAgo(a.first_published_in_app_at) < 24 * 10).map((a) => { const t = a.sources.map((s) => s.title).join(' '); return { tokens: tokens(t), names: names(t) }; });
 
 // 1. discovery
 const items = [];

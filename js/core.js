@@ -77,7 +77,7 @@
   const defaults = () => ({
     v: 1, onboarded: false, created: Date.now(),
     profile: { level: 'beginner', cefr: 'A2', goal: 'all', interests: [], dailyMin: 10, accent: 'en-US', voiceName: '', theme: 'system',
-      correction: 'important', autoWifi: true, reminders: false, ai: 'local', geminiKey: '', geminiModel: 'gemini-2.5-flash', autoSpeak: false },
+      correction: 'important', autoWifi: true, reminders: false, ai: 'local', geminiKey: '', geminiModel: 'gemini-flash-latest', autoSpeak: false },
     items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {}, saved: {}, resume: null, daily: null, readPos: {}, opened: {}, readFeed: {}, savedWords: [],
     stats: { quizzes: 0, qRight: 0, qTotal: 0, stories: {}, articles: {}, chats: 0, msgs: 0, games: 0, bestSpeed: 0, bestStreak: 0 },
     sync: { changes: 0, last: 0 }
@@ -89,6 +89,7 @@
   for (const k of Object.keys(base.profile)) if (S.profile[k] === undefined) S.profile[k] = base.profile[k];
   for (const k of Object.keys(base.stats)) if (S.stats[k] === undefined) S.stats[k] = base.stats[k];
   Object.values(S.custom).forEach((c) => { if (!BY_ID[c.id]) add(c); });
+  if (S.profile.geminiModel === 'gemini-2.5-flash') S.profile.geminiModel = 'gemini-flash-latest'; // retired by Google
   ET.S = S;
   let saveTimer = null;
   ET.save = (now) => {
@@ -105,11 +106,50 @@
   };
 
   /* Sync provider: interface ready for a free backend (e.g. Supabase free tier). Today: device only. */
-  ET.SyncProvider = {
-    name: 'device',
-    connected: false,
-    async sync() { return { ok: false, reason: 'not-connected' }; }
+  /* Level sync: tells the article writer (GitHub Actions in this project's repository) which reading level to write at.
+     It uses a personal GitHub token that the user creates, limited to this one repository and kept only on this device
+     (outside the backup file). */
+  const GH_REPO = 'neryabenami/english-teacher';
+  const GH_KEY = 'english-teacher.gh';
+  const ghToken = () => { try { return localStorage.getItem(GH_KEY) || ''; } catch (e) { return ''; } };
+  const gh = (p, method, body) => fetch(`https://api.github.com/repos/${GH_REPO}${p}`, {
+    method,
+    headers: { Authorization: 'Bearer ' + ghToken(), Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  ET.LevelSync = {
+    connected: () => !!ghToken(),
+    state: () => (S.levelSync = S.levelSync || { sent: '', at: '', err: '' }),
+    async connect(token) {
+      try { localStorage.setItem(GH_KEY, token); } catch (e) { return { ok: false, err: 'storage' }; }
+      const st = this.state(); st.sent = ''; st.err = '';
+      const r = await this.push(true);
+      if (!r.ok) { try { localStorage.removeItem(GH_KEY); } catch (e) { /* ignore */ } }
+      return r;
+    },
+    disconnect() { try { localStorage.removeItem(GH_KEY); } catch (e) { /* ignore */ } const st = this.state(); st.sent = ''; st.err = ''; ET.save(); },
+    // Sends the level when it changed since the last send, then starts a run so articles at the new level arrive within minutes.
+    async push(force) {
+      const st = this.state(), lvl = S.profile.cefr;
+      if (!ghToken()) return { ok: false, err: 'no-token' };
+      if (!force && st.sent === lvl) return { ok: true, same: true };
+      if (!navigator.onLine) return { ok: false, err: 'offline' };
+      try {
+        let r = await gh('/actions/variables/READING_LEVEL', 'PATCH', { name: 'READING_LEVEL', value: lvl });
+        if (r.status === 404) r = await gh('/actions/variables', 'POST', { name: 'READING_LEVEL', value: lvl });
+        if (!r.ok) throw new Error(r.status === 401 ? 'bad-token' : r.status === 403 || r.status === 404 ? 'no-permission' : 'http ' + r.status);
+        const changed = st.sent !== lvl;
+        st.sent = lvl; st.at = new Date().toISOString(); st.err = '';
+        if (changed) { const d = await gh('/actions/workflows/deploy.yml/dispatches', 'POST', { ref: 'main' }); if (!d.ok) st.err = 'no-run'; }
+        ET.save();
+        return { ok: true };
+      } catch (e) {
+        st.err = e.message === 'Failed to fetch' ? 'offline' : e.message; ET.save();
+        return { ok: false, err: st.err };
+      }
+    }
   };
+  ET.SyncProvider = { name: 'device', get connected() { return ET.LevelSync.connected(); }, sync: () => ET.LevelSync.push() };
 
   /* ---------- daily activity & streak ---------- */
   const today = () => (S.days[dayKey()] = S.days[dayKey()] || { sec: 0, learned: 0, reviewed: 0, active: false });

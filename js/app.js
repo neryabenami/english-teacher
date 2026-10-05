@@ -575,7 +575,7 @@
     } else if (A.index) {
       const list = A.forUser(cat === 'all' ? undefined : cat);
       if (list.length) body = `<div class="stack">${list.slice(0, 60).map(articleRow).join('')}</div>`;
-      else if (!A.forUser().length && A.all().length) body = `<div class="card empty"><div class="emo">✍️</div><h2>הכתבות נכתבות ברמה ${esc(S.profile.cefr)}</h2><p>כתבות הלימוד נכתבות לפי הרמה שלך. כתבות ברמה הזאת יופיעו מהעדכון היומי הבא.</p></div>`;
+      else if (!A.forUser().length && A.all().length) body = `<div class="card empty"><div class="emo">✍️</div><h2>הכתבות נכתבות ברמה ${esc(S.profile.cefr)}</h2><p>כתבות הלימוד נכתבות לפי הרמה שלך. ${ET.LevelSync.connected() ? 'כתבות ברמה הזאת ייכתבו בדקות הקרובות.' : 'כדי שייכתבו כתבות ברמה הזאת, מחברים פעם אחת בפרופיל את "כתבות לפי הרמה שלך".'}</p></div>`;
       else if (!A.all().length) body = '<div class="card empty"><div class="emo">🗞️</div><h2>הכתבות הראשונות בדרך</h2><p>כתבות הלימוד נכתבות אוטומטית כל יום מתוך חדשות אמיתיות. הן יופיעו כאן אחרי העדכון הקרוב.</p></div>';
       else body = '<div class="card empty"><div class="emo">📭</div><p>אין כרגע כתבות חדשות בקטגוריה הזאת. כתבות מתווספות כל יום.</p></div>';
     } else if (A.failed) body = `<div class="card empty"><div class="emo">📡</div><h2>אין חיבור לאינטרנט</h2><p>כתבות חדשות ייטענו כשהחיבור יחזור. בינתיים אפשר לקרוא את המועדפים.</p><button class="btn" data-act="go" data-arg="reading/favorites">למועדפים</button></div>`;
@@ -747,6 +747,7 @@
         ${seg('level', [['beginner', 'מתחילים'], ['intermediate', 'בינוני'], ['advanced', 'מתקדמים']])}
         <p class="small muted">הרמה קובעת את המילים, הביטויים, הכתבות והמבחנים בכל האפליקציה.</p>
         <button class="link small" data-act="go" data-arg="placement" style="justify-self:start">לא בטוחים? עשו מבחן רמה קצר</button></div>
+      ${levelSyncCard()}
       <div class="grid2">${stat(ET.streak() + ' 🔥', 'ימים ברצף')}${stat(ET.myList('all').length, 'מילים שלמדתי')}</div>
       <button class="card row-card" data-act="go" data-arg="stats"><span class="thumb" style="background:var(--accent-soft)">📊</span><span class="grow"><b>כל הסטטיסטיקות</b></span>${ic('chev', 'chev')}</button>
 
@@ -788,6 +789,46 @@
           : `<button class="btn ghost block" style="color:var(--bad)" data-act="reset-ask">${ic('trash')} איפוס כל הנתונים</button>`}
       </div></section>
       <p class="small muted" style="text-align:center">גרסה 1.0 · חינמית לגמרי · בלי פרסומות ובלי מנויים</p></div>`;
+  };
+
+  /* level sync card: connects the app to the daily article writer, so articles are written at the level set here */
+  const SYNC_ERR = {
+    'bad-token': 'המפתח לא תקין או שפג תוקפו.',
+    'no-permission': 'למפתח חסרות הרשאות. צריך לבחור את הפרויקט english-teacher, ולתת הרשאת Read and write ל־Variables ול־Actions.',
+    offline: 'אין חיבור לאינטרנט. הרמה תישלח אוטומטית כשהחיבור יחזור.',
+    'no-run': 'הרמה נשמרה, אבל הכתיבה לא הופעלה מיד (חסרה הרשאת Actions). הכתבות יגיעו בעדכון הקבוע הבא.',
+    storage: 'לא הצלחנו לשמור את המפתח במכשיר.'
+  };
+  const levelSyncCard = () => {
+    const st = ET.LevelSync.state();
+    if (ET.LevelSync.connected()) {
+      const ok = st.sent === S.profile.cefr;
+      return `<div class="card stack">
+        <div class="row"><span class="ico" style="color:var(--good)">${ic('cloud')}</span><div class="grow"><b>כתבות לפי הרמה שלך: מחובר</b>
+          <div class="small muted">${ok ? `הכתבות נכתבות ברמה ${esc(st.sent)}. כששומרים רמה חדשה, כתבות ברמה הזאת מגיעות תוך כמה דקות.` : `הרמה ${esc(S.profile.cefr)} עוד לא נשלחה.`}</div></div></div>
+        ${st.err && SYNC_ERR[st.err] ? `<p class="note">${SYNC_ERR[st.err]}</p>` : ''}
+        <div class="grid2">${ok ? '' : `<button class="btn soft" data-act="sync-level">שליחה עכשיו</button>`}<button class="btn ghost" data-act="sync-off">ניתוק</button></div></div>`;
+    }
+    return `<div class="card stack">
+      <div class="row"><span class="ico" style="color:var(--accent)">${ic('cloud')}</span><div class="grow"><b>כתבות לפי הרמה שלך</b>
+        <div class="small muted">חיבור חד־פעמי, כדי שהכתבות היומיות ייכתבו תמיד ברמה שבחרת כאן.</div></div></div>
+      ${RT.syncOpen ? `<ol class="steps small">
+          <li>פותחים את <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">הדף ליצירת מפתח ב־GitHub</a>.</li>
+          <li>בשדה Token name כותבים שם כלשהו, וב־Expiration בוחרים No expiration.</li>
+          <li>בחלק Repository access בוחרים Only select repositories, ואז את english-teacher.</li>
+          <li>בחלק Permissions לוחצים Add permissions, ומוסיפים Variables ו־Actions, שתיהן עם Read and write.</li>
+          <li>לוחצים Generate token, מעתיקים את המפתח ומדביקים כאן.</li></ol>
+        <p class="note">המפתח נשמר רק במכשיר הזה, לא נכלל בקובץ הגיבוי, ומאפשר רק לשנות את רמת הכתבות בפרויקט הזה.</p>
+        <div class="field"><label for="gh-token">המפתח מ־GitHub</label><input class="input" id="gh-token" type="password" dir="ltr" autocomplete="off" placeholder="github_pat_…"></div>
+        <button class="btn block" data-act="sync-connect" ${RT.syncBusy ? 'disabled' : ''}>${RT.syncBusy ? 'מתחבר…' : 'חיבור'}</button>`
+        : `<button class="btn soft block" data-act="sync-open">לחיבור (פעם אחת, כ־2 דקות)</button>`}</div>`;
+  };
+  const syncLevel = () => {
+    if (!ET.LevelSync.connected()) return;
+    ET.LevelSync.push().then((r) => {
+      if (r.ok && !r.same) toast(`כתבות ברמה ${S.profile.cefr} ייכתבו בדקות הקרובות`);
+      if (parse().name === 'profile') render();
+    });
   };
 
   const voiceOptions = () => {
@@ -1040,14 +1081,27 @@
       const i = a.indexOf(':'); const k = a.slice(0, i); let v = a.slice(i + 1);
       if (k === 'dailyMin') v = +v;
       S.profile[k] = v;
-      if (k === 'level') S.profile.cefr = ET.BANDS[v].cefr;
+      if (k === 'level') { S.profile.cefr = ET.BANDS[v].cefr; syncLevel(); }
       if (k === 'accent') { S.profile.voiceName = ''; say('Hello! How are you today?'); }
       ET.save(); render();
     },
     'toggle-interest': (a) => { const l = S.profile.interests; const i = l.indexOf(a); if (i >= 0) l.splice(i, 1); else l.push(a); ET.save(); render(); },
+    'sync-open': () => { RT.syncOpen = true; render(); },
+    'sync-connect': async () => {
+      const token = (($('#gh-token') || {}).value || '').trim();
+      if (!token) { toast('צריך להדביק את המפתח'); return; }
+      RT.syncBusy = true; render();
+      const r = await ET.LevelSync.connect(token);
+      RT.syncBusy = false;
+      if (r.ok) { RT.syncOpen = false; toast(`מחובר ✓ כתבות ברמה ${S.profile.cefr} ייכתבו בדקות הקרובות`); }
+      else toast(SYNC_ERR[r.err] || 'החיבור נכשל, נסו שוב.');
+      render();
+    },
+    'sync-off': () => { ET.LevelSync.disconnect(); toast('נותק'); render(); },
+    'sync-level': () => { syncLevel(); },
     'gemini-save': async () => {
       S.profile.geminiKey = ($('#gem-key') || {}).value.trim();
-      S.profile.geminiModel = ($('#gem-model') || {}).value.trim() || 'gemini-2.5-flash';
+      S.profile.geminiModel = ($('#gem-model') || {}).value.trim() || 'gemini-flash-latest';
       ET.save(true);
       if (!S.profile.geminiKey) { toast('נשמר. בלי מפתח ייעשה שימוש במורה המקומי.'); return; }
       toast('בודק חיבור…');
@@ -1116,12 +1170,12 @@
     'onb-finish': () => {
       const o = RT.onb;
       Object.assign(S.profile, { goal: o.goal, interests: o.interests.slice(), dailyMin: o.dailyMin });
-      S.onboarded = true; ET.save(true); location.hash = '#/home'; render();
+      S.onboarded = true; ET.save(true); location.hash = '#/home'; render(); syncLevel();
     },
     'test-answer': (a) => { const t = RT.test; if (+a === D.PLACEMENT[t.i].a) t.right++; t.i++; render(); },
     'test-exit': () => { const mode = RT.test && RT.test.mode; RT.test = null; if (mode === 'onb') { RT.onb.step = 'level'; render(); } else go('profile'); },
     'test-done': () => {
-      const t = RT.test; S.profile.cefr = t.result; S.profile.level = ET.bandOf(t.result); ET.save(); RT.test = null;
+      const t = RT.test; S.profile.cefr = t.result; S.profile.level = ET.bandOf(t.result); ET.save(); RT.test = null; syncLevel();
       if (!S.onboarded) { RT.onb.step = 'goal'; render(); } else { toast(`הרמה עודכנה: ${bandHe(S.profile.cefr)}`); go('profile'); }
     },
     export: () => {
@@ -1181,7 +1235,7 @@
   let lastRoute = parse().name;
   window.addEventListener('hashchange', () => { if (lastRoute === 'reading' && parse().name !== 'reading') ET.Articles.feedLeave(); lastRoute = parse().name; Speech.stop(); RT.reading = false; RT.readIdx = 0; RT.sheet = null; RT.confirmReset = false; render(); window.scrollTo(0, 0); });
   window.addEventListener('et-voices', () => { if (parse().name === 'profile') render(); });
-  window.addEventListener('online', () => { RT.online = true; render(); ET.SyncProvider.sync(); });
+  window.addEventListener('online', () => { RT.online = true; render(); syncLevel(); });
   window.addEventListener('offline', () => { RT.online = false; render(); });
   if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
@@ -1226,4 +1280,5 @@
   ET.DictionarySource.load();
   ET.Vocab.load().then(() => render());
   render();
+  syncLevel();
 })();
