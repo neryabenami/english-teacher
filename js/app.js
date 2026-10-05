@@ -90,8 +90,8 @@
   };
 
   /* ---------- tab bar ---------- */
-  const TABS = [['home', 'home', 'בית'], ['words', 'learn', 'לימוד מילים'], ['reading', 'book', 'קריאה'], ['ai', 'chat', 'AI'], ['profile', 'user', 'פרופיל']];
-  const TAB_OF = { savedwords: 'reading', dict: 'words', mywords: 'words', article: 'reading', chat: 'ai', stats: 'profile', storage: 'profile', reports: 'profile', placement: 'profile' };
+  const TABS = [['home', 'home', 'בית'], ['words', 'learn', 'לימוד מילים'], ['reading', 'book', 'קריאה'], ['profile', 'user', 'פרופיל']];
+  const TAB_OF = { savedwords: 'reading', dict: 'words', mywords: 'words', article: 'reading', stats: 'profile', storage: 'profile', reports: 'profile', placement: 'profile' };
   const renderTabbar = (name) => {
     const cur = TAB_OF[name] || name;
     tabbarEl.innerHTML = `<nav aria-label="ניווט ראשי">${TABS.map(([id, icon, label]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="go" data-arg="${id}" ${cur === id ? 'aria-current="page"' : ''}>${ic(icon)}<span>${label}</span></button>`).join('')}</nav>`;
@@ -225,7 +225,6 @@
   };
   const miniCard = (it, eyebrow) => `<button class="card mini-card" data-act="item" data-arg="${esc(it.id)}"><span class="eyebrow">${eyebrow}</span><span class="word">${esc(it.t)}</span><span class="small muted">${esc(it.he)}</span></button>`;
 
-  const ROBOT = '<svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><line x1="24" y1="6" x2="24" y2="11" stroke="#5B6EE8" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="5" r="2.6" fill="#E5578A"/><rect x="9" y="11" width="30" height="24" rx="10" fill="#fff" stroke="#5B6EE8" stroke-width="2.5"/><rect x="14" y="17" width="20" height="11" rx="5.5" fill="#2E3A7A"/><circle cx="20" cy="22.5" r="2.4" fill="#6FF2DA"/><circle cx="28" cy="22.5" r="2.4" fill="#6FF2DA"/><rect x="5" y="19" width="4" height="9" rx="2" fill="#5B6EE8"/><rect x="39" y="19" width="4" height="9" rx="2" fill="#5B6EE8"/><path d="M17 41c1.5-3 4-4.5 7-4.5s5.5 1.5 7 4.5" fill="none" stroke="#5B6EE8" stroke-width="2.5" stroke-linecap="round"/></svg>';
   const artImage = (a, cls) => (a.image ? `<span class="${cls}"><img src="${esc(a.image.url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="img-credit" dir="ltr">${esc(a.image.credit)}</span></span>` : `<span class="${cls} noimg"><span class="img-emo">${readCat(a.cat).icon}</span></span>`);
   const dayCard = (it, label, cls, icon) => (it ? `<button class="card day-card" data-act="item" data-arg="${esc(it.id)}"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="w">${esc(it.t)}</span><span class="dc-row"><span class="he">${esc(it.he)}</span><span class="dc-say" data-act="say" data-arg="${esc(it.t)}" data-id="${esc(it.id)}" role="button" tabindex="0" aria-label="השמעת ${esc(it.t)}">${ic('speaker')}</span></span></button>` : '');
 
@@ -257,7 +256,6 @@
       <div class="day-rows">${dayCard(ET.item(d.slang), 'סלנג היום', 'pink', 'bubble')}${dayCard(ET.item(d.word), 'מילת היום', 'yellow', 'bulb')}</div>
       ${art ? `<section class="section"><div class="section-head"><h2>קריאה מומלצת</h2><button class="link" data-act="go" data-arg="reading">לכל הכתבות</button></div>
         <button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage({ ...art, cat: art.category }, 'ha-img')}<span class="ha-body"><span class="eye">${readCat(art.category).he} · ${esc([...new Set(art.sources.map((x) => x.name))].slice(0, 2).join(', '))}</span><span class="t" lang="en" dir="ltr">${esc(art.display_title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.reading_time} דק׳ קריאה</span><span class="badge">${esc(art.english_level)}</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button></section>` : ''}
-      <button class="card ai-card" data-act="go" data-arg="chat/free"><span class="robot">${ROBOT}</span><span class="grow"><b>רוצה לתרגל דיבור?</b><span class="small muted" style="display:block">שיחה עם AI, עם תיקונים בעברית</span></span>${ic('chev', 'chev')}</button>
     </div>`;
   };
 
@@ -679,68 +677,11 @@
   const sentenceOf = (el) => { const s = el.closest('.sent'); return s ? s.textContent.trim() : (el.closest('p') || el).textContent.trim(); };
 
   /* =========================================================
-     AI
-     ========================================================= */
-  const CORR = [['minimal', 'כמעט בלי'], ['important', 'חשובים'], ['teacher', 'מורה לאנגלית']];
-  SCREENS.ai = () => {
-    const local = ET.AI.current().id === 'local';
-    return `<div class="screen">${topbar('שיחה עם AI')}
-      <div class="card stack"><div class="row"><span class="ico" style="width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)">${ic(local ? 'chat' : 'sparkle')}</span>
-        <div class="grow"><b>${local ? 'מורה מקומי' : 'Google Gemini'}</b><div class="small muted">${local ? 'עובד גם בלי אינטרנט: תרחישי שיחה ותיקון של טעויות נפוצות. לשיחה חופשית חכמה יותר אפשר לחבר Gemini בחינם בפרופיל.' : 'מחובר. ההודעות נשלחות ל־Google כדי ליצור תשובה.'}</div></div></div>
-        <div class="field"><label>רמת תיקון</label><div class="seg full">${CORR.map(([id, he]) => `<button class="${S.profile.correction === id ? 'on' : ''}" data-act="set" data-arg="correction:${id}">${he}</button>`).join('')}</div></div></div>
-      <button class="card daily-card" data-act="go" data-arg="chat/free"><div class="art">💬</div><div style="min-width:0"><div style="font-weight:600">שיחה חופשית</div><div class="muted small">מדברים על כל נושא</div></div>${ic('chev', 'chev')}</button>
-      <section class="section"><div class="section-head"><h2>סיטואציות לתרגול</h2></div>
-        <div class="tiles">${D.SCENARIOS.filter((s) => s.id !== 'free').map((s) => `<button class="tile" data-act="go" data-arg="chat/${s.id}"><span class="emo">${s.icon}</span><span class="name">${esc(s.he)}</span>${(S.chats[s.id] || { msgs: [] }).msgs.length > 1 ? '<span class="sub">שיחה פתוחה</span>' : ''}</button>`).join('')}</div></section></div>`;
-  };
-  const msgHtml = (m, i) => {
-    if (m.from === 'bot') {
-      return `<div class="msg bot"><div class="bubble">${esc(m.text)}</div>${m.showHe && m.he ? `<div class="he">${esc(m.he)}</div>` : ''}
-        <div class="tools">${speakBtn(m.text, '', '', 'sm')}${m.he ? `<button class="speak sm" data-act="toggle-he" data-arg="${i}">${m.showHe ? 'הסתר תרגום' : 'תרגום'}</button>` : ''}</div></div>`;
-    }
-    return `<div class="msg me"><div class="bubble">${esc(m.text)}</div>${m.fix ? `<div class="fix"><span class="lbl">מה אמרת</span><div class="was">${esc(m.fix.was)}</div><span class="lbl">נכון יותר</span><div class="now">${esc(m.fix.now)}</div><span class="lbl">למה</span><div>${m.fix.why.map(bidi).join('<br>')}</div></div>` : ''}</div>`;
-  };
-  SCREENS.chat = (id) => {
-    const sc = D.SCENARIOS.find((s) => s.id === id) || D.SCENARIOS[0];
-    const chat = S.chats[sc.id] || (S.chats[sc.id] = { msgs: [] });
-    if (!chat.msgs.length) { const o = ET.AI.current().opening(sc); chat.msgs.push({ from: 'bot', text: o.text, he: o.he }); S.stats.chats++; ET.save(); }
-    const recent = ET.recentIds(6).map(ET.item).filter(Boolean);
-    RT.after = () => window.scrollTo(0, document.body.scrollHeight);
-    return `<div class="screen chat-screen">${topbar(sc.icon + ' ' + esc(sc.he), 'ai', `<button class="icon-btn ${S.profile.autoSpeak ? 'active' : ''}" data-act="auto-speak" aria-label="הקראה אוטומטית של תשובות" aria-pressed="${S.profile.autoSpeak}">${ic('speaker')}</button><button class="icon-btn" data-act="chat-reset" data-arg="${sc.id}" aria-label="שיחה חדשה">${ic('refresh')}</button>`)}
-      <div class="msgs" id="msgs">${chat.msgs.map(msgHtml).join('')}${RT.chatBusy ? '<div class="msg bot"><div class="bubble typing" aria-label="כותב…"><i></i><i></i><i></i></div></div>' : ''}</div>
-      ${recent.length ? `<div class="suggest"><span class="muted">נסו להשתמש:</span>${recent.map((w) => `<button class="chip" data-act="insert" data-arg="${esc(w.t)}"><span class="en">${esc(w.t)}</span></button>`).join('')}</div>` : ''}
-      <div class="chat-pad"></div>
-      <form class="composer" data-form="chat" data-arg="${sc.id}"><div class="in">
-        ${SR ? `<button type="button" class="icon-btn mic ${RT.rec ? 'rec' : ''}" data-act="mic" aria-label="${RT.rec ? 'עצירת הקלטה' : 'דיבור'}">${ic('mic')}</button>` : ''}
-        <input class="input" id="chat-input" placeholder="Write in English…" autocomplete="off" enterkeyhint="send" aria-label="הודעה באנגלית">
-        <button class="icon-btn send" aria-label="שליחה">${ic('send')}</button></div></form></div>`;
-  };
-  const sendChat = async (id, text) => {
-    text = text.trim();
-    if (!text || RT.chatBusy) return;
-    const sc = D.SCENARIOS.find((s) => s.id === id) || D.SCENARIOS[0];
-    const chat = S.chats[sc.id];
-    chat.msgs.push({ from: 'me', text });
-    S.stats.msgs++; ET.activity();
-    ET.recentIds(30).forEach((rid) => { const it = ET.item(rid); if (it && new RegExp(`\\b${escRe(it.t.replace(/[?.!]+$/, ''))}\\b`, 'i').test(text)) { const had = (ET.rec(rid).p >> ET.PATH_BIT.used) & 1; ET.mark(rid, 'used'); if (!had) toast(`כל הכבוד! השתמשת במילה "${it.t}" 🎉`); } });
-    RT.chatBusy = true; render();
-    const recent = ET.recentIds(6).map(ET.item).filter(Boolean);
-    const [r] = await Promise.all([ET.AI.reply({ sc, history: chat.msgs, text, recent }), wait(500)]);
-    chat.msgs[chat.msgs.length - 1].fix = r.fix || null;
-    chat.msgs.push({ from: 'bot', text: r.text, he: r.he });
-    chat.msgs = chat.msgs.slice(-60);
-    RT.chatBusy = false; ET.save();
-    if (r.fellBack) toast('אין חיבור ל־Gemini, ענה המורה המקומי');
-    if (parse().name === 'chat') render();
-    if (S.profile.autoSpeak) Speech.speak(r.text);
-  };
-
-  /* =========================================================
      PROFILE / STATS / STORAGE
      ========================================================= */
   const seg = (key, opts) => `<div class="seg full" role="group">${opts.map(([v, he]) => `<button class="${String(S.profile[key]) === String(v) ? 'on' : ''}" data-act="set" data-arg="${key}:${v}">${he}</button>`).join('')}</div>`;
   SCREENS.profile = () => {
     const p = S.profile;
-    const gem = p.ai === 'gemini';
     return `<div class="screen">${topbar('פרופיל')}
       <div class="card stack level-card">
         <div class="row between"><h2>רמת האנגלית שלי</h2><span class="badge lvl">${p.cefr}</span></div>
@@ -763,14 +704,6 @@
       </div></section>
 
       <section class="section"><h2>תצוגה</h2><div class="card stack"><div class="field"><label>ערכת נושא</label>${seg('theme', [['system', 'לפי המכשיר'], ['light', 'בהיר'], ['dark', 'כהה']])}</div></div></section>
-
-      <section class="section"><h2>שיחה עם AI</h2><div class="card stack">
-        <div class="field"><label>ספק AI</label>${seg('ai', [['local', 'מורה מקומי (Offline)'], ['gemini', 'Google Gemini']])}</div>
-        ${gem ? `<p class="note">Gemini מציע שכבה חינמית. יוצרים מפתח אישי בחינם באתר Google AI Studio (aistudio.google.com) ומדביקים כאן. המפתח נשמר רק במכשיר שלך, וההודעות בצ'אט נשלחות ל־Google. אם אין אינטרנט, האפליקציה עוברת אוטומטית למורה המקומי.</p>
-          <div class="field"><label for="gem-key">מפתח API</label><input class="input" id="gem-key" type="password" dir="ltr" autocomplete="off" value="${esc(p.geminiKey)}" placeholder="AIza…"></div>
-          <div class="field"><label for="gem-model">מודל</label><input class="input" id="gem-model" dir="ltr" autocomplete="off" value="${esc(p.geminiModel)}"></div>
-          <button class="btn soft block" data-act="gemini-save">שמירה ובדיקת חיבור</button>` : '<p class="small muted">המורה המקומי חינמי לגמרי ועובד בלי אינטרנט. הוא מנהל תרחישי שיחה ומתקן טעויות נפוצות.</p>'}
-      </div></section>
 
       <section class="section"><h2>כללי</h2><div class="list">
         <div class="li"><span class="ico">${ic('bell')}</span><span class="main"><span class="t">תזכורת יומית</span><span class="s" style="display:block">תגיע בגרסה הבאה</span></span><span class="badge">בקרוב</span></div>
@@ -851,7 +784,6 @@
         ${stat(ET.myList('saved').length, 'מילים שמורות')}${stat(ET.myList('hard').length, 'מילים קשות')}
         ${stat(ET.totalMinutes(), 'דקות לימוד בסך הכול')}${stat(ET.streak() + ' 🔥', 'ימים ברצף (Streak)')}
         ${stat(st.bestStreak, 'שיא ימים ברצף')}${stat(Object.keys(st.articles || {}).length, 'כתבות שנקראו')}
-        ${stat(st.chats, 'שיחות AI')}${stat(st.msgs, 'הודעות ששלחתי')}
         ${stat(st.quizzes, 'מבחנים')}${stat(pct, 'אחוז הצלחה במבחנים')}
       </div></div>`;
   };
@@ -876,7 +808,6 @@
         <div class="row"><div class="grow"><b>הורדה אוטומטית ב־Wi‑Fi</b><div class="small muted">בודק ומוריד תכנים ועדכונים חדשים כשיש Wi‑Fi</div></div><label class="switch"><input type="checkbox" id="auto-wifi" data-change="autowifi" ${S.profile.autoWifi ? 'checked' : ''} aria-label="הורדה אוטומטית ב-Wi-Fi"><span></span></label></div>
         <button class="btn ghost block" data-act="check-update">${ic('refresh')} בדיקת עדכונים עכשיו</button>
         <button class="btn ghost block" data-act="clear-cache">${ic('trash')} ניקוי Cache והורדה מחדש</button>
-        <button class="btn ghost block" data-act="clear-chats">מחיקת היסטוריית השיחות</button>
       </div></div>`;
   };
 
@@ -1216,7 +1147,6 @@
     const f = e.target.closest('form[data-form]');
     if (!f) return;
     e.preventDefault();
-    if (f.dataset.form === 'chat') { const inp = $('#chat-input'); const v = inp.value; inp.value = ''; sendChat(f.dataset.arg, v); }
     if (f.dataset.form === 'write') { const v = ($('#write-in') || {}).value || ''; if (v.trim()) answerQ(v.trim()); }
   });
   document.addEventListener('input', (e) => {

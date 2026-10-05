@@ -498,8 +498,6 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 .ha-body { padding: 11px 12px; display: grid; gap: 5px; align-content: start; min-width: 0; }
 .ha-body .eye { font-size: .72rem; color: var(--muted); font-weight: 600; }
 .ha-body .t { font-family: var(--font-display); font-weight: 600; font-size: 1rem; line-height: 1.25; text-align: left; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.ai-card { display: flex; align-items: center; gap: 12px; text-align: start; width: 100%; padding: 10px 14px; }
-.ai-card .robot { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(145deg, #DDE7FF, #C6D4FF); display: grid; place-items: center; flex: none; }
 .art-thumb { width: 64px; height: 64px; border-radius: 14px; flex: none; }
 .art-thumb .img-credit { display: none; }
 .art-hero { margin: 0; border-radius: 18px; overflow: hidden; position: relative; aspect-ratio: 16 / 9; max-width: 100%; background: var(--surface-2); }
@@ -527,7 +525,7 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 
 /* ---------- v6: home cards of equal height ---------- */
 .home { --home-card-h: 92px; }
-.home .day-card, .home .home-art, .home .ai-card { height: var(--home-card-h); min-height: var(--home-card-h); box-sizing: border-box; }
+.home .day-card, .home .home-art { height: var(--home-card-h); min-height: var(--home-card-h); box-sizing: border-box; }
 .home .day-card { padding: 9px 14px; align-content: center; }
 .dc-say { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
 .dc-say svg { width: 17px; height: 17px; }
@@ -535,7 +533,6 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 .home .ha-img { min-height: 0; height: 100%; }
 .home .ha-body { padding: 8px 12px; gap: 3px; align-content: center; }
 .home .ha-body .t { -webkit-line-clamp: 2; font-size: .96rem; }
-.home .ai-card { padding: 0 14px; }
 .home .today-card { padding: 16px 18px; row-gap: 7px; }
 .home .today-card h2 { font-size: 1.3rem; }
 .home .today-card .sub { font-size: .9rem; }
