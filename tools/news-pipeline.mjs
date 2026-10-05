@@ -152,12 +152,16 @@ async function gemini(system, user) {
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY },
         body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.3 } })
       });
-      if (r.ok) { MODEL = model; const j = await r.json(); return JSON.parse(j.candidates[0].content.parts[0].text); }
+      if (r.ok) {
+        MODEL = model;
+        const j = await r.json();
+        try { return JSON.parse(j.candidates[0].content.parts[0].text); } catch (e) { last = 'bad json'; continue; } // smaller models sometimes break the JSON: ask again
+      }
       last = r.status + ' ' + (await r.text()).slice(0, 160);
       if (r.status === 429 || r.status >= 500) { await sleep(8000 * (a + 1)); continue; }
       break;
     }
-    if (/^4(00|01|03)\b/.test(last)) throw new Error('gemini ' + last);
+    if (last === 'bad json' || /^4(00|01|03)\b/.test(last)) throw new Error('gemini ' + last);
     console.log(`model ${model} unavailable (${last.slice(0, 40)}), trying the next one`);
     MODELS.shift();
   }
