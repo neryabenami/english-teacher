@@ -11,7 +11,7 @@ import path from 'node:path';
 
 const OUT = path.resolve('data/news');
 const LEVEL = /^(A1|A2|B1|B2|C1|C2)$/.test(process.env.READING_LEVEL || '') ? process.env.READING_LEVEL : 'B1';
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+let MODEL = process.env.GEMINI_MODEL || '';
 const KEY = process.env.GEMINI_API_KEY || '';
 const DAILY_MAX = +(process.env.DAILY_MAX || 18);   // articles per day (free Gemini quota: 2 calls per article)
 const PER_CAT_DAY = 2;                               // keeps the feed balanced
@@ -134,7 +134,20 @@ async function pageText(url) {
 
 /* ---------- Gemini ---------- */
 let geminiCalls = 0;
+// Google retires model names over time, so the newest stable Flash model on this key is picked at run time.
+async function pickModel() {
+  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': KEY } });
+  if (!r.ok) throw new Error('gemini models ' + r.status);
+  const ok = ((await r.json()).models || [])
+    .filter((m) => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map((m) => m.name.replace(/^models\//, ''))
+    .filter((n) => /^gemini-[\d.]+-flash$/.test(n));
+  const ver = (n) => parseFloat((n.match(/gemini-([\d.]+)/) || [0, 0])[1]);
+  ok.sort((a, b) => ver(b) - ver(a) || a.length - b.length);
+  return ok[0] || 'gemini-flash-latest';
+}
 async function gemini(system, user) {
+  if (!MODEL) { MODEL = await pickModel(); console.log('model ' + MODEL); }
   for (let a = 0; a < 3; a++) {
     geminiCalls++;
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
