@@ -78,7 +78,7 @@
     v: 1, onboarded: false, created: Date.now(),
     profile: { level: 'beginner', cefr: 'A2', goal: 'all', interests: [], dailyMin: 10, accent: 'en-US', voiceName: '', theme: 'system',
       correction: 'important', autoWifi: true, reminders: false, ai: 'local', geminiKey: '', geminiModel: 'gemini-2.5-flash', autoSpeak: false },
-    items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {}, saved: {}, resume: null, daily: null, readPos: {},
+    items: {}, custom: {}, days: {}, chats: {}, reports: [], aiCache: {}, saved: {}, resume: null, daily: null, readPos: {}, opened: {}, readFeed: {}, savedWords: [],
     stats: { quizzes: 0, qRight: 0, qTotal: 0, stories: {}, articles: {}, chats: 0, msgs: 0, games: 0, bestSpeed: 0, bestStreak: 0 },
     sync: { changes: 0, last: 0 }
   });
@@ -330,59 +330,82 @@
 
   /* ---------- real articles (collected by tools/fetch-articles.mjs, served next to the app) ---------- */
   const BAND_ORDER = ['beginner', 'intermediate', 'advanced'];
+  /* Learning articles: original English lessons written from verified real news (tools/news-pipeline.mjs).
+     Each lesson is written at one CEFR level; the feed shows only the user's level, newest first, within a clean window.
+     Favourites keep a full local copy (survive the feed window and offline). */
+  const FEED_DAYS = 14;
   ET.Articles = {
     index: null,
     loading: null,
     failed: false,
     load(force) {
       if ((this.index && !force) || this.loading) return this.loading || Promise.resolve(this.index);
-      this.loading = fetch('data/articles/index.json', { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      this.loading = fetch('data/news/index.json', { cache: 'no-cache' }).then((r) => { if (r.status === 404) return { articles: [] }; if (!r.ok) throw new Error(r.status); return r.json(); })
         .then((j) => { this.index = j; this.failed = false; return j; })
         .catch(() => { this.failed = true; return null; })
         .finally(() => { this.loading = null; });
       return this.loading;
     },
-    meta(id) { return (this.index && this.index.articles.find((a) => a.id === id)) || (S.saved[id] && S.saved[id]); },
-    /* articles at the user's level; when a topic has too few, the closest level fills in (marked as `stretch`) */
-    forUser(cat, sub) {
-      const band = ET.bandOf(S.profile.cefr);
-      const all = ((this.index && this.index.articles) || []).filter((a) => (!cat || a.cat === cat) && (!sub || a.sub === sub));
-      const mine = all.filter((a) => a.level === band);
-      if (mine.length >= 4 || !cat) return mine.map((a) => ({ ...a, stretch: 0 }));
-      const bi = BAND_ORDER.indexOf(band);
-      const near = all.filter((a) => a.level !== band).sort((x, y) => Math.abs(BAND_ORDER.indexOf(x.level) - bi) - Math.abs(BAND_ORDER.indexOf(y.level) - bi));
-      return [...mine.map((a) => ({ ...a, stretch: 0 })), ...near.slice(0, 6 - mine.length).map((a) => ({ ...a, stretch: BAND_ORDER.indexOf(a.level) - bi }))];
+    all() { return (this.index && this.index.articles) || []; },
+    meta(id) { return this.all().find((a) => a.id === id) || (S.saved[id] && S.saved[id]); },
+    /* the user's level only (never mixed levels), newest first, last FEED_DAYS days */
+    forUser(cat) {
+      const cutoff = Date.now() - FEED_DAYS * DAY;
+      return this.all().filter((a) => a.english_level === S.profile.cefr && (!cat || a.category === cat) && new Date(a.first_published_in_app_at).getTime() >= cutoff)
+        .sort((x, y) => new Date(y.first_published_in_app_at) - new Date(x.first_published_in_app_at) || (y.interest_score || 0) - (x.interest_score || 0));
     },
-    recommended() {
-      const cats = new Set();
-      S.profile.interests.forEach((i) => ((D.INTERESTS.find((x) => x.id === i) || {}).read || []).forEach((c) => cats.add(c)));
-      const list = this.forUser().filter((a) => !S.stats.articles[a.id]);
-      return list.find((a) => cats.has(a.cat)) || list[0] || null;
+    levelsAvailable() { return [...new Set(this.all().map((a) => a.english_level))]; },
+    /* "new" is personal: published after the reader last looked at the feed, not opened yet, and less than 72 hours old */
+    isNew(a) {
+      const t = new Date(a.first_published_in_app_at).getTime();
+      const seen = (S.readFeed && S.readFeed.prevSeen) || 0;
+      return t > seen && !(S.opened || {})[a.id] && Date.now() < t + 72 * 36e5;
     },
+    markOpened(id) { S.opened = S.opened || {}; if (!S.opened[id]) { S.opened[id] = Date.now(); ET.save(); } },
+    /* call when the reader enters / leaves the feed */
+    feedEnter() { S.readFeed = S.readFeed || {}; if (!S.readFeed.inSession) { S.readFeed.prevSeen = S.readFeed.lastSeen || 0; S.readFeed.inSession = true; } },
+    feedLeave() { if (S.readFeed && S.readFeed.inSession) { S.readFeed.lastSeen = Date.now(); S.readFeed.inSession = false; ET.save(); } },
+    recommended() { return this.pickDaily(dayKey()); },
     /* the article of the day: at the user's level, unread, from their interests when possible, with a photo when possible */
     pickDaily(key) {
       const cats = new Set();
       S.profile.interests.forEach((i) => ((D.INTERESTS.find((x) => x.id === i) || {}).read || []).forEach((c) => cats.add(c)));
       const all = this.forUser().filter((a) => !S.stats.articles[a.id]);
-      const tiers = [all.filter((a) => a.image && cats.has(a.cat)), all.filter((a) => a.image), all];
+      const tiers = [all.filter((a) => a.image && cats.has(a.category)), all.filter((a) => a.image), all];
       const pool = tiers.find((t) => t.length) || [];
       return pool.length ? pool[hash(key + 'a') % pool.length] : null;
     },
     async body(id) {
-      if (S.saved[id]) return S.saved[id];
-      const r = await fetch(`data/articles/${encodeURIComponent(id)}.json`);
+      if (S.saved[id] && S.saved[id].paragraphs) return S.saved[id];
+      const r = await fetch(`data/news/${encodeURIComponent(id)}.json`);
       if (!r.ok) throw new Error(r.status);
       return r.json();
     },
     isSaved(id) { return !!S.saved[id]; },
     save(body) { S.saved[body.id] = body; ET.save(true); },
     unsave(id) { delete S.saved[id]; ET.save(true); },
-    /* "download new content on Wi-Fi": warms the offline cache with a few articles at the user's level */
+    /* "download new content on Wi-Fi": warms the offline cache with a few lessons at the user's level */
     prefetch(n = 6) {
       const list = this.forUser().slice(0, n);
-      list.forEach((a) => fetch(`data/articles/${encodeURIComponent(a.id)}.json`).catch(() => {}));
+      list.forEach((a) => fetch(`data/news/${encodeURIComponent(a.id)}.json`).catch(() => {}));
       return list.length;
     }
+  };
+
+  /* "My words" from reading: the meaning saved is the one shown in context (not a general dictionary entry) */
+  ET.SavedWords = {
+    list() { return (S.savedWords || []).slice().sort((a, b) => b.saved_at - a.saved_at); },
+    has(word, sentence) { return (S.savedWords || []).some((w) => w.normalized === word.toLowerCase() && w.context_sentence === sentence); },
+    add(w) {
+      S.savedWords = S.savedWords || [];
+      const normalized = (w.phrase || w.word).toLowerCase();
+      // the same word in the same sense is saved once; a clearly different meaning may be saved again
+      if (S.savedWords.some((x) => x.normalized === normalized && x.hebrew_meaning === w.hebrew_meaning)) return false;
+      S.savedWords.push({ ...w, normalized, saved_at: Date.now() });
+      ET.save(true);
+      return true;
+    },
+    remove(i) { const l = this.list(); const item = l[i]; S.savedWords = (S.savedWords || []).filter((x) => x !== item); ET.save(true); }
   };
 
   /* ---------- today's picks: word, slang and article change every day and stay fixed until midnight ---------- */

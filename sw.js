@@ -1,5 +1,5 @@
 /* Service worker: keeps the app, the dictionary and opened articles on the device (Local First). */
-const VERSION = 'et-v3.3.0';
+const VERSION = 'et-v4.0.0';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js', 'data/dict-en-he.json', 'data/vocab.json',
@@ -44,12 +44,12 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return;
 
   // Article list: network first (fresh articles), cached copy when offline.
-  if (url.pathname.endsWith('/data/articles/index.json')) {
+  if (/\/data\/(articles|news)\/index\.json$/.test(url.pathname)) {
     e.respondWith(caches.open(ARTICLES).then((c) => fetch(req).then((res) => { if (res.ok) c.put(url.pathname, res.clone()); return res; }).catch(() => c.match(url.pathname))));
     return;
   }
   // Article bodies: once opened or prefetched, they stay readable offline. Keep the newest 80.
-  if (url.pathname.includes('/data/articles/')) {
+  if (/\/data\/(articles|news)\//.test(url.pathname)) {
     e.respondWith(caches.open(ARTICLES).then((c) => c.match(url.pathname).then((hit) => hit || fetch(req).then(async (res) => {
       if (res.ok) {
         await c.put(url.pathname, res.clone());

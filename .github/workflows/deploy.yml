@@ -31,11 +31,12 @@ jobs:
         with:
           node-version: 20
 
-      - name: Fetch new articles
+      - name: Write today's learning articles from real news
         if: github.event_name != 'push'
-        run: node tools/fetch-articles.mjs
+        run: node tools/news-pipeline.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          READING_LEVEL: ${{ vars.READING_LEVEL }}
 
       - name: Add today's new words
         if: github.event_name != 'push'
