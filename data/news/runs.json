@@ -1,0 +1,17 @@
+[
+ {
+  "run_id": "2026-10-05T16:12:10.018Z",
+  "level": "B1",
+  "sources_checked": 43,
+  "sources_failed": [],
+  "candidates": 1071,
+  "rejected": 0,
+  "duplicates": 96,
+  "verified": 0,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [],
+  "gemini_calls": 0,
+  "end": "2026-10-05T16:12:31.309Z"
+ }
+]
