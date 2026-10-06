@@ -59,6 +59,10 @@ jobs:
             for i in 1 2 3; do git pull --rebase -X theirs origin main && git push && break; sleep 5; done
           fi
 
+      # a run that waited in the queue must not publish an older copy: always deploy the newest commit (code + words + articles)
+      - name: Use the newest version of the repository
+        run: git pull --ff-only origin main || true
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
