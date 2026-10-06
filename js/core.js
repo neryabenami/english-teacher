@@ -20,6 +20,15 @@
   const BANDS = { beginner: { he: 'מתחילים', cefr: 'A2' }, intermediate: { he: 'בינוני', cefr: 'B1' }, advanced: { he: 'מתקדמים', cefr: 'C1' } };
   const bandOf = (cefr) => (LEVELS.indexOf(cefr) <= 1 ? 'beginner' : LEVELS.indexOf(cefr) <= 3 ? 'intermediate' : 'advanced');
   const lvlIdx = (l) => Math.max(0, LEVELS.indexOf(l));
+  /* CEFR levels as shown to the user: short Hebrew name + what the level means */
+  const CEFR_INFO = {
+    A1: { he: 'מתחילים', emo: '🌱', desc: 'מבינים ומשתמשים במילים ובמשפטים פשוטים מאוד, כמו להציג את עצמך ולשאול שאלות בסיסיות.' },
+    A2: { he: 'בסיסי', emo: '🌿', desc: 'מבינים משפטים נפוצים על נושאים יומיומיים, כמו קניות, משפחה ועבודה, ומנהלים שיחה פשוטה.' },
+    B1: { he: 'בינוני', emo: '🪴', desc: 'מבינים את הנקודות העיקריות בטקסט ברור על נושא מוכר, מסתדרים בטיול בחו"ל ומספרים על חוויות.' },
+    B2: { he: 'בינוני-גבוה', emo: '🌳', desc: 'מבינים כתבות וטקסטים מורכבים, ומדברים בשטף סביר עם דוברי אנגלית.' },
+    C1: { he: 'מתקדם', emo: '🏔️', desc: 'מבינים טקסטים ארוכים וקשים, ומתבטאים בשטף ובגמישות בעבודה ובלימודים.' },
+    C2: { he: 'שליטה מלאה', emo: '🏆', desc: 'מבינים כמעט כל דבר שקוראים או שומעים, ומתבטאים בדיוק ובדקויות כמו דובר שפת אם.' }
+  };
   const POS = { n: 'שם עצם', v: 'פועל', adj: 'שם תואר', adv: 'תואר הפועל', phr: 'צירוף' };
   const KINDS = {
     slang: { he: 'סלנג', icon: '🔥' }, spoken: { he: 'Spoken English', icon: '🗣️' }, phrasal: { he: 'Phrasal Verbs', icon: '🧩' },
@@ -32,7 +41,7 @@
   ];
   const PATH = ['נחשפתי', 'הבנתי', 'שמעתי', 'ראיתי בהקשר', 'השתמשתי', 'חזרתי', 'זכרתי'];
   const PATH_BIT = { exposed: 0, understood: 1, heard: 2, context: 3, used: 4, reviewed: 5, remembered: 6 };
-  Object.assign(ET, { LEVELS, BANDS, bandOf, lvlIdx, POS, KINDS, SLANG_CATS, PATH, PATH_BIT });
+  Object.assign(ET, { LEVELS, BANDS, CEFR_INFO, bandOf, lvlIdx, POS, KINDS, SLANG_CATS, PATH, PATH_BIT });
 
   /* ---------- catalog ---------- */
   const ITEMS = [];

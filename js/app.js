@@ -65,7 +65,7 @@
   let toastT;
   const toast = (msg) => { const el = $('#toast'); el.textContent = msg; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2400); };
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  const bandHe = (cefr) => ET.BANDS[ET.bandOf(cefr)].he;
+  const bandHe = (cefr) => (ET.CEFR_INFO[cefr] || ET.CEFR_INFO.A2).he;
   const lvlBadge = (l) => `<span class="badge lvl">${l} · ${bandHe(l)}</span>`;
   const catOf = (id) => D.CATEGORIES.find((c) => c.id === id);
   const STATUS = { known: ['יודע', 'good'], hard: ['קשה', 'warn'], learning: ['בלמידה', 'bad'], new: ['חדש', ''], saved: ['שמור', 'sun'] };
@@ -148,7 +148,7 @@
         <div class="foot"><button class="btn block" data-act="onb-next">בואו נתחיל</button><p class="small muted" style="text-align:center">בלי הרשמה. הכול נשמר במכשיר שלך.</p></div></div>`;
     }
     if (o.step === 'level') {
-      const opts = [['beginner', '🌱', 'מתחילים', 'מכיר מילים ומשפטים בסיסיים'], ['intermediate', '🌿', 'בינוני', 'מסתדר בשיחה פשוטה'], ['advanced', '🌳', 'מתקדמים', 'מדבר בחופשיות, רוצה לשפר'], ['unknown', '🤔', 'אני לא יודע', 'נעשה מבחן רמה קצר של 10 שאלות']];
+      const opts = [...ET.LEVELS.map((l) => [l, ET.CEFR_INFO[l].emo, `${l} · ${ET.CEFR_INFO[l].he}`, ET.CEFR_INFO[l].desc]), ['unknown', '🤔', 'אני לא יודע', 'נעשה מבחן רמה קצר של 10 שאלות']];
       return `<div class="onb">${steps}<div class="row">${back}</div><div class="grow"><h1>מה רמת האנגלית שלך?</h1>
         <div class="options">${opts.map(([id, e, t, s]) => `<button class="opt ${o.level === id ? 'on' : ''}" data-act="onb-level" data-arg="${id}"><span class="emo">${e}</span><span class="grow"><b style="display:block">${t}</b><span class="small muted">${s}</span></span></button>`).join('')}</div></div></div>`;
     }
@@ -175,8 +175,8 @@
     if (t.i >= total) {
       const cefr = t.right <= 3 ? 'A1' : t.right <= 5 ? 'A2' : t.right <= 7 ? 'B1' : t.right <= 8 ? 'B2' : 'C1';
       t.result = cefr;
-      return `<div class="${mode === 'onb' ? 'onb' : 'screen no-tabs'}"><div class="result grow"><div class="big-emoji">🎯</div><h1>הרמה שלך: ${bandHe(cefr)}</h1>
-        <p class="muted">ענית נכון על ${t.right} מתוך ${total} שאלות. ברמת CEFR זה בערך <b>${cefr}</b>.</p></div>
+      return `<div class="${mode === 'onb' ? 'onb' : 'screen no-tabs'}"><div class="result grow"><div class="big-emoji">🎯</div><h1>הרמה שלך: ${cefr} · ${bandHe(cefr)}</h1>
+        <p class="muted">ענית נכון על ${t.right} מתוך ${total} שאלות.</p><p class="small muted">${ET.CEFR_INFO[cefr].desc}</p></div>
         <button class="btn block" data-act="test-done">המשך</button></div>`;
     }
     const q = D.PLACEMENT[t.i];
@@ -685,7 +685,8 @@
     return `<div class="screen">${topbar('פרופיל')}
       <div class="card stack level-card">
         <div class="row between"><h2>רמת האנגלית שלי</h2><span class="badge lvl">${p.cefr}</span></div>
-        ${seg('level', [['beginner', 'מתחילים'], ['intermediate', 'בינוני'], ['advanced', 'מתקדמים']])}
+        <div class="seg full cefr-seg" role="group" aria-label="רמת האנגלית">${ET.LEVELS.map((l) => `<button class="${p.cefr === l ? 'on' : ''}" data-act="set-cefr" data-arg="${l}" lang="en">${l}</button>`).join('')}</div>
+        <div class="cefr-info"><b>${p.cefr} · ${bandHe(p.cefr)}</b><p>${ET.CEFR_INFO[p.cefr] ? ET.CEFR_INFO[p.cefr].desc : ''}</p></div>
         <p class="small muted">הרמה קובעת את המילים, הביטויים, הכתבות והמבחנים בכל האפליקציה.</p>
         <button class="link small" data-act="go" data-arg="placement" style="justify-self:start">לא בטוחים? עשו מבחן רמה קצר</button></div>
       ${levelSyncCard()}
@@ -1016,6 +1017,7 @@
       if (k === 'accent') { S.profile.voiceName = ''; say('Hello! How are you today?'); }
       ET.save(); render();
     },
+    'set-cefr': (a) => { if (!ET.LEVELS.includes(a) || S.profile.cefr === a) return; S.profile.cefr = a; S.profile.level = ET.bandOf(a); ET.save(); render(); syncLevel(); },
     'toggle-interest': (a) => { const l = S.profile.interests; const i = l.indexOf(a); if (i >= 0) l.splice(i, 1); else l.push(a); ET.save(); render(); },
     'sync-open': () => { RT.syncOpen = true; render(); },
     'sync-connect': async () => {
@@ -1092,7 +1094,7 @@
     'onb-back': () => { const o = RT.onb; const i = ONB_STEPS.indexOf(o.step); o.step = ONB_STEPS[Math.max(0, i - 1)]; render(); },
     'onb-level': (a) => {
       const o = RT.onb; o.level = a;
-      if (a === 'unknown') { RT.test = null; o.step = 'test'; } else { S.profile.level = a; S.profile.cefr = ET.BANDS[a].cefr; o.step = 'goal'; }
+      if (a === 'unknown') { RT.test = null; o.step = 'test'; } else { S.profile.cefr = a; S.profile.level = ET.bandOf(a); o.step = 'goal'; }
       render();
     },
     'onb-goal': (a) => { RT.onb.goal = a; render(); },
@@ -1107,7 +1109,7 @@
     'test-exit': () => { const mode = RT.test && RT.test.mode; RT.test = null; if (mode === 'onb') { RT.onb.step = 'level'; render(); } else go('profile'); },
     'test-done': () => {
       const t = RT.test; S.profile.cefr = t.result; S.profile.level = ET.bandOf(t.result); ET.save(); RT.test = null; syncLevel();
-      if (!S.onboarded) { RT.onb.step = 'goal'; render(); } else { toast(`הרמה עודכנה: ${bandHe(S.profile.cefr)}`); go('profile'); }
+      if (!S.onboarded) { RT.onb.step = 'goal'; render(); } else { toast(`הרמה עודכנה: ${S.profile.cefr} · ${bandHe(S.profile.cefr)}`); go('profile'); }
     },
     export: () => {
       const blob = new Blob([ET.exportData()], { type: 'application/json' });
