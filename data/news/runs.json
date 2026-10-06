@@ -1,5 +1,35 @@
 [
  {
+  "run_id": "2026-10-06T06:26:06.503Z",
+  "level": "C1",
+  "sources_checked": 27,
+  "sources_failed": [],
+  "candidates": 608,
+  "rejected": 11,
+  "duplicates": 69,
+  "verified": 13,
+  "created": 2,
+  "published_by_cat": {
+   "business": 1,
+   "tech": 1
+  },
+  "errors": [
+   "Trump allows cheaper, dyed diesel on highways to blunt histo: length 338; stray letters in the Hebrew text",
+   "Gears of War: E-Day review – an alien invasion shouldn’t be : length 422",
+   "Northern Ireland make huge strides despite Georgia frustrati: length 383",
+   "Reverse-engineered games: All the news on video game decomps: length 361",
+   "Ten NHS trusts referred over monitoring consent: length 426",
+   "Trump approves firing-squad execution of Fort Hood shooter, : too close to the source wording; length 413",
+   "Australian consumer confidence plunges to worst level since : too close to the source wording",
+   "Who am I? Guess Premier League star No 78: length 332",
+   "61 Years Later, Clint Eastwood's 132-Minute Legendary Wester: length 808",
+   "Fine scenery, historic towns and great pubs: a weekend walk : too close to the source wording; length 415",
+   "'Life-saving' charity for mums faces closing support: length 407"
+  ],
+  "gemini_calls": 53,
+  "end": "2026-10-06T06:49:42.715Z"
+ },
+ {
   "run_id": "2026-10-06T00:05:54.910Z",
   "level": "C1",
   "sources_checked": 27,
