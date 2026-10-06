@@ -53,7 +53,7 @@ const TOPIC_WORDS = {
 };
 
 /* items that are not news stories: opinion columns ("… | Author"), reader call-outs, recipes, quizzes, deals, live blogs */
-const NOT_NEWS = /\s\|\s|^(send us|tell us|share your|post your|readers'|your questions)|\b(recipe|recipes|crossword|quiz|as it happened|live updates|podcast|newsletter|deal of the day|best deals|on sale|discount code|horoscope)\b|\b\d+ (everyday |best |great )?(items|things|products|gifts|buys|picks)\b/i;
+const NOT_NEWS = /\s\|\s|^(send us|tell us|share your|post your|readers'|your questions)|\b(recipe|recipes|crossword|quiz|as it happened|live updates|podcast|newsletter|deal of the day|best deals|on sale|discount code|horoscope|review|a job that changed me)\b|\b\d+ (everyday |best |great )?(items|things|products|gifts|buys|picks)\b/i;
 
 /* ---------- helpers ---------- */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -191,7 +191,7 @@ async function writeArticle(cluster, material) {
   const system = 'You turn verified news reporting into ORIGINAL English reading lessons for Hebrew-speaking learners. You never invent events, facts, numbers, dates, quotes, people, organizations, sources or URLs. You do not copy sentences or distinctive phrasing from the sources; you write a new text from the facts.';
   const user = `Reader level: ${LEVEL}. ${LEVEL_GUIDE[LEVEL]}
 ${LENGTH_RULE}
-Category must be one of: ${CATS.join(', ')}.
+Category must be one of: ${CATS.join(', ')}, or "other" when the story does not clearly belong to one of them (film, TV, music, celebrities, food, fashion, cars, personal essays, reviews). "other" stories are not published.
 Sources (the only allowed facts):
 ${material}
 
@@ -245,7 +245,7 @@ function localChecks(a, material) {
   let shared = 0; for (const x of as) if (ss.has(x)) shared++;
   if (as.size && shared / as.size > 0.04) problems.push('too close to the source wording');
   const n = words(a.article);
-  if (n < SPEC.min || n > SPEC.max + 80) problems.push('length ' + n);
+  if (n < SPEC.min * 0.9 || n > SPEC.max + 80) problems.push('length ' + n);
   if (!a.display_title || a.display_title.split(/\s+/).length > 8) problems.push('title');
   // Hebrew text may hold only Hebrew, Latin letters, digits and punctuation (smaller models sometimes slip in Thai or Sinhala letters).
   if (FOREIGN.test(a.display_title_he || '') || FOREIGN.test(a.short_summary || '')) problems.push('stray letters in the Hebrew text');
