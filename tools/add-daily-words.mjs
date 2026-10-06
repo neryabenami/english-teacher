@@ -27,7 +27,8 @@ const TOPICS = {
   feelings: 'Feelings & Opinions: positive and negative emotions, moods, fear, stress and excitement, love and affection, preferences, giving opinions, agreeing and disagreeing, confidence and insecurity, reactions',
   conversation: 'Conversation & Communication: starting a conversation, common questions, responses, requests, suggestions, agreeing and disagreeing, apologizing, thanking, asking for clarification, common spoken English'
 };
-const PHRASE_TOPICS = new Set(['feelings', 'conversation']); // these may also teach short spoken phrases (up to 2 a day)
+const PHRASE_TOPICS = new Set(['feelings', 'conversation']); // these may also teach short spoken phrases
+const PHRASE_MAX = { feelings: 2, conversation: 5 };            // conversation is mostly phrases: few single words fit it at higher levels
 const OLD_TOPIC = { home: 'daily', studies: 'daily', entertainment: 'daily', transport: 'travel', social: 'tech', business: 'work', airport: 'travel', hotel: 'travel',
   restaurant: 'food', family: 'people', relationships: 'people', sports: 'health', finance: 'money', shopping: 'money' };
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -88,10 +89,10 @@ ${open.map((t) => `${t}: ${TOPICS[t]} — pick ${needOf(t)}`).join('\n')}
 Word list (choose ONLY from it):
 ${pool.join(', ')}
 
-For each topic pick the requested number of words that clearly belong to the topic. Use base dictionary forms only (no plurals, past tenses or -ing forms). Skip names, places, brands, abbreviations, vulgar or offensive words, and words that are not useful for learners. A word may be used once only. If not enough words fit a topic, return fewer.
+For each topic pick the requested number of words that a learner would clearly connect with that topic in everyday life. Be strict: if a word only loosely fits, skip it (e.g. never put "hospice" or "lager" under Travel). Use base dictionary forms only (no plurals, past tenses or -ing forms). Skip names, places, brands, abbreviations, vulgar or offensive words, and words that are not useful for learners. A word may be used once only. If not enough words fit a topic, return fewer.
 Mix nouns, verbs and adjectives that are used in the topic's real-life context (e.g. Travel: flight, luggage, delay, book, arrive, crowded).
-Only for ${[...PHRASE_TOPICS].join(' and ')}: up to 2 of the items may instead be short, very common spoken English phrases (2-5 words, e.g. "never mind", "I see what you mean") that are not from the list; mark them "phrase": true.
-For each item: "he" = the most common Hebrew meaning (1-3 words, natural Hebrew), "pos" = noun|verb|adjective|adverb|phrase|other, "ex" = a natural example sentence at ${LEVEL} level that contains it, "exHe" = its Hebrew translation.
+Only for feelings (up to 2 items) and conversation (up to 5 items): items may instead be short, very common spoken English phrases (2-5 words, e.g. "never mind", "I see what you mean") that are not from the list; mark them "phrase": true.
+For each item: "he" = the most common Hebrew meaning (1-3 words, natural Hebrew with correct spelling), "pos" = noun|verb|adjective|adverb|phrase|other, "ex" = a natural example sentence at ${LEVEL} level that contains it, "exHe" = its Hebrew translation.
 Return ONLY JSON: {"topics": {"<topic id>": [{"word": "...", "phrase": false, "he": "...", "pos": "...", "ex": "...", "exHe": "..."}]}}`);
     const used = new Set();
     for (const [topic, list] of Object.entries((res && res.topics) || {})) {
@@ -99,7 +100,7 @@ Return ONLY JSON: {"topics": {"<topic id>": [{"word": "...", "phrase": false, "h
       for (const x of list || []) {
         if (needOf(topic) <= 0) break;
         const w = String(x.word || '').toLowerCase().trim();
-        const phrase = PHRASE_TOPICS.has(topic) && x.phrase && /^[a-z']+( [a-z']+){1,4}$/.test(w) && phrasesToday(topic) < 2;
+        const phrase = PHRASE_TOPICS.has(topic) && x.phrase && /^[a-z']+( [a-z']+){1,4}$/.test(w) && phrasesToday(topic) < PHRASE_MAX[topic];
         if ((!phrase && !allowed.has(w)) || used.has(w) || have.has(w) || blocked(w)) continue; // only real words from the given list
         if (!goodHe(x.he) || !goodHe(x.exHe) || blocked(x.ex)) continue;
         if (!new RegExp(`\\b${w}`, 'i').test(x.ex || '')) continue;           // the example must contain the word
@@ -124,10 +125,11 @@ function wordsFromReserve() {
     }
   }
 }
+let geminiOk = false;
 if (hasGemini()) {
-  try { await wordsFromGemini(); } catch (e) { console.warn('gemini words failed:', e.message); }
+  try { await wordsFromGemini(); geminiOk = true; } catch (e) { console.warn('gemini words failed:', e.message); }
 }
-wordsFromReserve(); // fills what Gemini could not (same level only)
+if (!geminiOk) wordsFromReserve(); // only when Gemini is not available: the old reserve places words too loosely (e.g. "lager" under hotels)
 for (const t of Object.keys(TOPICS)) if (needOf(t) > 0) console.warn(`topic ${t}: ${needOf(t)} missing today at ${LEVEL}`);
 
 /* ---------- 5 American slang terms, any level ---------- */
