@@ -566,3 +566,13 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 .cefr-info { background: var(--accent-soft); border-radius: var(--r-sm); padding: 10px 12px; }
 .cefr-info b { display: block; margin-bottom: 2px; }
 .cefr-info p { margin: 0; font-size: .9rem; line-height: 1.5; }
+
+/* v10: saved words as cards */
+.sw-list { display: grid; gap: 10px; }
+.sw-card { display: grid; gap: 4px; padding: 12px 14px; }
+.sw-top { display: flex; align-items: center; gap: 8px; }
+.sw-term { font-size: 1.3rem; font-weight: 800; }
+.sw-he { font-size: 1.05rem; font-weight: 600; }
+.sw-meta { font-size: .8rem; color: var(--muted); }
+.sw-card .sw-sent { margin: 6px 0 0; padding-top: 8px; border-top: 1px solid var(--line, rgba(0,0,0,.08)); font-size: .82rem; line-height: 1.5; color: var(--muted); text-align: left; }
+.sw-link { justify-self: start; }

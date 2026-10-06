@@ -589,13 +589,22 @@
   /* "My words" saved while reading: the meaning in context, the sentence, and a way back to the article */
   SCREENS.savedwords = () => {
     const list = ET.SavedWords.list();
+    const card = (w, i) => {
+      const term = w.phrase || w.word;
+      const base = w.lemma && w.lemma.toLowerCase() !== term.toLowerCase() ? w.lemma : '';
+      const pos = w.part_of_speech && POS_HE[w.part_of_speech];
+      const art = w.article_id && ET.Articles.meta(w.article_id);
+      return `<article class="card sw-card">
+        <div class="sw-top"><span class="sw-term" lang="en" dir="ltr">${esc(term)}</span>${speakBtn(term, '', '', 'sm')}<span class="grow"></span>
+          <button class="icon-btn flat" data-act="del-savedword" data-arg="${i}" aria-label="הסרה מהמילים שלי">${ic('trash')}</button></div>
+        <div class="sw-he">${w.hebrew_meaning ? esc(w.hebrew_meaning) : '<span class="muted">אין עדיין פירוש</span>'}</div>
+        ${pos || base ? `<div class="sw-meta">${pos ? esc(pos) : ''}${pos && base ? ' · ' : ''}${base ? `מתוך <span lang="en">${esc(base)}</span>` : ''}</div>` : ''}
+        ${w.context_sentence ? `<p class="sw-sent" dir="ltr" lang="en">${highlight(w.context_sentence, w.word)}</p>` : ''}
+        ${art ? `<button class="link small sw-link" data-act="go" data-arg="article/${esc(w.article_id)}">לכתבה ←</button>` : ''}
+      </article>`;
+    };
     return `<div class="screen">${topbar('המילים שלי', 'reading')}
-      ${list.length ? `<div class="list">${list.map((w, i) => `<div class="li sw-row"><span class="main">
-          <span class="t en" style="display:block">${esc(w.phrase || w.word)}${w.lemma && w.lemma.toLowerCase() !== (w.phrase || w.word).toLowerCase() ? ` <span class="muted small">(${esc(w.lemma)})</span>` : ''}</span>
-          <span class="s" style="display:block;white-space:normal">${esc(w.hebrew_meaning)}${w.part_of_speech ? ` · ${esc(POS_HE[w.part_of_speech] || w.part_of_speech)}` : ''}</span>
-          ${w.context_sentence ? `<span class="sw-sent" dir="ltr">${highlight(w.context_sentence, w.word)}</span>` : ''}
-          ${w.article_id && ET.Articles.meta(w.article_id) ? `<button class="link small" data-act="go" data-arg="article/${esc(w.article_id)}">לכתבה ←</button>` : ''}</span>
-          <span class="end">${speakBtn(w.phrase || w.word, '', '', 'sm')}<button class="icon-btn flat" data-act="del-savedword" data-arg="${i}" aria-label="הסרה מהמילים שלי">${ic('trash')}</button></span></div>`).join('')}</div>`
+      ${list.length ? `<div class="sw-list">${list.map(card).join('')}</div>`
         : '<div class="card empty"><div class="emo">📚</div><h2>עוד לא שמרת מילים</h2><p>בזמן קריאה, לחצו על מילה ואז על "＋ שמור מילה". המילה תישמר כאן עם הפירוש שלה במשפט.</p></div>'}</div>`;
   };
 
