@@ -280,7 +280,7 @@
     if (sec === 'topics') {
       return `<div class="screen">${topbar('מילים לפי נושאים', 'words')}
         <div class="list"><button class="li" data-act="go" data-arg="words/topic/favorites"><span class="ico">⭐</span><span class="main"><span class="t">מועדפים</span></span>${ic('chev', 'chev')}</button></div>
-        <div class="list">${D.CATEGORIES.map((c) => `<button class="li" data-act="go" data-arg="words/topic/${c.id}"><span class="ico">${c.icon}</span><span class="main"><span class="t">${c.he}</span></span>${D.CATEGORIES && ET.wordsOf(c.id).some(ET.isNewToday) ? '<span class="badge new">חדש</span>' : ''}${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
+        <div class="list">${D.CATEGORIES.map((c) => `<button class="li" data-act="go" data-arg="words/topic/${c.id}"><span class="ico">${c.icon}</span><span class="main"><span class="t">${c.he}</span></span>${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
     }
     if (sec === 'topic') {
       const fav = arg === 'favorites';
