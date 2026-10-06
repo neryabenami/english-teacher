@@ -576,3 +576,16 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 .sw-meta { font-size: .8rem; color: var(--muted); }
 .sw-card .sw-sent { margin: 6px 0 0; padding-top: 8px; border-top: 1px solid var(--line, rgba(0,0,0,.08)); font-size: .82rem; line-height: 1.5; color: var(--muted); text-align: left; }
 .sw-link { justify-self: start; }
+
+/* v11: home fills the screen: today's learning a bit bigger, then three equal cards */
+.screen.home { min-height: 100dvh; box-sizing: border-box; gap: 12px; }
+.home-cards { flex: 1; display: grid; grid-template-rows: 1.35fr 1fr 1fr 1fr; gap: 10px; min-height: 440px; }
+.home-cards > * { height: auto !important; min-height: 0 !important; }
+.home .today-card { display: grid; align-content: center; gap: 6px; text-align: start; width: 100%; padding: 16px 18px; overflow: hidden; }
+.home .today-card .tc-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; }
+.home .today-card .sub { font-size: .92rem; opacity: .92; }
+.home .today-card .tc-go { display: inline-flex; align-items: center; gap: 4px; justify-self: start; margin-top: 4px; padding: 8px 14px; border-radius: 999px; background: var(--accent-ink); color: var(--accent); font-weight: 700; font-size: .88rem; }
+.home .today-card .tc-go .chev { width: 16px; height: 16px; }
+.home .day-card { align-content: center; }
+.home .home-art { grid-template-columns: 38% 1fr; }
+.home .empty-art { grid-template-columns: 1fr; }

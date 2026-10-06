@@ -232,30 +232,27 @@
     const A = ET.Articles;
     if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'home') render(); });
     const d = ET.daily();
-    const t = ET.today();
-    const size = ET.sessionSize();
-    const done = Math.min(size, t.learned + t.reviewed);
-    const due = ET.dueIds().length;
-    const res = resumeInfo();
-    const finished = done >= size && !res;
     const h = new Date().getHours();
     const greet = h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב';
-    const sub = finished ? 'כל הכבוד! השלמת את היעד של היום 🎉' : due ? `${due} מילים לחזרה · כ־${Math.max(1, Math.round(due / 2))} דקות` : `${size} מילים חדשות · כ־${S.profile.dailyMin} דקות`;
+    // today's learning = the new words added today in all topics (at the user's level)
+    const fresh = D.CATEGORIES.reduce((n, c) => n + ET.wordsOf(c.id).filter((w) => ET.isNewToday(w) && !ET.isKnown(w.id)).length, 0);
     const art = d.article && A.meta(d.article);
     return `<div class="screen home">
-      <div class="hello"><div><p class="muted small">${greet} 👋</p><h1>${res ? 'ממשיכים מאיפה שעצרת' : 'מוכנים ללמוד היום?'}</h1></div>
+      <div class="hello"><div><p class="muted small">${greet} 👋</p><h1>מוכנים ללמוד היום?</h1></div>
         <div class="streak" aria-label="${ET.streak()} ימים ברצף">${icFill('flame')}<span class="tnum">${ET.streak()}</span></div></div>
       ${RT.online ? '' : '<div class="note">אין חיבור לאינטרנט. הלימוד ממשיך לעבוד כרגיל וההתקדמות נשמרת במכשיר.</div>'}
-      <section class="today-card">
-        <div class="cards-art" aria-hidden="true"><span></span><span></span><span>Aa</span></div>
-        <h2>הלימוד של היום</h2>
-        <p class="sub">${sub}</p>
-        <div class="prog"><div class="pbar"><i style="width:${(done / size) * 100}%"></i></div><span class="tnum">${done}/${size}</span></div>
-        <button class="btn" data-act="go" data-arg="${res ? res.path : 'session/daily'}">${ic('play')} ${res ? 'המשך ללמוד' : finished ? 'עוד סבב' : 'התחל ללמוד'}</button>
-      </section>
-      <div class="day-rows">${dayCard(ET.item(d.slang), 'סלנג היום', 'pink', 'bubble')}${dayCard(ET.item(d.word), 'מילת היום', 'yellow', 'bulb')}</div>
-      ${art ? `<section class="section"><div class="section-head"><h2>קריאה מומלצת</h2><button class="link" data-act="go" data-arg="reading">לכל הכתבות</button></div>
-        <button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage({ ...art, cat: art.category }, 'ha-img')}<span class="ha-body"><span class="eye">${readCat(art.category).he} · ${esc([...new Set(art.sources.map((x) => x.name))].slice(0, 2).join(', '))}</span><span class="t" lang="en" dir="ltr">${esc(art.display_title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.reading_time} דק׳ קריאה</span><span class="badge">${esc(art.english_level)}</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button></section>` : ''}
+      <div class="home-cards">
+        <button class="today-card" data-act="go" data-arg="words/topics">
+          <span class="cards-art" aria-hidden="true"><span></span><span></span><span>Aa</span></span>
+          <span class="tc-title">הלימוד של היום</span>
+          <span class="sub">${fresh ? `${fresh} מילים חדשות היום, בכל הנושאים` : 'מילים לפי נושאים, ברמה שלך'}</span>
+          <span class="tc-go">למילים לפי נושאים ${ic('chev', 'chev')}</span>
+        </button>
+        ${dayCard(ET.item(d.word), 'מילת היום', 'yellow', 'bulb')}
+        ${dayCard(ET.item(d.slang), 'סלנג היום', 'pink', 'bubble')}
+        ${art ? `<button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage({ ...art, cat: art.category }, 'ha-img')}<span class="ha-body"><span class="eye">קריאה מומלצת · ${readCat(art.category).he}</span><span class="t" lang="en" dir="ltr">${esc(art.display_title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.reading_time} דק׳ קריאה</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button>`
+          : `<button class="card home-art empty-art" data-act="go" data-arg="reading"><span class="ha-body"><span class="eye">קריאה מומלצת</span><span class="t">כתבות ברמה שלך יופיעו כאן</span></span></button>`}
+      </div>
     </div>`;
   };
 
@@ -704,18 +701,8 @@
         <p class="small muted">הרמה קובעת את המילים, הביטויים, הכתבות והמבחנים בכל האפליקציה.</p>
         <button class="link small" data-act="go" data-arg="placement" style="justify-self:start">לא בטוחים? עשו מבחן רמה קצר</button></div>
       ${levelSyncCard()}
-      <div class="grid2">${stat(ET.streak() + ' 🔥', 'ימים ברצף')}${stat(ET.myList('all').length, 'מילים שלמדתי')}</div>
-      <button class="card row-card" data-act="go" data-arg="stats"><span class="thumb" style="background:var(--accent-soft)">📊</span><span class="grow"><b>כל הסטטיסטיקות</b></span>${ic('chev', 'chev')}</button>
-
       <section class="section"><h2>לימוד</h2><div class="card stack">
         <div class="field"><label>יעד לימוד יומי (דקות)</label>${seg('dailyMin', [[5, '5'], [10, '10'], [15, '15'], [20, '20'], [30, '30']])}</div>
-        <div class="field"><label>מטרת הלימוד</label><div class="chips wrap">${D.GOALS.map((g) => `<button class="chip ${p.goal === g.id ? 'on' : ''}" data-act="set" data-arg="goal:${g.id}">${g.he}</button>`).join('')}</div></div>
-        <div class="field"><label>תחומי עניין</label><div class="chips wrap">${D.INTERESTS.map((g) => `<button class="chip ${p.interests.includes(g.id) ? 'on' : ''}" data-act="toggle-interest" data-arg="${g.id}">${g.he}</button>`).join('')}</div></div>
-        <div class="field"><label>מבטא להגייה</label>${seg('accent', [['en-US', 'אמריקאי 🇺🇸'], ['en-GB', 'בריטי 🇬🇧']])}<button class="link small" data-act="say" data-arg="Hello! How are you today?" style="justify-self:start">השמע דוגמה</button></div>
-        <div class="field"><label for="voice-sel">קול ההקראה</label>
-          <select class="input" id="voice-sel" data-change="voice">${voiceOptions()}</select>
-          <button class="link small" data-act="say" data-arg="Hi! It's nice to meet you. Let's learn some English together." style="justify-self:start">השמע את הקול</button>
-          <p class="note">לקול הכי טבעי באייפון: הגדרות ← נגישות ← Spoken Content ← Voices ← English, ומורידים בחינם קול כמו Ava (Premium) או Zoe (Premium). אחרי ההורדה בוחרים אותו כאן.</p></div>
       </div></section>
 
       <section class="section"><h2>תצוגה</h2><div class="card stack"><div class="field"><label>ערכת נושא</label>${seg('theme', [['system', 'לפי המכשיר'], ['light', 'בהיר'], ['dark', 'כהה']])}</div></div></section>
