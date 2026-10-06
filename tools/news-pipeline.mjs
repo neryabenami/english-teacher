@@ -367,7 +367,8 @@ if (!KEY) {
         published_at: c.items.map((x) => x.date).sort()[0], first_published_in_app_at: new Date().toISOString(),
         quality_score: a.quality_score, interest_score: a.interest_score, verification_status: 'verified', content_status: 'published'
       };
-      await fs.writeFile(path.join(OUT, id + '.json'), JSON.stringify({ ...meta, paragraphs, facts: a.facts, glossary: (a.glossary || []).filter((g) => g.text && g.he).slice(0, 260) }));
+      await fs.writeFile(path.join(OUT, id + '.json'), JSON.stringify({ ...meta, paragraphs, facts: a.facts, glossary: (a.glossary || []).filter((g) => g.text && g.he).slice(0, 260)
+        .map((g) => (g.name || g.pos === 'name') && !/^[A-Z0-9]/.test(g.text) ? { ...g, name: false, pos: g.pos === 'name' ? 'other' : g.pos } : g) })); // only capitalised words can be names
       index.articles.unshift(meta);
       c.items.forEach((it) => knownUrls.add(it.url));
       run.created++;

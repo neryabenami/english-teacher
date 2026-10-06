@@ -852,7 +852,7 @@
       const label = sh.phrase || sh.word;
       const he = g ? g.he : lk.he || sh.wordTr;
       const lemma = g ? g.lemma : lk.t;
-      const isName = g && (g.name || g.pos === 'name');
+      const isName = g && (g.name || g.pos === 'name') && /^[A-Z]/.test(label); // the model sometimes marks ordinary words as names
       const pos = g && !isName ? g.pos : '';
       const saved = ET.SavedWords.has(label, sh.sentence) || !!sh.savedNow;
       return `<div class="pop-head"><div class="term">${esc(label)}</div>${it && it.ipa ? `<span class="muted small" dir="ltr">${esc(it.ipa)}</span>` : ''}<span class="grow"></span>
@@ -862,7 +862,7 @@
         ${(lemma && lemma.toLowerCase() !== label.toLowerCase()) || (pos && POS_HE[pos]) ? `<div class="small muted">${lemma && lemma.toLowerCase() !== label.toLowerCase() ? `צורת הבסיס: <span class="en">${esc(lemma)}</span>` : ''}${pos && POS_HE[pos] ? `${lemma && lemma.toLowerCase() !== label.toLowerCase() ? ' · ' : ''}${POS_HE[pos]}` : ''}</div>` : ''}
         <div class="ctx-box"><span class="lbl">במשפט</span><div class="en-line" dir="ltr">${highlight(sh.sentence, label)}</div>${g ? '' : sentTrHtml(sh)}</div>
         <div class="row wrap">${speakBtn(sh.sentence, '', 'השמע משפט', 'sm')}<button class="speak sm" data-act="report-lex">${ic('flag')} דיווח</button></div>
-        ${isName ? '' : `<button class="btn block ${saved ? 'soft' : ''}" data-act="save-pop" ${saved ? 'disabled' : ''}>${saved ? 'נשמר ב"המילים שלי" ✓' : '＋ שמור מילה'}</button>`}`;
+        <button class="btn block ${saved ? 'soft' : ''}" data-act="save-pop" ${saved ? 'disabled' : ''}>${saved ? 'נשמר ב"המילים שלי" ✓' : '＋ שמור מילה'}</button>`;
     }
     if (sh.type === 'lex') {
       const lk = ET.lookup(sh.word);
@@ -946,11 +946,12 @@
     phrase: (a, el) => { const sentence = sentenceOf(el); RT.sheet = { type: 'pop', word: a, phrase: a, gloss: glossFor(a, sentence, a), sentence }; renderSheet(); popLookups(RT.sheet); },
     'close-sheet': () => { RT.sheet = null; document.querySelectorAll('.reader .w.sel').forEach((w) => w.classList.remove('sel')); renderSheet(); },
     save: (a) => { const on = ET.toggleSave(a); toast(on ? 'נשמר למילים שלי ⭐' : 'הוסר מהשמורים'); render(); },
-    'save-pop': () => {
+    'save-pop': async () => {
       const sh = RT.sheet; if (!sh) return;
       const g = sh.gloss; const lk = ET.lookup(sh.phrase || sh.word);
-      const he = g ? g.he : lk.he || sh.wordTr;
-      if (!he) { toast('אין עדיין פירוש לשמירה'); return; }
+      let he = (g && g.he) || lk.he || sh.wordTr || '';
+      // every word can be saved: without a meaning yet, try the online translation; otherwise save it with the sentence only
+      if (!he && RT.online) { try { he = await ET.TranslationProvider.translate(sh.phrase || sh.word) || ''; } catch (e) { /* save without */ } }
       const it = lk.item;
       const ok = ET.SavedWords.add({ word: sh.word, phrase: sh.phrase || '', lemma: g ? g.lemma : lk.t, part_of_speech: g ? g.pos : '', hebrew_meaning: he,
         context_sentence: sh.sentence, article_id: RT.art && RT.art.id, ipa: it && it.ipa ? it.ipa : '' });
