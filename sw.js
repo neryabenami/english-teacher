@@ -1,5 +1,5 @@
 /* Service worker: keeps the app, the dictionary and opened articles on the device (Local First). */
-const VERSION = 'et-v4.7.1';
+const VERSION = 'et-v4.7.2';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js', 'data/dict-en-he.json', 'data/vocab.json',

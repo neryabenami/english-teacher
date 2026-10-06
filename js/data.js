@@ -6,7 +6,6 @@
     { id: 'nature', he: 'טבע', icon: '🌿' },
     { id: 'work', he: 'עבודה', icon: '💼' },
     { id: 'travel', he: 'טיולים', icon: '🧳' },
-    { id: 'food', he: 'אוכל', icon: '🍽️' },
     { id: 'family', he: 'משפחה', icon: '👨‍👩‍👧' },
     { id: 'relationships', he: 'זוגיות', icon: '❤️' },
     { id: 'sports', he: 'ספורט', icon: '⚽' },
@@ -14,9 +13,6 @@
     { id: 'finance', he: 'פיננסים', icon: '💰' },
     { id: 'business', he: 'עסקים', icon: '📈' },
     { id: 'airport', he: 'שדה תעופה', icon: '✈️' },
-    { id: 'restaurant', he: 'מסעדות', icon: '🍝' },
-    { id: 'hotel', he: 'מלון', icon: '🏨' },
-    { id: 'shopping', he: 'קניות', icon: '🛍️' },
     { id: 'health', he: 'בריאות', icon: '🩺' },
     { id: 'daily', he: 'חיי יום־יום', icon: '☀️' }
   ];

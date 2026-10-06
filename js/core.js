@@ -70,7 +70,9 @@
   };
   Object.assign(ET, { ITEMS, BY_ID, BY_TERM, LEX });
   ET.item = (id) => BY_ID[id];
-  ET.atLevel = (i) => i.lvl === ET.S.profile.cefr || (ET.S.profile.cefr === 'C2' && i.lvl === 'C1');
+  // a word is shown when its topic is one of the Words tab topics (removed topics disappear everywhere) and it is at the profile level
+  const ACTIVE_CATS = new Set(D.CATEGORIES.map((c) => c.id));
+  ET.atLevel = (i) => ACTIVE_CATS.has(i.cat) && (i.lvl === ET.S.profile.cefr || (ET.S.profile.cefr === 'C2' && i.lvl === 'C1'));
   ET.wordsOf = (cat) => ITEMS.filter((i) => i.type === 'word' && i.cat === cat && ET.atLevel(i));
   ET.exprsOf = (kind, cat) => ITEMS.filter((i) => i.type === 'expr' && (kind === 'texting' ? (i.cat === 'texting' || i.cat === 'abbr') : i.kind === kind) && (!cat || i.cat === cat));
   /* the two phrase areas of the Words tab */
@@ -253,7 +255,7 @@
   };
   /* favourites of one section: word topics, common expressions or slang (known items are excluded) */
   ET.favorites = (sec) => ITEMS.filter((i) => S.items[i.id] && S.items[i.id].saved && !ET.isKnown(i.id)
-    && (sec === 'words' ? i.type === 'word' : sec === 'slang' ? i.type === 'expr' && i.kind === 'slang' : i.type === 'expr' && i.kind !== 'slang'));
+    && (sec === 'words' ? i.type === 'word' && ACTIVE_CATS.has(i.cat) : sec === 'slang' ? i.type === 'expr' && i.kind === 'slang' : i.type === 'expr' && i.kind !== 'slang'));
   /* newest additions first, then the best fit for the user's level */
   ET.byNewest = (list) => list.filter((i) => !ET.isKnown(i.id)).sort((a, b) => (b.added || '').localeCompare(a.added || '') || ET.levelFit(a) - ET.levelFit(b) || a.t.localeCompare(b.t));
   ET.isNewToday = (it) => it.added === dayKey();

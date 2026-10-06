@@ -1,5 +1,5 @@
 /* Daily additions to data/vocab.json (runs in GitHub Actions; safe to run several times a day):
-   - 5 new words for each of the 16 word topics, at the reader's level (READING_LEVEL, set from the app's profile).
+   - 5 new words for each of the word topics, at the reader's level (READING_LEVEL, set from the app's profile).
      The words are real, common English words: the unused words of that level's frequency band (FrequencyWords,
      base forms only). Gemini sorts them into the topics and adds the Hebrew meaning and an example at that level.
      When a level's band runs out, words from the next band up are used. Without a Gemini key, the old reserve
@@ -15,10 +15,10 @@ const PER_TOPIC = 5;
 const PER_SLANG = 5;
 const TOPICS = {
   nature: 'nature, animals, plants, weather, environment', work: 'work, office, jobs, career', travel: 'travel, trips, tourism, places',
-  food: 'food, cooking, ingredients, eating', family: 'family members and family life', relationships: 'relationships, friends, feelings, dating',
+  family: 'family members and family life', relationships: 'relationships, friends, feelings, dating',
   sports: 'sports, fitness, games, competitions', tech: 'technology, computers, internet, phones', finance: 'money, banking, investing, economy',
-  business: 'business, companies, trade, management', airport: 'airports, flights, luggage, passports', restaurant: 'restaurants, menus, ordering, service',
-  hotel: 'hotels, rooms, booking, reception', shopping: 'shopping, stores, prices, clothes', health: 'health, body, medicine, doctors',
+  business: 'business, companies, trade, management', airport: 'airports, flights, luggage, passports',
+  health: 'health, body, medicine, doctors',
   daily: 'everyday life, home, time, common actions and objects'
 };
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
