@@ -288,11 +288,15 @@
       if (!c) return SCREENS.words('topics');
       const all = ET.byNewest(fav ? ET.favorites('words') : ET.wordsOf(arg));
       const shown = RT.topicShown && RT.topicShown.id === arg ? RT.topicShown.n : 60;
+      // same layout as the slang list: today's new words first, then all the others
+      const fresh = all.filter(ET.isNewToday);
+      const rest = all.filter((i) => !ET.isNewToday(i));
       if (!all.length) return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}${fav ? favEmpty('מילים') : '<div class="card empty"><p>כל המילים בנושא הזה כבר מוכרות לך 🎉 מילים חדשות יתווספו מחר.</p></div>'}</div>`;
       return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}
         <button class="btn block" data-act="go" data-arg="${fav ? 'session/fav/words' : 'session/cat/' + arg}">${ic('play')} התחל כרטיסיות</button>
-        <div class="list">${all.slice(0, shown).map((it) => itemRow(it, newBadge(it))).join('')}</div>
-        ${all.length > shown ? `<button class="btn ghost block" data-act="more-words" data-arg="${arg}">הצג עוד מילים</button>` : ''}</div>`;
+        ${fresh.length ? `<h3 class="group-h">נוספו היום</h3><div class="list">${fresh.map((it) => itemRow(it, newBadge(it))).join('')}</div>` : ''}
+        ${rest.length ? `<div class="list">${rest.slice(0, shown).map((it) => itemRow(it)).join('')}</div>` : ''}
+        ${rest.length > shown ? `<button class="btn ghost block" data-act="more-words" data-arg="${arg}">הצג עוד מילים</button>` : ''}</div>`;
     }
     /* expressions / slang: All | Favorites */
     const isSlang = sec === 'slang';
