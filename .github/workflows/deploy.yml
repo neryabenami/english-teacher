@@ -41,6 +41,9 @@ jobs:
       - name: Add today's new words
         if: github.event_name != 'push'
         run: node tools/add-daily-words.mjs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          READING_LEVEL: ${{ vars.READING_LEVEL }}
 
       - name: Save articles and words to the repository
         if: github.event_name != 'push'

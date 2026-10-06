@@ -262,13 +262,14 @@
   /* =========================================================
      WORDS (topics · common expressions · American slang)
      ========================================================= */
-  const WORD_SECS = [['topics', 'מילים לפי נושאים', '📚', 'blue'], ['expr', 'ביטויים נפוצים', '💬', 'purple'], ['slang', 'סלנג אמריקאי', '😎', 'yellow']];
+  const WORD_SECS = [['topics', 'מילים לפי נושאים', '📚', 'blue'], ['slang', 'סלנג אמריקאי', '😎', 'yellow']];
   const fmtDate = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-').map(Number); return `${d}.${m}.${y}`; };
   const newBadge = (it) => (ET.isNewToday(it) ? '<span class="badge new">חדש</span>' : '');
   const favEmpty = (what) => `<div class="card empty"><div class="emo">⭐</div><p>עוד אין כאן ${what} במועדפים. לחצו על הכוכבית בכרטיס כדי לשמור.</p></div>`;
   SCREENS.words = (sec, arg) => {
     if (!ET.Vocab.ready && !ET.Vocab.loading) ET.Vocab.load().then(() => { if (parse().name === 'words') render(); });
-    /* hub: three big choices */
+    if (sec === 'expr') sec = ''; // common expressions were removed: old links open the hub
+    /* hub: two big choices */
     if (!sec) {
       return `<div class="screen">
         <header class="topbar"><span class="grow"></span>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<button class="icon-btn" data-act="go" data-arg="dict" aria-label="חיפוש במילון">${ic('search')}</button></header>
@@ -387,7 +388,7 @@
   };
 
   /* ---------- dictionary ---------- */
-  const DICT_F = [['all', 'הכול'], ['word', 'מילים'], ['slang', 'סלנג'], ['phrasal', 'Phrasal Verbs'], ['idiom', 'Idioms'], ['spoken', 'Spoken'], ['expr', 'ביטויים']];
+  const DICT_F = [['all', 'הכול'], ['word', 'מילים'], ['slang', 'סלנג']];
   const dictResults = () => {
     const q = RT.dictQ.trim();
     if (!q) {

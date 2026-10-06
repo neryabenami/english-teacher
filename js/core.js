@@ -57,6 +57,7 @@
   });
   D.EXPRESSIONS.trim().split('\n').forEach((line) => {
     const [kind, cat, t, he, lit, real, ex, exHe, ctx, formal, region, freq, lvl] = line.split('|').map((s) => s.trim());
+    if (kind !== 'slang') return; // common expressions were removed from the app; slang stays
     add({ id: 'x:' + t.toLowerCase(), type: 'expr', kind, cat, t, he, lit, real, ex, exHe, ctx, formal: +formal, region, freq: +freq, lvl, emoji: KINDS[kind].icon, pos: 'phr' });
   });
   const LEX = {};
@@ -69,7 +70,8 @@
   };
   Object.assign(ET, { ITEMS, BY_ID, BY_TERM, LEX });
   ET.item = (id) => BY_ID[id];
-  ET.wordsOf = (cat) => ITEMS.filter((i) => i.type === 'word' && i.cat === cat);
+  ET.atLevel = (i) => i.lvl === ET.S.profile.cefr || (ET.S.profile.cefr === 'C2' && i.lvl === 'C1');
+  ET.wordsOf = (cat) => ITEMS.filter((i) => i.type === 'word' && i.cat === cat && ET.atLevel(i));
   ET.exprsOf = (kind, cat) => ITEMS.filter((i) => i.type === 'expr' && (kind === 'texting' ? (i.cat === 'texting' || i.cat === 'abbr') : i.kind === kind) && (!cat || i.cat === cat));
   /* the two phrase areas of the Words tab */
   const EXPR_KINDS = ['expr', 'spoken', 'phrasal', 'idiom'];
@@ -218,12 +220,11 @@
     return cats;
   };
   ET.newIds = (n) => {
-    const max = Math.min(5, userIdx() + 1);
     const cats = interestCats();
     const goal = S.profile.goal;
     const wantExpr = ['slang', 'conversation', 'movies', 'all'].includes(goal);
-    const fresh = ITEMS.filter((i) => !S.items[i.id] || !S.items[i.id].last).filter((i) => lvlIdx(i.lvl) <= max && !i.id.startsWith('c:'));
-    const score = (i) => (cats.has(i.cat) ? 0 : 2) + (i.type === 'expr' ? (wantExpr ? 0 : 3) : 0) + Math.abs(lvlIdx(i.lvl) - userIdx()) + Math.random() * 2.5;
+    const fresh = ITEMS.filter((i) => !S.items[i.id] || !S.items[i.id].last).filter((i) => (i.type === 'word' ? ET.atLevel(i) : i.kind === 'slang') && !i.id.startsWith('c:'));
+    const score = (i) => (cats.has(i.cat) ? 0 : 2) + (i.type === 'expr' ? (wantExpr ? 0 : 3) : 0) + Math.random() * 2.5;
     return fresh.sort((a, b) => score(a) - score(b)).slice(0, n).map((i) => i.id);
   };
   /* the level set in onboarding / profile drives how many new items appear and how hard they are */
@@ -271,8 +272,8 @@
   };
   ET.recentIds = (n = 8) => Object.keys(S.items).filter((id) => BY_ID[id] && S.items[id].last).sort((a, b) => S.items[b].last - S.items[a].last).slice(0, n);
   ET.ofTheDay = (pool, salt) => pool[hash(dayKey() + salt) % pool.length];
-  ET.wordOfDay = () => ET.ofTheDay(ITEMS.filter((i) => i.type === 'word' && lvlIdx(i.lvl) <= Math.min(5, userIdx() + 1)), 'w');
-  ET.slangOfDay = () => ET.ofTheDay(ITEMS.filter((i) => i.type === 'expr' && i.kind === 'slang'), 's');
+  ET.wordOfDay = () => ET.ofTheDay(ITEMS.filter((i) => i.type === 'word' && ET.atLevel(i) && !ET.isKnown(i.id)), 'w');
+  ET.slangOfDay = () => ET.ofTheDay(ITEMS.filter((i) => i.type === 'expr' && i.kind === 'slang' && !ET.isKnown(i.id)), 's');
   ET.catProgress = (cat) => { const ws = ET.wordsOf(cat); const k = ws.filter((w) => ET.status(w.id) === 'known').length; return { known: k, total: ws.length }; };
 
   /* ---------- dictionary lookup ---------- */
@@ -367,7 +368,7 @@
         // daily expressions & slang from Wiktionary: [kind, term, hebrew, english definition, example, example hebrew, level, added]
         for (const [kind, t, he, def, ex, exHe, lvl, added] of j.exprs || []) {
           const id = 'x:' + t.toLowerCase();
-          if (BY_ID[id]) continue;
+          if (BY_ID[id] || kind !== 'slang') continue;
           add({ id, type: 'expr', kind, cat: kind === 'slang' ? 'american' : kind, t, he, lit: '', real: he, def, ex, exHe, ctx: 'מקור: Wiktionary', formal: kind === 'slang' ? 1 : 2,
             region: kind === 'slang' ? 'ארה"ב' : 'כללי', freq: 2, lvl, added, emoji: KINDS[kind].icon, pos: 'phr' });
         }
@@ -464,14 +465,14 @@
     if (!S.daily || S.daily.date !== key) S.daily = { date: key };
     const d = S.daily;
     let changed = false;
-    if ((!d.word || !BY_ID[d.word]) && ET.Vocab.ready) {
+    if ((!d.word || !BY_ID[d.word] || !ET.atLevel(BY_ID[d.word]) || ET.isKnown(d.word)) && ET.Vocab.ready) {
       // a word at the user's level, with an example, not already known; words added today are skipped so the pool is stable all day
-      const pool = ITEMS.filter((i) => i.type === 'word' && i.ex && i.added !== key && ET.levelFit(i) <= 1 && ET.status(i.id) !== 'known');
+      const pool = ITEMS.filter((i) => i.type === 'word' && i.ex && i.added !== key && ET.atLevel(i) && !ET.isKnown(i.id));
       const it = pool.length ? pool[hash(key + 'w') % pool.length] : ET.wordOfDay();
       d.word = it.id; changed = true;
     }
-    if (!d.slang || !BY_ID[d.slang]) {
-      const pool = ITEMS.filter((i) => i.type === 'expr' && i.kind === 'slang' && i.region !== 'בריטניה');
+    if (!d.slang || !BY_ID[d.slang] || ET.isKnown(d.slang)) {
+      const pool = ITEMS.filter((i) => i.type === 'expr' && i.kind === 'slang' && i.region !== 'בריטניה' && !ET.isKnown(i.id));
       d.slang = pool[hash(key + 's') % pool.length].id; changed = true;
     }
     if (ET.Articles.index && (!d.article || !ET.Articles.meta(d.article))) {
