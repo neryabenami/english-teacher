@@ -3,21 +3,20 @@
    Expressions format: kind|cat|phrase|he|literal|real|example|exampleHe|context|formality(1-3)|region|frequency(1-3)|level */
 (function () {
   const CATEGORIES = [
-    { id: 'nature', he: 'טבע', icon: '🌿' },
-    { id: 'work', he: 'עבודה', icon: '💼' },
-    { id: 'travel', he: 'טיולים', icon: '🧳' },
-    { id: 'family', he: 'משפחה', icon: '👨‍👩‍👧' },
-    { id: 'relationships', he: 'זוגיות', icon: '❤️' },
-    { id: 'sports', he: 'ספורט', icon: '⚽' },
-    { id: 'tech', he: 'טכנולוגיה', icon: '💻' },
-    { id: 'finance', he: 'פיננסים', icon: '💰' },
-    { id: 'business', he: 'עסקים', icon: '📈' },
-    { id: 'airport', he: 'שדה תעופה', icon: '✈️' },
-    { id: 'health', he: 'בריאות', icon: '🩺' },
-    { id: 'daily', he: 'חיי יום־יום', icon: '☀️' }
+    { id: 'daily', he: 'יום־יום', icon: '☀️' },
+    { id: 'work', he: 'עבודה וקריירה', icon: '💼' },
+    { id: 'travel', he: 'נסיעות וחופשות', icon: '✈️' },
+    { id: 'food', he: 'אוכל ומסעדות', icon: '🍽️' },
+    { id: 'people', he: 'אנשים ומערכות יחסים', icon: '👥' },
+    { id: 'health', he: 'בריאות וכושר', icon: '💪' },
+    { id: 'money', he: 'כסף וקניות', icon: '💳' },
+    { id: 'tech', he: 'טכנולוגיה ואינטרנט', icon: '💻' },
+    { id: 'feelings', he: 'רגשות ודעות', icon: '😊' },
+    { id: 'conversation', he: 'שיחה ותקשורת', icon: '💬' }
   ];
-  /* word groups that live inside a broader topic */
-  const CAT_ALIAS = { home: 'daily', transport: 'daily', studies: 'daily', entertainment: 'daily', social: 'daily' };
+  /* older word groups and topics, and the category they belong to now */
+  const CAT_ALIAS = { home: 'daily', studies: 'daily', entertainment: 'daily', transport: 'travel', social: 'tech', business: 'work', airport: 'travel', hotel: 'travel',
+    restaurant: 'food', family: 'people', relationships: 'people', sports: 'health', finance: 'money', shopping: 'money' };
 
   const WORDS = {
 nature: `tree|עץ|n|A1|🌳|/triː/|There is a big tree in our garden.|יש עץ גדול בגינה שלנו.

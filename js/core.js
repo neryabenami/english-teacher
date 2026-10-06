@@ -365,7 +365,7 @@
         for (const [t, he, lvl, cat, ex, exHe, added, src] of j.words) {
           const id = 'w:' + t;
           if (BY_ID[id]) continue;
-          add({ id, type: 'word', cat, t, he, lvl, ex, exHe, added, src, pos: '', emoji: '', ipa: '' });
+          add({ id, type: 'word', cat: (D.CAT_ALIAS || {})[cat] || cat, t, he, lvl, ex, exHe, added, src, pos: '', emoji: '', ipa: '' });
         }
         // daily expressions & slang from Wiktionary: [kind, term, hebrew, english definition, example, example hebrew, level, added]
         for (const [kind, t, he, def, ex, exHe, lvl, added] of j.exprs || []) {
