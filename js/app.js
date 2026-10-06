@@ -239,7 +239,7 @@
     const art = d.article && A.meta(d.article);
     return `<div class="screen home">
       <div class="hello"><div><p class="muted small">${greet} 👋</p><h1>מוכנים ללמוד היום?</h1></div>
-        <div class="streak" aria-label="${ET.streak()} ימים ברצף">${icFill('flame')}<span class="tnum">${ET.streak()}</span></div></div>
+        </div>
       ${RT.online ? '' : '<div class="note">אין חיבור לאינטרנט. הלימוד ממשיך לעבוד כרגיל וההתקדמות נשמרת במכשיר.</div>'}
       <div class="home-cards">
         <button class="today-card" data-act="go" data-arg="words/topics">
