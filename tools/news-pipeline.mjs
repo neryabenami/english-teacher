@@ -158,7 +158,8 @@ async function gemini(system, user) {
         try { return JSON.parse(j.candidates[0].content.parts[0].text); } catch (e) { last = 'bad json'; continue; } // smaller models sometimes break the JSON: ask again
       }
       last = r.status + ' ' + (await r.text()).slice(0, 160);
-      if (r.status === 429 || r.status >= 500) { await sleep(8000 * (a + 1)); continue; }
+      if (r.status >= 500 && a >= 1) break; // overloaded: one quick retry, then the next model (saves minutes per run)
+      if (r.status === 429 || r.status >= 500) { await sleep(r.status === 429 ? 8000 * (a + 1) : 4000); continue; }
       break;
     }
     if (last === 'bad json' || /^4(00|01|03)\b/.test(last)) throw new Error('gemini ' + last);
