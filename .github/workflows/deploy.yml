@@ -7,6 +7,11 @@ on:
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
+    inputs:
+      check_sources:
+        description: Only check which news sources can be read (writes nothing)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -33,22 +38,26 @@ jobs:
         with:
           node-version: 20
 
+      - name: Check news sources
+        if: inputs.check_sources
+        run: SOURCES_CHECK=1 node tools/news-pipeline.mjs
+
       - name: Write today's learning articles from real news
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' && !inputs.check_sources
         run: node tools/news-pipeline.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           READING_LEVEL: ${{ vars.READING_LEVEL }}
 
       - name: Add today's new words
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' && !inputs.check_sources
         run: node tools/add-daily-words.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           READING_LEVEL: ${{ vars.READING_LEVEL }}
 
       - name: Save articles and words to the repository
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' && !inputs.check_sources
         run: |
           if [ -n "$(git status --porcelain data)" ]; then
             git config user.name "github-actions[bot]"

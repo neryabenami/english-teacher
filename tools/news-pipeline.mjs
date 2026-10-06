@@ -29,7 +29,17 @@ const FEEDS = [
   ['https://feeds.npr.org/1006/rss.xml', 'NPR', 'business', 3], ['https://feeds.npr.org/1128/rss.xml', 'NPR', 'health', 3], ['https://www.cnbc.com/id/100003114/device/rss/rss.html', 'CNBC', 'business', 3],
   ['https://www.cnbc.com/id/10000664/device/rss/rss.html', 'CNBC', 'finance', 3], ['https://www.cnbc.com/id/19854910/device/rss/rss.html', 'CNBC', 'tech', 3], ['https://techcrunch.com/feed/', 'TechCrunch', 'tech', 2],
   ['https://www.theverge.com/rss/index.xml', 'The Verge', 'tech', 2], ['https://www.wired.com/feed/rss', 'Wired', 'tech', 2], ['https://arstechnica.com/feed/', 'Ars Technica', 'tech', 2],
-  ['https://www.espn.com/espn/rss/news', 'ESPN', 'sports', 3], ['https://www.polygon.com/rss/index.xml', 'Polygon', 'gaming', 2], ['https://feeds.feedburner.com/ign/news', 'IGN', 'gaming', 2]
+  ['https://www.espn.com/espn/rss/news', 'ESPN', 'sports', 3], ['https://www.polygon.com/rss/index.xml', 'Polygon', 'gaming', 2], ['https://feeds.feedburner.com/ign/news', 'IGN', 'gaming', 2],
+  // Israel (Hebrew): facts are read in Hebrew, the lesson is written in English
+  ['https://www.ynet.co.il/Integration/StoryRss2.xml', 'Ynet', 'world', 3], ['https://www.ynet.co.il/Integration/StoryRss6.xml', 'Ynet', 'business', 3],
+  ['https://www.ynet.co.il/Integration/StoryRss3.xml', 'Ynet', 'sports', 3], ['https://www.ynet.co.il/Integration/StoryRss545.xml', 'Ynet', 'tech', 3],
+  ['https://rss.walla.co.il/feed/1?type=main', 'Walla', 'world', 3], ['https://rss.walla.co.il/feed/2?type=main', 'Walla', 'finance', 3],
+  ['https://rss.walla.co.il/feed/3?type=main', 'Walla', 'sports', 3], ['https://www.maariv.co.il/Rss/RssChadashot', 'Maariv', 'world', 3],
+  ['https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=2', 'Globes', 'business', 3],
+  ['https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=585', 'Globes', 'finance', 3], ['https://www.geektime.co.il/feed/', 'Geektime', 'tech', 2],
+  // Israel (English)
+  ['https://www.ynetnews.com/Integration/StoryRss3082.xml', 'Ynetnews', 'world', 3], ['https://www.jns.org/feed/', 'JNS', 'world', 2],
+  ['https://en.globes.co.il/WebService/Rss/RssFeeder.asmx/FeederNode?iID=942', 'Globes English', 'business', 3]
 ].map(([url, source, cat, weight]) => ({ url, source, cat, weight }));
 /* topic words (the spec's per-category queries) used to place a story in the right category.
    Topics that are not in CATS stay here on purpose: a film or recipe story is recognised as such and skipped,
@@ -53,6 +63,7 @@ const TOPIC_WORDS = {
 };
 
 /* items that are not news stories: opinion columns ("… | Author"), reader call-outs, recipes, quizzes, deals, live blogs */
+const NOT_NEWS_HE = /(פודקאסט|מתכון|הורוסקופ|טור דעה|דעה:|קופון|מבצע השבוע|כתבה שיווקית|בשיתוף|תוכן שיווקי)/;
 const NOT_NEWS = /\s\|\s|^(send us|tell us|share your|post your|readers'|your questions)|\b(recipe|recipes|crossword|quiz|as it happened|live updates|podcast|newsletter|deal of the day|best deals|on sale|discount code|horoscope|review|a job that changed me)\b|\b\d+ (everyday |best |great )?(items|things|products|gifts|buys|picks)\b/i;
 
 /* ---------- helpers ---------- */
@@ -65,7 +76,7 @@ const STOPW = new Set('the a an and or of to in on for with at by from as is are
 /* names in a headline (capitalised words after the first) — two shared names usually mean the same story */
 const names = (t) => new Set((t.match(/(?<!^)\b[A-Z][a-z’'A-Z-]{2,}/g) || []).map((w) => w.toLowerCase()).filter((w) => !STOPW.has(w)));
 const sameStory = (a, b) => jaccard(a.tokens, b.tokens) >= 0.45 || (jaccard(a.tokens, b.tokens) >= 0.15 && [...a.names].filter((x) => b.names.has(x)).length >= 2);
-const tokens = (t) => new Set((t.toLowerCase().match(/[a-z0-9']+/g) || []).filter((w) => w.length > 2 && !STOPW.has(w)));
+const tokens = (t) => new Set((t.toLowerCase().match(/[a-z0-9'\u05D0-\u05EA]+/g) || []).filter((w) => w.length > 2 && !STOPW.has(w)));
 const jaccard = (a, b) => { let i = 0; for (const x of a) if (b.has(x)) i++; return i / Math.max(1, a.size + b.size - i); };
 const hoursAgo = (d) => (Date.now() - new Date(d).getTime()) / 36e5;
 const publisher = (it) => it.source.replace(/\s+(News|Sport)$/, ''); // BBC News and BBC Sport are one publisher
@@ -97,7 +108,7 @@ function parseFeed(xml, feed) {
     const desc = strip(tag('description')) || strip(tag('summary')) || strip(tag('content'));
     if (!title || !/^https?:\/\//.test(link) || !date || isNaN(new Date(date))) continue; // verification: real URL, title, date
     if (/\/(live|video|videos|av|sounds|podcasts?|gallery|in-pictures|quiz|crosswords?)\//i.test(link)) continue; // not an article page
-    if (NOT_NEWS.test(title)) continue;                                                                  // columns, call-outs, recipes, deals
+    if (NOT_NEWS.test(title) || NOT_NEWS_HE.test(title)) continue;                                                                  // columns, call-outs, recipes, deals
     out.push({ title, url: normUrl(link), date: new Date(date).toISOString(), desc: desc.slice(0, 600), source: feed.source, hint: feed.cat, weight: feed.weight });
   }
   return out;
@@ -120,7 +131,12 @@ async function pageText(url) {
     const html = await get(url, 'text', 1);
     const body = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<nav[\s\S]*?<\/nav>|<footer[\s\S]*?<\/footer>|<aside[\s\S]*?<\/aside>/gi, ' ');
     const paras = [...body.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => strip(m[1])).filter((p) => p.length > 60 && !/cookie|subscribe|newsletter|sign up|all rights reserved|advertis/i.test(p));
-    const text = paras.join('\n');
+    let text = paras.join('\n');
+    if (text.split(/\s+/).length < 120) {
+      const ld = [...html.matchAll(/"articleBody"\s*:\s*"((?:[^"\\]|\\.)*)"/g)].map((m) => { try { return JSON.parse('"' + m[1] + '"'); } catch { return ''; } }).sort((a, b) => b.length - a.length)[0] || '';
+      const spans = [...html.matchAll(/data-text="true">([^<]+)</g)].map((m) => strip(m[1])).join(' ');
+      text = [ld, spans, text].sort((a, b) => b.length - a.length)[0];
+    }
     return text.split(/\s+/).slice(0, 1600).join(' ');
   } catch { return ''; }
 }
@@ -193,7 +209,7 @@ async function writeArticle(cluster, material) {
   const user = `Reader level: ${LEVEL}. ${LEVEL_GUIDE[LEVEL]}
 ${LENGTH_RULE}
 Category must be one of: ${CATS.join(', ')}, or "other" when the story does not clearly belong to one of them (film, TV, music, celebrities, food, fashion, cars, personal essays, reviews). "other" stories are not published.
-Sources (the only allowed facts):
+Sources (the only allowed facts; some may be in Hebrew: use their facts, write the lesson in English, and do NOT translate them sentence by sentence):
 ${material}
 
 Return ONLY JSON:
@@ -291,6 +307,15 @@ for (const feed of FEEDS) {
   try { items.push(...parseFeed(await get(feed.url), feed)); } catch (e) { run.sources_failed.push(feed.source + ' ' + feed.url); }
 }
 run.candidates = items.length;
+// SOURCES_CHECK=1: for every feed, how many stories it gave and how many words of the first story's page can be read; nothing is written
+if (process.env.SOURCES_CHECK) {
+  for (const feed of FEEDS) {
+    const mine = items.filter((it) => it.source === feed.source && it.hint === feed.cat);
+    const text = mine[0] ? await pageText(mine[0].url) : '';
+    console.log(`${feed.source} [${feed.cat}] stories ${mine.length} · page words ${(text.match(/\S+/g) || []).length} · ${mine[0] ? mine[0].title.slice(0, 60) : ''}`);
+  }
+  process.exit(0);
+}
 
 // 2. dedupe + cluster (same story from several publishers → one lesson with all sources)
 const fresh = items.filter((it) => { if (knownUrls.has(it.url)) { run.duplicates++; return false; } return true; });
@@ -341,7 +366,7 @@ if (!KEY) {
         texts.push({ it, text: page.length > 400 ? page : it.desc });
       }
       const material = texts.map((t, i) => `[${i + 1}] ${t.it.source} — "${t.it.title}" (${t.it.date})\n${t.text}`).join('\n\n');
-      if (words(texts.map((t) => t.text).join(' ')) < 150) { run.rejected++; continue; }
+      if ((texts.map((t) => t.text).join(' ').match(/\S+/g) || []).length < 150) { run.rejected++; continue; }
       run.verified++;
       // 5. original learning article at the reader's level
       const a = await writeArticle(c, material);
