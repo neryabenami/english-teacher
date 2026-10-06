@@ -1,5 +1,31 @@
 [
  {
+  "run_id": "2026-10-06T14:58:05.777Z",
+  "level": "C1",
+  "sources_checked": 27,
+  "sources_failed": [],
+  "candidates": 604,
+  "rejected": 4,
+  "duplicates": 79,
+  "verified": 11,
+  "created": 6,
+  "published_by_cat": {
+   "sports": 1,
+   "tech": 3,
+   "business": 1,
+   "world": 1
+  },
+  "errors": [
+   "gemini bad json",
+   "Reform MP raises concerns about second homes – then buys one: number not in sources: 2,600",
+   "Paramount takes over Warner Bros in $110bn Hollywood merger: too close to the source wording; length 367",
+   "Gauff condemns racist abuse after China Open win: too close to the source wording; length 380",
+   "Fine scenery, historic towns and great pubs: a weekend walk : stray letters in the Hebrew text"
+  ],
+  "gemini_calls": 54,
+  "end": "2026-10-06T15:18:21.676Z"
+ },
+ {
   "run_id": "2026-10-06T06:26:06.503Z",
   "level": "C1",
   "sources_checked": 27,
