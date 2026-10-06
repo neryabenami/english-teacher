@@ -1,5 +1,37 @@
 [
  {
+  "run_id": "2026-10-06T00:05:54.910Z",
+  "level": "C1",
+  "sources_checked": 27,
+  "sources_failed": [],
+  "candidates": 611,
+  "rejected": 12,
+  "duplicates": 72,
+  "verified": 15,
+  "created": 3,
+  "published_by_cat": {
+   "world": 1,
+   "travel": 1,
+   "finance": 1
+  },
+  "errors": [
+   "Trump says 'threat' led US to pull bombers from RAF Fairford: too close to the source wording",
+   "Coach services could be cut due to record diesel prices, UK : too close to the source wording",
+   "Gears of War: E-Day review – an alien invasion shouldn’t be : title",
+   "What we learned from Wales' Nations League window: The claim that Northern Ireland faces crucial fixtures in November is not supported by the sources, as Source 2 does not mention Northern Ireland's upcoming schedule or November fixtures.; The lesson states that the Northern Ireland match took place 'in Belfast', but Source 2 does not explicitly state the venue of the match, only mentioning Belfast in the context of Ethan Galbraith's youth.",
+   "Reverse-engineered games: All the news on video game decomps: number not in sources: 1998",
+   "GP 10-minute appointment slots 'making it harder to do cance: length 299",
+   "Right-wing Flávio Bolsonaro wins first round of Brazil elect: length 347",
+   "Mark Thompson will remain chief executive at CNN after Param: too close to the source wording",
+   "OpenAI will start watermarking ChatGPT’s text in the EU: too close to the source wording; length 411",
+   "NHL legend Ovechkin will retire at end of season: length 334",
+   "Physint Update: Hideo Kojima Shares New Info on His Upcoming: length 278; stray letters in the Hebrew text",
+   "From floating saunas to clinical trials: How heat might help: too close to the source wording"
+  ],
+  "gemini_calls": 52,
+  "end": "2026-10-06T00:23:17.659Z"
+ },
+ {
   "run_id": "2026-10-05T20:38:52.608Z",
   "level": "C1",
   "sources_checked": 27,
