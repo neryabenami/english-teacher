@@ -1,5 +1,32 @@
 [
  {
+  "run_id": "2026-10-07T13:29:51.557Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 961,
+  "rejected": 5,
+  "duplicates": 102,
+  "verified": 10,
+  "created": 2,
+  "published_by_cat": {
+   "world": 1,
+   "sports": 1
+  },
+  "errors": [
+   "fetch failed",
+   "fetch failed",
+   "fetch failed",
+   "New global guidelines warn against obesity drugs for childre: The claim that the guidelines 'represent a major milestone in global pediatric healthcare, addressing the rapid rise of pharmaceutical weight-management solutions' is an addition not supported by the source.",
+   "Paramount completes $111bn acquisition of Warner Bros to for: too close to the source wording",
+   "Apparent exodus of super-rich suggests UK is no longer billi: title",
+   "Netflix and Until Dawn Creators are Launching an Interactive: length 339",
+   "‘It’s hard to imagine the fires of July’: a bike ride throug: length 343"
+  ],
+  "gemini_calls": 30,
+  "end": "2026-10-07T13:53:18.238Z"
+ },
+ {
   "run_id": "2026-10-07T06:05:07.882Z",
   "level": "C1",
   "sources_checked": 41,
