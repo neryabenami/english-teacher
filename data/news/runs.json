@@ -1,5 +1,27 @@
 [
  {
+  "run_id": "2026-10-07T23:08:10.013Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 968,
+  "rejected": 7,
+  "duplicates": 98,
+  "verified": 7,
+  "created": 1,
+  "published_by_cat": {
+   "travel": 1
+  },
+  "errors": [
+   "התאוששות מאוחרת בוול סטריט: המדדים מחקו את רוב הנפילות; ה-S&: The lesson incorrectly names the power utility company as 'Vistara' instead of 'Vistra' (Vistra Corp).",
+   "איחוד כוחות היסטורי: גוגל ומטא משתפות פעולה בהשקעה של 1.8 מי: title",
+   "נשאר עד 2030: מיקל ארטטה האריך את חוזהו בארסנל: The lesson refers to the 62.05% figure as a 'win rate', whereas the source defines it as a 'success rate' ('אחוזי הצלחה'). In football statistics, a manager's success rate (based on points accumulated out of total possible points) is mathematically different from their win rate (the percentage of matches won).",
+   "IGN Fan Fest 2026: Fall Edition – How to Watch and What to E: The lesson text states that Travis Knight is the 'president' of LAIKA, but the source only refers to him as the 'director' of Wildwood and does not mention his role as president of the studio."
+  ],
+  "gemini_calls": 18,
+  "end": "2026-10-07T23:18:41.952Z"
+ },
+ {
   "run_id": "2026-10-07T13:29:51.557Z",
   "level": "C1",
   "sources_checked": 41,
