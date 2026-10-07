@@ -1,5 +1,37 @@
 [
  {
+  "run_id": "2026-10-07T06:05:07.882Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [
+   "Geektime https://www.geektime.co.il/feed/"
+  ],
+  "candidates": 911,
+  "rejected": 8,
+  "duplicates": 96,
+  "verified": 15,
+  "created": 6,
+  "published_by_cat": {
+   "world": 1,
+   "tech": 3,
+   "travel": 1,
+   "business": 1
+  },
+  "errors": [
+   "Paramount completes $111bn acquisition of Warner Bros to for: too close to the source wording",
+   "Wednesday briefing: Is it time to end the Bank of England’s : length 288",
+   "רונאלדו שבר שתיקה: \"המאמן הפר את הבטחתו פעמיים\": length 355",
+   "gemini bad json",
+   "White House defends Trump comment to let Iran 'take out' LA : length 311",
+   "Emmy Awards leave broadcast TV for Prime Video in 2027 under: length 345",
+   "תיאגו בכה, אנטונלה חיבקה: הערב המשפחתי המצמרר של מסי: number not in sources: 80,000",
+   "Ex-Activision CEO Bobby Kotick Joins Skydance Board of Direc: too close to the source wording",
+   "An early start to flu season moves up vaccination timing: length 400"
+  ],
+  "gemini_calls": 59,
+  "end": "2026-10-07T06:18:52.707Z"
+ },
+ {
   "run_id": "2026-10-06T18:25:13.521Z",
   "level": "C1",
   "sources_checked": 27,
