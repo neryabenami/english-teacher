@@ -208,7 +208,7 @@
     return `<div class="card art-card" data-act="go" data-arg="article/${esc(a.id)}" role="link" tabindex="0">${artImage({ ...a, cat: a.category }, 'thumb art-thumb')}<span class="art-main">
       <span class="src">${readCat(a.category).he} · ${esc(srcs.slice(0, 2).join(', '))}${srcs.length > 2 ? ` +${srcs.length - 2}` : ''} · ${ago(a.published_at)}</span>
       <button class="art-title" lang="en" dir="ltr" data-act="toggle-title" data-arg="${esc(a.id)}" aria-expanded="${open}">${esc(a.display_title)}</button>
-      ${open ? `<span class="title-he">${a.display_title_he ? `<b>${esc(a.display_title_he)}</b>` : ''}${a.short_summary ? `<span class="full-title" lang="en" dir="ltr">${esc(a.short_summary)}</span>` : ''}</span>` : ''}
+      ${open ? `<span class="title-he">${a.display_title_he ? `<b>${esc(a.display_title_he)}</b>` : ''}</span>` : ''}
       <span class="row wrap" style="gap:6px">${isNew ? '<span class="badge new">חדש</span>' : ''}<span class="badge">${a.reading_time} דק׳ קריאה</span><span class="badge lvl">${esc(a.english_level)}</span>${fav && pos > 3 && pos < 97 ? `<span class="badge sun">נקרא ${pos}%</span>` : ''}${read ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span>
       <button class="star-btn ${fav ? 'on' : ''}" data-act="fav-article" data-arg="${esc(a.id)}" aria-label="${fav ? 'הסרה מהמועדפים' : 'שמירה למועדפים'}" aria-pressed="${fav}">${fav ? icFill('bookmark') : ic('bookmark')}</button></div>`;
   };
@@ -836,7 +836,7 @@
         ${exampleBox(it)}
         <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
         ${pathDots(it.id)}
-        <div class="grid2"><button class="btn ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'שמור ✓' : 'שמור למילים שלי'}</button><button class="btn ghost" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button></div>`;
+        <div class="grid2"><button class="btn ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button><button class="btn ghost" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button></div>`;
     }
     if (sh.type === 'pop') {
       const g = sh.gloss;
@@ -855,7 +855,7 @@
         ${(lemma && lemma.toLowerCase() !== label.toLowerCase()) || (pos && POS_HE[pos]) ? `<div class="small muted">${lemma && lemma.toLowerCase() !== label.toLowerCase() ? `צורת הבסיס: <span class="en">${esc(lemma)}</span>` : ''}${pos && POS_HE[pos] ? `${lemma && lemma.toLowerCase() !== label.toLowerCase() ? ' · ' : ''}${POS_HE[pos]}` : ''}</div>` : ''}
         <div class="ctx-box"><span class="lbl">במשפט</span><div class="en-line" dir="ltr">${highlight(sh.sentence, label)}</div>${g ? '' : sentTrHtml(sh)}</div>
         <div class="row wrap">${speakBtn(sh.sentence, '', 'השמע משפט', 'sm')}<button class="speak sm" data-act="report-lex">${ic('flag')} דיווח</button></div>
-        <button class="btn block ${saved ? 'soft' : ''}" data-act="save-pop" ${saved ? 'disabled' : ''}>${saved ? 'נשמר ב"המילים שלי" ✓' : '＋ שמור מילה'}</button>`;
+        <button class="btn block ${saved ? 'soft' : ''}" data-act="save-pop" ${saved ? 'disabled' : ''}>${saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>`;
     }
     if (sh.type === 'lex') {
       const lk = ET.lookup(sh.word);
@@ -867,7 +867,7 @@
         ${lk.he && lk.t.toLowerCase() !== sh.word.toLowerCase() ? `<div class="small muted">צורת הבסיס: <span class="en">${esc(lk.t)}</span></div>` : ''}
         ${sh.ai ? `<div class="ctx-box"><span class="lbl">הסבר לפי ההקשר (AI)</span><div>${esc(sh.ai)}</div></div>` : ''}
         ${sh.sentence ? `<div class="example"><div class="small muted">מתוך הטקסט</div><div class="en-line">${highlight(sh.sentence, sh.word)}</div>${speakBtn(sh.sentence, '', 'השמע משפט', 'sm')}</div>` : ''}
-        <div class="grid2">${lk.he ? `<button class="btn" data-act="save-lex">שמור למילים שלי</button>` : ''}${gem && !sh.ai ? `<button class="btn soft" data-act="ai-explain">${ic('sparkle')} הסבר לפי ההקשר</button>` : ''}<button class="btn ghost" data-act="report-lex">${ic('flag')} דיווח</button></div>`;
+        <div class="grid2">${lk.he ? `<button class="btn" data-act="save-lex">⭐ הוסף למילים שלי</button>` : ''}${gem && !sh.ai ? `<button class="btn soft" data-act="ai-explain">${ic('sparkle')} הסבר לפי ההקשר</button>` : ''}<button class="btn ghost" data-act="report-lex">${ic('flag')} דיווח</button></div>`;
     }
     if (sh.type === 'report') {
       return `<div class="grab"></div><div class="head"><h2 style="flex:1">דיווח על טעות · <span class="en">${esc(sh.term)}</span></h2><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
@@ -938,7 +938,7 @@
     },
     phrase: (a, el) => { const sentence = sentenceOf(el); RT.sheet = { type: 'pop', word: a, phrase: a, gloss: glossFor(a, sentence, a), sentence }; renderSheet(); popLookups(RT.sheet); },
     'close-sheet': () => { RT.sheet = null; document.querySelectorAll('.reader .w.sel').forEach((w) => w.classList.remove('sel')); renderSheet(); },
-    save: (a) => { const on = ET.toggleSave(a); toast(on ? 'נשמר למילים שלי ⭐' : 'הוסר מהשמורים'); render(); },
+    save: (a) => { const on = ET.toggleSave(a); toast(on ? 'נוסף למילים שלי ⭐' : 'הוסר מהמילים שלי'); render(); },
     'save-pop': async () => {
       const sh = RT.sheet; if (!sh) return;
       const g = sh.gloss; const lk = ET.lookup(sh.phrase || sh.word);
@@ -948,12 +948,18 @@
       const it = lk.item;
       const ok = ET.saveArticleWord({ word: sh.word, phrase: sh.phrase || '', lemma: g ? g.lemma : lk.t, part_of_speech: g ? g.pos : '', hebrew_meaning: he,
         context_sentence: sh.sentence, article_id: RT.art && RT.art.id, ipa: it && it.ipa ? it.ipa : '' });
-      sh.savedNow = true; toast(ok ? 'נשמר ב"המילים שלי" ⭐' : 'המילה כבר שמורה ב"המילים שלי"'); renderSheet();
+      sh.savedNow = true; toast(ok ? 'נוסף למילים שלי ⭐' : 'המילה כבר נמצאת במילים שלי'); renderSheet();
     },
     unsave: (a) => { if ((S.items[a] || {}).saved) ET.toggleSave(a); toast('הוסר מהמילים שלי'); render(); },
     'fav-cat': (a) => { RT.favCat = a; render(); },
     'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); if (el.dataset.q === '5') { RT.sheet = null; toast('מעולה! המילה סומנה כמוכרת ולא תופיע שוב ✓'); } else toast('נוסף לחזרה 🔁'); render(); },
     report: (a) => { const it = ET.item(a); RT.sheet = { type: 'report', id: a, term: it ? it.t : a, kind: null }; renderSheet(); },
+    'save-lex': () => {
+      const sh = RT.sheet; if (!sh) return;
+      const lk = ET.lookup(sh.word);
+      const ok = ET.saveArticleWord({ word: sh.word, hebrew_meaning: lk.he || '', lemma: lk.t || '', context_sentence: sh.sentence || '' });
+      toast(ok ? 'נוסף למילים שלי ⭐' : 'המילה כבר נמצאת במילים שלי');
+    },
     'report-lex': () => { const w = RT.sheet.word; RT.sheet = { type: 'report', id: 'lex:' + w, term: w, kind: null }; renderSheet(); },
     'report-kind': (a) => { RT.sheet.kind = a; renderSheet(); },
     'send-report': () => {
