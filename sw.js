@@ -4,7 +4,7 @@
    - Words, dictionary and the article list are served from the device at once and refreshed in the background;
      when the refreshed copy differs, open pages are told ('data-updated') and show the new content right away.
    - Opened articles and photos stay readable offline. */
-const VERSION = 'et-v4.10.1';
+const VERSION = 'et-v4.10.2';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js',
@@ -95,7 +95,8 @@ self.addEventListener('fetch', (e) => {
 
   // App code and pages: straight from the device (this version's copy); the network only for files not stored yet
   e.respondWith(caches.open(VERSION).then(async (c) => {
-    const hit = (await c.match(req, { ignoreSearch: true })) || (req.mode === 'navigate' ? await c.match('index.html') : null);
-    return hit || fetch(req);
+    const hit = await c.match(req, { ignoreSearch: true });
+    // other pages go to the network; the app page is the offline fallback for the app's own address only
+    return hit || fetch(req).catch(() => (req.mode === 'navigate' ? c.match('index.html') : undefined));
   }));
 });
