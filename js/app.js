@@ -91,7 +91,7 @@
 
   /* ---------- tab bar ---------- */
   const TABS = [['home', 'home', 'בית'], ['words', 'learn', 'לימוד מילים'], ['reading', 'book', 'קריאה'], ['profile', 'user', 'פרופיל']];
-  const TAB_OF = { savedwords: 'reading', dict: 'words', mywords: 'words', article: 'reading', stats: 'profile', storage: 'profile', reports: 'profile', placement: 'profile' };
+  const TAB_OF = { savedwords: 'words', dict: 'words', mywords: 'words', article: 'reading', stats: 'profile', storage: 'profile', reports: 'profile', placement: 'profile' };
   const renderTabbar = (name) => {
     const cur = TAB_OF[name] || name;
     tabbarEl.innerHTML = `<nav aria-label="ניווט ראשי">${TABS.map(([id, icon, label]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="go" data-arg="${id}" ${cur === id ? 'aria-current="page"' : ''}>${ic(icon)}<span>${label}</span></button>`).join('')}</nav>`;
@@ -259,14 +259,15 @@
   /* =========================================================
      WORDS (topics · common expressions · American slang)
      ========================================================= */
-  const WORD_SECS = [['topics', 'מילים לפי נושאים', '📚', 'blue'], ['slang', 'סלנג אמריקאי', '😎', 'yellow']];
+  const WORD_SECS = [['mine', 'המילים שלי', '⭐', 'pink'], ['topics', 'מילים לפי נושאים', '📚', 'blue'], ['slang', 'סלנג אמריקאי', '😎', 'yellow'], ['phrases', 'ביטויים שימושיים', '💬', 'purple']];
   const fmtDate = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-').map(Number); return `${d}.${m}.${y}`; };
   const newBadge = (it) => (ET.isNewToday(it) ? '<span class="badge new">חדש</span>' : '');
   const favEmpty = (what) => `<div class="card empty"><div class="emo">⭐</div><p>עוד אין כאן ${what} במועדפים. לחצו על הכוכבית בכרטיס כדי לשמור.</p></div>`;
   SCREENS.words = (sec, arg) => {
     if (!ET.Vocab.ready && !ET.Vocab.loading) ET.Vocab.load().then(() => { if (parse().name === 'words') render(); });
     if (sec === 'expr') sec = ''; // common expressions were removed: old links open the hub
-    /* hub: two big choices */
+    if (sec === 'topic' && arg === 'favorites') sec = 'mine'; // favourites now live in My words
+    /* hub: four big choices */
     if (!sec) {
       return `<div class="screen">
         <header class="topbar"><span class="grow"></span>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<button class="icon-btn" data-act="go" data-arg="dict" aria-label="חיפוש במילון">${ic('search')}</button></header>
@@ -276,7 +277,6 @@
     if (!ET.Vocab.ready) return `<div class="screen">${topbar('לימוד מילים', 'words')}<div class="card empty"><p>טוען מילים…</p></div></div>`;
     if (sec === 'topics') {
       return `<div class="screen">${topbar('מילים לפי נושאים', 'words')}
-        <div class="list"><button class="li" data-act="go" data-arg="words/topic/favorites"><span class="ico">⭐</span><span class="main"><span class="t">מועדפים</span></span>${ic('chev', 'chev')}</button></div>
         <div class="list">${D.CATEGORIES.map((c) => `<button class="li" data-act="go" data-arg="words/topic/${c.id}"><span class="ico">${c.icon}</span><span class="main"><span class="t">${c.he}</span></span>${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
     }
     if (sec === 'topic') {
@@ -295,24 +295,38 @@
         ${rest.length ? `<div class="list">${rest.slice(0, shown).map((it) => itemRow(it)).join('')}</div>` : ''}
         ${rest.length > shown ? `<button class="btn ghost block" data-act="more-words" data-arg="${arg}">הצג עוד מילים</button>` : ''}</div>`;
     }
-    /* expressions / slang: All | Favorites */
-    const isSlang = sec === 'slang';
-    const tab = arg === 'favorites' ? 'favorites' : 'all';
-    const title = isSlang ? 'סלנג אמריקאי' : 'ביטויים נפוצים';
-    const tabs = `<div class="seg full" role="tablist"><button class="${tab === 'all' ? 'on' : ''}" data-act="go" data-arg="words/${sec}">הכול</button><button class="${tab === 'favorites' ? 'on' : ''}" data-act="go" data-arg="words/${sec}/favorites">⭐ מועדפים</button></div>`;
-    if (tab === 'favorites') {
-      const favs = ET.byNewest(ET.favorites(isSlang ? 'slang' : 'expr'));
-      return `<div class="screen">${topbar(title, 'words')}${tabs}
-        ${favs.length ? `<button class="btn block" data-act="go" data-arg="session/fav/${isSlang ? 'slang' : 'expr'}">${ic('play')} התחל כרטיסיות</button><div class="list">${favs.map((it) => itemRow(it, newBadge(it))).join('')}</div>` : favEmpty(isSlang ? 'סלנג' : 'ביטויים')}</div>`;
+    if (sec === 'mine') {
+      const list = ET.favorites('all').map((it) => ({ it, at: (S.items[it.id] || {}).savedAt || (S.items[it.id] || {}).seen || 0 })).sort((x, y) => y.at - x.at).map((x) => x.it);
+      if (!list.length) return `<div class="screen">${topbar('⭐ המילים שלי', 'words')}<div class="card empty"><div class="emo">⭐</div><h2>עוד לא שמרת מילים</h2><p>כל מילה שתשמרו בכוכבית, בכל חלקי לימוד מילים, וכל מילה שתשמרו מתוך כתבה, תופיע כאן.</p></div></div>`;
+      return `<div class="screen">${topbar('⭐ המילים שלי', 'words')}
+        <button class="btn block" data-act="go" data-arg="session/fav/all">${ic('play')} התחל כרטיסיות</button>
+        <div class="sw-list">${list.map(mineCard).join('')}</div></div>`;
     }
-    const items = ET.byNewest(ET.sectionItems(isSlang ? 'slang' : 'expr'));
+    /* American slang (any level) and useful expressions (profile level): today's new ones first, then the rest */
+    const isSlang = sec === 'slang';
+    if (!isSlang && sec !== 'phrases') return SCREENS.words();
+    const title = isSlang ? '😎 סלנג אמריקאי' : '💬 ביטויים שימושיים';
+    const items = ET.byNewest(ET.sectionItems(sec));
     const fresh = items.filter(ET.isNewToday);
     const rest = items.filter((i) => !ET.isNewToday(i));
-    const groups = isSlang ? [['', rest]] : ET.EXPR_GROUPS.map(([k, he]) => [he, rest.filter((i) => i.kind === k || (k === 'idiom' && i.kind === 'idiom'))]);
-    return `<div class="screen">${topbar(title, 'words')}${tabs}
-      <button class="btn block" data-act="go" data-arg="session/sec/${isSlang ? 'slang' : 'expr'}">${ic('play')} התחל כרטיסיות</button>
+    if (!items.length) return `<div class="screen">${topbar(title, 'words')}<div class="card empty"><p>${isSlang ? 'כל הסלנג כבר מוכר לך 🎉' : 'ביטויים ברמה שלך יתווספו בעדכון הקרוב.'}</p></div></div>`;
+    return `<div class="screen">${topbar(title, 'words')}
+      <button class="btn block" data-act="go" data-arg="session/sec/${sec}">${ic('play')} התחל כרטיסיות</button>
       ${fresh.length ? `<h3 class="group-h">נוספו היום</h3><div class="list">${fresh.map((it) => itemRow(it, newBadge(it))).join('')}</div>` : ''}
-      ${groups.filter(([, l]) => l.length).map(([he, l]) => `${he ? `<h3 class="group-h">${he}</h3>` : ''}<div class="list">${l.map((it) => itemRow(it)).join('')}</div>`).join('')}</div>`;
+      ${rest.length ? `<div class="list">${rest.map((it) => itemRow(it)).join('')}</div>` : ''}</div>`;
+  };
+  const mineCard = (it) => {
+    const kind = it.type === 'expr' ? (ET.KINDS[it.kind] || {}).he : (it.pos && POS_HE[it.pos]) || '';
+    const base = it.lemma && it.lemma.toLowerCase() !== it.t.toLowerCase() ? it.lemma : '';
+    const art = it.art && ET.Articles.meta(it.art);
+    return `<article class="card sw-card">
+      <div class="sw-top"><button class="sw-term" lang="en" dir="ltr" data-act="item" data-arg="${esc(it.id)}">${esc(it.t)}</button>${speakBtn(it.t, it.id, '', 'sm')}<span class="grow"></span>
+        <button class="icon-btn flat" data-act="unsave" data-arg="${esc(it.id)}" aria-label="הסרה מהמילים שלי">${ic('trash')}</button></div>
+      <div class="sw-he">${it.he ? esc(it.he) : '<span class="muted">אין עדיין פירוש</span>'}</div>
+      ${kind || base ? `<div class="sw-meta">${esc(kind)}${kind && base ? ' · ' : ''}${base ? `מתוך <span lang="en">${esc(base)}</span>` : ''}</div>` : ''}
+      ${it.ex ? `<p class="sw-sent" dir="ltr" lang="en">${highlight(it.ex, it.t)}</p>` : ''}
+      ${art ? `<button class="link small sw-link" data-act="go" data-arg="article/${esc(it.art)}">לכתבה ←</button>` : ''}
+    </article>`;
   };
 
 
@@ -583,32 +597,13 @@
     const upd = A.index && A.index.updated ? ET.dayKey(new Date(A.index.updated)) : '';
     return `<div class="screen">
       <header class="topbar read-head"><div class="grow"><h1>קריאה</h1>${upd ? `<span class="upd">עודכן לאחרונה: ${fmtDate(upd)}</span>` : ''}</div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<span class="badge lvl">רמה ${esc(S.profile.cefr)}</span></header>
-      <div class="read-tools"><button class="chip ${cat === 'favorites' ? 'on' : ''}" data-act="go" data-arg="reading/favorites">🔖 מועדפים</button><button class="chip" data-act="go" data-arg="savedwords">📚 המילים שלי</button></div>
+      <div class="read-tools"><button class="chip ${cat === 'favorites' ? 'on' : ''}" data-act="go" data-arg="reading/favorites">🔖 מועדפים</button></div>
       ${cat === 'favorites' ? '' : chips}${body}
       <p class="note">כתבות לימוד מקוריות באנגלית, שנכתבות כל יום על בסיס ידיעות אמיתיות ממקורות מוכרים (כמו BBC, The Guardian, NPR ו־CNBC), בדיוק ברמה שלך. המקורות מופיעים בסוף כל כתבה.</p></div>`;
   };
 
   /* "My words" saved while reading: the meaning in context, the sentence, and a way back to the article */
-  SCREENS.savedwords = () => {
-    const list = ET.SavedWords.list();
-    const card = (w, i) => {
-      const term = w.phrase || w.word;
-      const base = w.lemma && w.lemma.toLowerCase() !== term.toLowerCase() ? w.lemma : '';
-      const pos = w.part_of_speech && POS_HE[w.part_of_speech];
-      const art = w.article_id && ET.Articles.meta(w.article_id);
-      return `<article class="card sw-card">
-        <div class="sw-top"><span class="sw-term" lang="en" dir="ltr">${esc(term)}</span>${speakBtn(term, '', '', 'sm')}<span class="grow"></span>
-          <button class="icon-btn flat" data-act="del-savedword" data-arg="${i}" aria-label="הסרה מהמילים שלי">${ic('trash')}</button></div>
-        <div class="sw-he">${w.hebrew_meaning ? esc(w.hebrew_meaning) : '<span class="muted">אין עדיין פירוש</span>'}</div>
-        ${pos || base ? `<div class="sw-meta">${pos ? esc(pos) : ''}${pos && base ? ' · ' : ''}${base ? `מתוך <span lang="en">${esc(base)}</span>` : ''}</div>` : ''}
-        ${w.context_sentence ? `<p class="sw-sent" dir="ltr" lang="en">${highlight(w.context_sentence, w.word)}</p>` : ''}
-        ${art ? `<button class="link small sw-link" data-act="go" data-arg="article/${esc(w.article_id)}">לכתבה ←</button>` : ''}
-      </article>`;
-    };
-    return `<div class="screen">${topbar('המילים שלי', 'reading')}
-      ${list.length ? `<div class="sw-list">${list.map(card).join('')}</div>`
-        : '<div class="card empty"><div class="emo">📚</div><h2>עוד לא שמרת מילים</h2><p>בזמן קריאה, לחצו על מילה ואז על "＋ שמור מילה". המילה תישמר כאן עם הפירוש שלה במשפט.</p></div>'}</div>`;
-  };
+  SCREENS.savedwords = () => { location.hash = '#/words/mine'; return ''; }; // moved to the Words tab
 
   /* words & phrases inside the lesson: the lesson's own glossary first (meaning in context), then the offline dictionary */
   const POS_HE = { noun: 'שם עצם', verb: 'פועל', adjective: 'שם תואר', adverb: 'תואר הפועל', 'phrasal verb': 'פועל עם מילת יחס', idiom: 'ביטוי', compound: 'צירוף', name: 'שם פרטי', other: '' };
@@ -855,7 +850,7 @@
       const lemma = g ? g.lemma : lk.t;
       const isName = g && (g.name || g.pos === 'name') && /^[A-Z]/.test(label); // the model sometimes marks ordinary words as names
       const pos = g && !isName ? g.pos : '';
-      const saved = ET.SavedWords.has(label, sh.sentence) || !!sh.savedNow;
+      const saved = ET.isArticleWordSaved(label) || !!sh.savedNow;
       return `<div class="pop-head"><div class="term">${esc(label)}</div>${it && it.ipa ? `<span class="muted small" dir="ltr">${esc(it.ipa)}</span>` : ''}<span class="grow"></span>
           ${speakBtn(label, it ? it.id : '', '', '')}
           <button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
@@ -954,11 +949,11 @@
       // every word can be saved: without a meaning yet, try the online translation; otherwise save it with the sentence only
       if (!he && RT.online) { try { he = await ET.TranslationProvider.translate(sh.phrase || sh.word) || ''; } catch (e) { /* save without */ } }
       const it = lk.item;
-      const ok = ET.SavedWords.add({ word: sh.word, phrase: sh.phrase || '', lemma: g ? g.lemma : lk.t, part_of_speech: g ? g.pos : '', hebrew_meaning: he,
+      const ok = ET.saveArticleWord({ word: sh.word, phrase: sh.phrase || '', lemma: g ? g.lemma : lk.t, part_of_speech: g ? g.pos : '', hebrew_meaning: he,
         context_sentence: sh.sentence, article_id: RT.art && RT.art.id, ipa: it && it.ipa ? it.ipa : '' });
-      sh.savedNow = true; toast(ok ? 'נשמר ב"המילים שלי" 📚' : 'המילה כבר שמורה במשמעות הזאת'); renderSheet();
+      sh.savedNow = true; toast(ok ? 'נשמר ב"המילים שלי" ⭐' : 'המילה כבר שמורה ב"המילים שלי"'); renderSheet();
     },
-    'del-savedword': (a) => { ET.SavedWords.remove(+a); toast('הוסר מהמילים שלי'); render(); },
+    unsave: (a) => { if ((S.items[a] || {}).saved) ET.toggleSave(a); toast('הוסר מהמילים שלי'); render(); },
     'fav-cat': (a) => { RT.favCat = a; render(); },
     'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); if (el.dataset.q === '5') { RT.sheet = null; toast('מעולה! המילה סומנה כמוכרת ולא תופיע שוב ✓'); } else toast('נוסף לחזרה 🔁'); render(); },
     report: (a) => { const it = ET.item(a); RT.sheet = { type: 'report', id: a, term: it ? it.t : a, kind: null }; renderSheet(); },

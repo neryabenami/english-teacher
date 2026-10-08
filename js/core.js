@@ -32,7 +32,7 @@
   const POS = { n: 'שם עצם', v: 'פועל', adj: 'שם תואר', adv: 'תואר הפועל', phr: 'צירוף' };
   const KINDS = {
     slang: { he: 'סלנג', icon: '🔥' }, spoken: { he: 'Spoken English', icon: '🗣️' }, phrasal: { he: 'Phrasal Verbs', icon: '🧩' },
-    idiom: { he: 'Idioms', icon: '🎭' }, expr: { he: 'ביטויים נפוצים', icon: '💬' }, texting: { he: 'Texting', icon: '📲' }
+    idiom: { he: 'Idioms', icon: '🎭' }, expr: { he: 'ביטויים נפוצים', icon: '💬' }, phrase: { he: 'ביטוי שימושי', icon: '💬' }, texting: { he: 'Texting', icon: '📲' }
   };
   const SLANG_CATS = [
     { id: 'daily', he: 'Daily Slang' }, { id: 'american', he: 'American' }, { id: 'british', he: 'British' },
@@ -78,7 +78,8 @@
   /* the two phrase areas of the Words tab */
   const EXPR_KINDS = ['expr', 'spoken', 'phrasal', 'idiom'];
   ET.EXPR_GROUPS = [['expr', 'ביטויים יום־יומיים'], ['spoken', 'Spoken English'], ['phrasal', 'Phrasal Verbs'], ['idiom', 'Idioms']];
-  ET.sectionItems = (sec) => ITEMS.filter((i) => i.type === 'expr' && (sec === 'expr' ? EXPR_KINDS.includes(i.kind) : i.kind === 'slang' && i.region !== 'בריטניה'));
+  ET.levelOk = (i) => i.lvl === ET.S.profile.cefr || (ET.S.profile.cefr === 'C2' && i.lvl === 'C1');
+  ET.sectionItems = (sec) => ITEMS.filter((i) => i.type === 'expr' && (sec === 'phrases' ? i.kind === 'phrase' && ET.levelOk(i) : sec === 'expr' ? EXPR_KINDS.includes(i.kind) : i.kind === 'slang' && i.region !== 'בריטניה'));
 
   /* ---------- storage provider (local first) ---------- */
   const StorageProvider = {
@@ -212,7 +213,7 @@
   ET.isKnown = (id) => !!(S.items[id] && S.items[id].s === 'known');
   ET.isDue = (id) => { const r = S.items[id]; return !!(r && r.last && r.s !== 'known' && r.due <= Date.now()); };
   ET.dueIds = () => Object.keys(S.items).filter((id) => BY_ID[id] && ET.isDue(id)).sort((a, b) => S.items[a].due - S.items[b].due);
-  ET.toggleSave = (id) => { const r = ensure(id); r.saved = !r.saved; if (!r.seen) r.seen = Date.now(); ET.save(); return r.saved; };
+  ET.toggleSave = (id) => { const r = ensure(id); r.saved = !r.saved; if (r.saved) r.savedAt = Date.now(); if (!r.seen) r.seen = Date.now(); ET.save(); return r.saved; };
   ET.status = (id) => { const r = S.items[id]; if (!r || !r.last) return r && r.saved ? 'saved' : 'new'; return r.s; };
 
   const userIdx = () => lvlIdx(S.profile.cefr);
@@ -225,7 +226,7 @@
     const cats = interestCats();
     const goal = S.profile.goal;
     const wantExpr = ['slang', 'conversation', 'movies', 'all'].includes(goal);
-    const fresh = ITEMS.filter((i) => !S.items[i.id] || !S.items[i.id].last).filter((i) => (i.type === 'word' ? ET.atLevel(i) : i.kind === 'slang') && !i.id.startsWith('c:'));
+    const fresh = ITEMS.filter((i) => !S.items[i.id] || !S.items[i.id].last).filter((i) => (i.type === 'word' ? ET.atLevel(i) : i.kind === 'slang' || (i.kind === 'phrase' && ET.levelOk(i))) && !i.id.startsWith('c:'));
     const score = (i) => (cats.has(i.cat) ? 0 : 2) + (i.type === 'expr' ? (wantExpr ? 0 : 3) : 0) + Math.random() * 2.5;
     return fresh.sort((a, b) => score(a) - score(b)).slice(0, n).map((i) => i.id);
   };
@@ -255,7 +256,7 @@
   };
   /* favourites of one section: word topics, common expressions or slang (known items are excluded) */
   ET.favorites = (sec) => ITEMS.filter((i) => S.items[i.id] && S.items[i.id].saved && !ET.isKnown(i.id)
-    && (sec === 'words' ? i.type === 'word' && ACTIVE_CATS.has(i.cat) : sec === 'slang' ? i.type === 'expr' && i.kind === 'slang' : i.type === 'expr' && i.kind !== 'slang'));
+    && (sec === 'all' ? true : sec === 'words' ? i.type === 'word' && ACTIVE_CATS.has(i.cat) : sec === 'slang' ? i.type === 'expr' && i.kind === 'slang' : i.type === 'expr' && i.kind !== 'slang'));
   /* newest additions first, then the best fit for the user's level */
   ET.byNewest = (list) => list.filter((i) => !ET.isKnown(i.id)).sort((a, b) => (b.added || '').localeCompare(a.added || '') || ET.levelFit(a) - ET.levelFit(b) || a.t.localeCompare(b.t));
   ET.isNewToday = (it) => it.added === dayKey();
@@ -370,8 +371,8 @@
         // daily expressions & slang from Wiktionary: [kind, term, hebrew, english definition, example, example hebrew, level, added]
         for (const [kind, t, he, def, ex, exHe, lvl, added] of j.exprs || []) {
           const id = 'x:' + t.toLowerCase();
-          if (BY_ID[id] || kind !== 'slang') continue;
-          add({ id, type: 'expr', kind, cat: kind === 'slang' ? 'american' : kind, t, he, lit: '', real: he, def, ex, exHe, ctx: 'מקור: Wiktionary', formal: kind === 'slang' ? 1 : 2,
+          if (BY_ID[id] || (kind !== 'slang' && kind !== 'phrase')) continue;
+          add({ id, type: 'expr', kind, cat: kind === 'slang' ? 'american' : kind, t, he, lit: '', real: he, def, ex, exHe, ctx: '', formal: kind === 'slang' ? 1 : 2,
             region: kind === 'slang' ? 'ארה"ב' : 'כללי', freq: 2, lvl, added, emoji: KINDS[kind].icon, pos: 'phr' });
         }
         this.ready = true;
@@ -446,6 +447,23 @@
   };
 
   /* "My words" from reading: the meaning saved is the one shown in context (not a general dictionary entry) */
+  ET.saveArticleWord = (w) => {
+    const term = (w.phrase || w.word).toLowerCase();
+    const id = 'c:' + term;
+    const it = BY_ID[id] || {};
+    Object.assign(it, { id, type: 'word', cat: 'custom', t: term, he: w.hebrew_meaning || it.he || '', pos: w.part_of_speech || '', lvl: S.profile.cefr, emoji: '', ipa: w.ipa || '',
+      ex: w.context_sentence || it.ex || '', exHe: '', art: w.article_id || it.art || '', lemma: w.lemma || '' });
+    S.custom[id] = it;
+    if (!BY_ID[id]) add(it);
+    const r = ensure(id);
+    const was = r.saved;
+    r.saved = true; r.savedAt = w.saved_at || Date.now(); if (!r.seen) r.seen = r.savedAt;
+    ET.save(true);
+    return !was;
+  };
+  ET.isArticleWordSaved = (term) => !!(S.items['c:' + term.toLowerCase()] && S.items['c:' + term.toLowerCase()].saved);
+  // once: words saved earlier in the reading tab move to My words
+  if ((S.savedWords || []).length) { S.savedWords.forEach((w) => ET.saveArticleWord(w)); S.savedWords = []; ET.save(true); }
   ET.SavedWords = {
     list() { return (S.savedWords || []).slice().sort((a, b) => b.saved_at - a.saved_at); },
     has(word, sentence) { return (S.savedWords || []).some((w) => w.normalized === word.toLowerCase() && w.context_sentence === sentence); },

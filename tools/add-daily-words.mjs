@@ -4,6 +4,7 @@
      base forms only). Gemini sorts them into the topics and adds the Hebrew meaning and an example at that level.
      When a level's band runs out, words from the next band up are used. Without a Gemini key, the old reserve
      (tools/vocab-reserve.json) is used, at the same level only.
+   - 5 useful everyday expressions a day at the reader's level (Gemini).
    - 5 new American slang terms, any level: the curated list (tools/slang-reserve.txt) first, then Gemini.
    Nothing is ever removed, and a word that exists in the app (also one marked as known) is never added again.
    vocab.updated becomes today's date when something was added. */
@@ -166,6 +167,38 @@ Return ONLY JSON: {"slang": [{"term": "...", "he": "...", "def": "...", "ex": ".
   } catch (e) { console.warn('gemini slang failed:', e.message); }
 }
 
-if (words + slang > 0) vocab.updated = today;
+/* ---------- 5 useful everyday expressions a day, at the reader's level (a new level starts with at least 20) ---------- */
+const PER_PHRASE = 5;
+const PHRASE_MIN = 20;
+const myPhrases = () => vocab.exprs.filter((e) => e[0] === 'phrase' && e[6] === LEVEL);
+const phraseNeed = () => Math.max(PER_PHRASE - myPhrases().filter((e) => e[7] === today).length, PHRASE_MIN - myPhrases().length);
+let phrases = 0;
+if (phraseNeed() > 0 && hasGemini()) {
+  try {
+    for (let round = 0; round < 2 && phraseNeed() > 0; round++) {
+      const want = phraseNeed();
+      const known = vocab.exprs.filter((e) => e[0] === 'phrase').map((e) => e[1]);
+      const res = await gemini(
+        'You teach useful everyday spoken English expressions to Hebrew speakers. You only suggest real, natural, widely used expressions, never vulgar ones.',
+        `Learner level: CEFR ${LEVEL}. Suggest ${want + 4} useful everyday English expressions that fit this level: phrasal verbs, fixed phrases and common sayings people really use (e.g. "figure out", "on the other hand", "it's up to you", "give it a try"). Not slang. 2-6 words each. Not in this list:
+${known.join(', ') || '(empty)'}
+
+For each: "term", "he" = the meaning in natural Hebrew with correct spelling (short), "def" = a short English definition, "ex" = a natural example sentence at ${LEVEL} level that contains the expression, "exHe" = its Hebrew translation.
+Return ONLY JSON: {"phrases": [{"term": "...", "he": "...", "def": "...", "ex": "...", "exHe": "..."}]}`);
+      for (const x of (res && res.phrases) || []) {
+        if (phraseNeed() <= 0) break;
+        const t = String(x.term || '').trim().replace(/[.!?]+$/, '');
+        const key = t.toLowerCase();
+        if (!/^[a-z'’ -]{3,40}$/i.test(t) || t.split(/\s+/).length < 2 || t.split(/\s+/).length > 6) continue;
+        if (haveExpr.has(key) || have.has(key) || blocked(t) || blocked(x.ex) || !goodHe(x.he) || !goodHe(x.exHe) || !x.def || !x.ex) continue;
+        haveExpr.add(key);
+        vocab.exprs.push(['phrase', t, x.he.trim(), String(x.def).trim(), String(x.ex).trim(), x.exHe.trim(), LEVEL, today]);
+        phrases++;
+      }
+    }
+  } catch (e) { console.warn('gemini phrases failed:', e.message); }
+}
+
+if (words + slang + phrases > 0) vocab.updated = today;
 fs.writeFileSync('data/vocab.json', JSON.stringify(vocab));
-console.log(`level ${LEVEL} · added today: ${words} words, ${slang} slang · database ${vocab.words.length} words + ${vocab.exprs.length} expressions`);
+console.log(`level ${LEVEL} · added today: ${words} words, ${slang} slang, ${phrases} expressions · database ${vocab.words.length} words + ${vocab.exprs.length} expressions`);
