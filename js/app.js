@@ -826,7 +826,6 @@
       const ctx = sh.ctx || {};
       return `<div class="grab"></div>
         <div class="head"><div class="term">${esc(it.t)}</div>
-          <button class="icon-btn flat ${r.saved ? 'active' : ''}" data-act="save" data-arg="${esc(it.id)}" aria-label="${r.saved ? 'הסרה מהשמורים' : 'שמירה'}">${r.saved ? icFill('star') : ic('star')}</button>
           <button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
         <div class="row wrap" style="gap:6px">${it.ipa ? `<span class="muted en">${esc(it.ipa)}</span>` : ''}${it.lvl ? lvlBadge(it.lvl) : ''}${it.type === 'expr' ? `<span class="badge sun">${ET.KINDS[it.kind].he}</span>` : it.pos ? `<span class="badge">${ET.POS[it.pos] || ''}</span>` : ''}</div>
         <div class="row wrap">${speakBtn(it.t, it.id, 'השמע')}<button class="speak" data-act="say-slow" data-arg="${esc(it.t)}" data-id="${esc(it.id)}">🐢 לאט</button></div>
