@@ -4,7 +4,7 @@
    - Words, dictionary and the article list are served from the device at once and refreshed in the background;
      when the refreshed copy differs, open pages are told ('data-updated') and show the new content right away.
    - Opened articles and photos stay readable offline. */
-const VERSION = 'et-v4.10.2';
+const VERSION = 'et-v4.10.3';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js',

@@ -68,8 +68,6 @@
   const bandHe = (cefr) => (ET.CEFR_INFO[cefr] || ET.CEFR_INFO.A2).he;
   const lvlBadge = (l) => `<span class="badge lvl">${l} · ${bandHe(l)}</span>`;
   const catOf = (id) => D.CATEGORIES.find((c) => c.id === id);
-  const STATUS = { known: ['יודע', 'good'], hard: ['קשה', 'warn'], learning: ['בלמידה', 'bad'], new: ['חדש', ''], saved: ['שמור', 'sun'] };
-  const statusBadge = (id) => { const [t, c] = STATUS[ET.status(id)] || STATUS.new; return `<span class="badge ${c}">${t}</span>`; };
   const FORMAL = { 1: 'לא רשמי', 2: 'יומיומי', 3: 'רשמי' };
   const FREQ = { 1: 'פחות נפוץ', 2: 'נפוץ', 3: 'נפוץ מאוד' };
   /* isolates English runs inside Hebrew text so they display in the right order */
@@ -77,7 +75,7 @@
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const topbar = (title, back, extra = '') => `<header class="topbar">${back ? `<button class="icon-btn" data-act="go" data-arg="${back}" aria-label="חזרה">${ic('back')}</button>` : ''}<h1>${title}</h1>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}${extra}</header>`;
   const li = (icon, title, sub, path, end = '') => `<button class="li" data-act="go" data-arg="${path}"><span class="ico">${I[icon] ? ic(icon) : icon}</span><span class="main"><span class="t">${title}</span>${sub ? `<span class="s" style="display:block">${sub}</span>` : ''}</span><span class="end">${end}${ic('chev', 'chev')}</span></button>`;
-  const itemRow = (it, extra = '') => `<button class="li" data-act="item" data-arg="${esc(it.id)}">${it.emoji ? `<span class="ico">${it.emoji}</span>` : ''}<span class="main"><span class="t en" style="display:block">${esc(it.t)}</span><span class="s" style="display:block">${esc(it.he)}</span></span><span class="end">${extra}${ET.rec(it.id) ? statusBadge(it.id) : ''}</span></button>`;
+  const itemRow = (it, extra = '') => `<button class="li" data-act="item" data-arg="${esc(it.id)}">${it.emoji ? `<span class="ico">${it.emoji}</span>` : ''}<span class="main"><span class="t en" style="display:block">${esc(it.t)}</span><span class="s" style="display:block">${esc(it.he)}</span></span><span class="end">${extra}</span></button>`;
   const speakBtn = (text, id, label = '', cls = '') => `<button class="speak ${cls}" data-act="say" data-arg="${esc(text)}" ${id ? `data-id="${esc(id)}"` : ''} aria-label="השמעה">${ic('speaker')}${label ? ' ' + label : ''}</button>`;
   const pathDots = (id) => { const p = (ET.rec(id) || {}).p || 0; const n = ET.PATH.filter((_, i) => p & (1 << i)).length; return `<div class="stack" style="gap:6px"><div class="path" title="${ET.PATH.join(' → ')}">${ET.PATH.map((l, i) => `<i class="${p & (1 << i) ? 'on' : ''}" title="${l}"></i>`).join('')}</div><div class="small muted" style="text-align:center">מסלול המילה: ${n ? ET.PATH.filter((_, i) => p & (1 << i)).slice(-1)[0] : 'עוד לא התחלנו'} (${n}/7)</div></div>`; };
 
