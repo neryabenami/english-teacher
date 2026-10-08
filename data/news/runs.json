@@ -1,5 +1,25 @@
 [
  {
+  "run_id": "2026-10-08T15:06:21.619Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 962,
+  "rejected": 3,
+  "duplicates": 104,
+  "verified": 3,
+  "created": 1,
+  "published_by_cat": {
+   "tech": 1
+  },
+  "errors": [
+   "Mamdani marks Oct. 7 by accusing Israel of genocide: too close to the source wording; title",
+   "Xbox Announces New XP Entertainment Division to Make Movies,: length 391"
+  ],
+  "gemini_calls": 19,
+  "end": "2026-10-08T15:12:09.993Z"
+ },
+ {
   "run_id": "2026-10-08T14:14:59.601Z",
   "level": "C1",
   "sources_checked": 41,
