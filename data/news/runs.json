@@ -1,5 +1,22 @@
 [
  {
+  "run_id": "2026-10-08T15:30:57.415Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 965,
+  "rejected": 1,
+  "duplicates": 104,
+  "verified": 1,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "חמש דירות של פוליקר יעברו פינוי בינוי בתום סכסוך שכנים: number not in sources: 120,500"
+  ],
+  "gemini_calls": 13,
+  "end": "2026-10-08T15:43:05.144Z"
+ },
+ {
   "run_id": "2026-10-08T15:17:40.980Z",
   "level": "C1",
   "sources_checked": 41,
