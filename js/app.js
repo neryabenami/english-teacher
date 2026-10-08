@@ -824,6 +824,25 @@
       if (!it) return '';
       const r = ET.rec(it.id) || {};
       const ctx = sh.ctx || {};
+      if (it.type === 'expr' && it.kind === 'slang' && !sh.ctx) {
+        // American slang: the big centred term, "what does it mean?" and the example
+        const mn = ET.Meanings.of(it);
+        const what = (mn && mn.m) || (it.real && it.real !== it.he ? it.real : '');
+        return `<div class="grab"></div>
+        <div class="tw-close"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
+        <div class="tw-word">
+          <div class="tw-en" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
+          <div class="tw-he">${esc(it.he)}</div>
+        </div>
+        ${what ? `<div class="tw-box what"><div class="tw-h">💡 מה זה אומר?</div><p>${esc(what)}</p></div>` : ''}
+        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">💬 דוגמה במשפט</div>
+          <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlight(it.ex, it.t)}</span></div>
+          ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
+        <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
+        ${pathDots(it.id)}
+        <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
+        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
+      }
       if (ET.isTopicWord(it) && !sh.ctx) {
         const mn = ET.Meanings.of(it);
         const pos = (mn && POS_HE[mn.pos]) || ET.POS[it.pos] || POS_HE[it.pos] || '';

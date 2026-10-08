@@ -216,21 +216,24 @@ if (hasGemini()) {
       if (p.length > 6) pool.push({ t: p[0].trim().toLowerCase(), he: p[1].trim(), lvl: p[3].trim(), cat: OLD_TOPIC[key] || key, ex: p[6].trim(), added: '' });
     }
   }
-  const todo = pool.filter((w) => w.t && !meanings.words[w.t] && TOPICS[w.cat])
-    .sort((a, b) => (b.added === today) - (a.added === today) || (b.lvl === LEVEL) - (a.lvl === LEVEL) || b.added.localeCompare(a.added));
+  for (const e of vocab.exprs) if (e[0] === 'slang') pool.push({ t: e[1].toLowerCase(), key: 'slang:' + e[1].toLowerCase(), he: e[2], lvl: '', cat: 'slang', ex: e[4], added: e[7] || '', slang: true });
+  for (const w of pool) w.key = w.key || w.t;
+  const todo = pool.filter((w) => w.t && !meanings.words[w.key] && (TOPICS[w.cat] || w.slang))
+    .sort((a, b) => (b.slang || 0) - (a.slang || 0) || (b.added === today) - (a.added === today) || (b.lvl === LEVEL) - (a.lvl === LEVEL) || b.added.localeCompare(a.added));
   const seen = new Set();
-  const batch = todo.filter((w) => !seen.has(w.t) && seen.add(w.t)).slice(0, BACKFILL);
+  const batch = todo.filter((w) => !seen.has(w.key) && seen.add(w.key)).slice(0, BACKFILL);
   for (let i = 0; i < batch.length; i += 100) {
     const part = batch.slice(i, i + 100);
     try {
       const res = await gemini(
         'You write short, clear Hebrew explanations of English words for Hebrew-speaking learners.',
         `For each English word below (with its Hebrew translation and an example), write "m": one short sentence in natural Hebrew, with correct spelling, that explains what the word means in this sense (like a learner's dictionary, not just the translation), and "pos": noun|verb|adjective|adverb|phrase|other.
-${part.map((w) => `${w.t} — ${w.he} — ${w.ex || ''}`).join('\n')}
+${part.map((w) => `${w.t}${w.slang ? ' (American slang: explain what it means and how people use it)' : ''} — ${w.he} — ${w.ex || ''}`).join('\n')}
 Return ONLY JSON: {"meanings": {"<word>": {"m": "...", "pos": "..."}}}`);
       for (const [k, v] of Object.entries((res && res.meanings) || {})) {
-        const key = k.toLowerCase().trim();
-        if (!seen.has(key) || meanings.words[key] || !v || !goodHe(v.m) || v.m.length < 8 || v.m.length > 220) continue;
+        const ent = part.find((w) => w.t === k.toLowerCase().trim()); // slang is stored as 'slang:<term>'
+        const key = ent && ent.key;
+        if (!key || !seen.has(key) || meanings.words[key] || !v || !goodHe(v.m) || v.m.length < 8 || v.m.length > 220) continue;
         meanings.words[key] = { m: v.m.trim(), pos: String(v.pos || '').trim() };
         explained++;
       }

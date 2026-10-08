@@ -620,3 +620,7 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .tw-tr { font-size: .84rem; color: var(--muted); line-height: 1.5; }
 .tw-report { justify-self: center; display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: .78rem; }
 .tw-report svg { width: 14px; height: 14px; }
+
+/* v16: slang window: "what does it mean?" box */
+.tw-box.what { background: var(--sun-soft); border-color: color-mix(in srgb, var(--sun) 30%, var(--sun-soft)); }
+.tw-box.what .tw-h { color: color-mix(in srgb, var(--sun) 60%, var(--ink)); }
