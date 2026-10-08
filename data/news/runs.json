@@ -1,5 +1,30 @@
 [
  {
+  "run_id": "2026-10-08T13:36:00.543Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 961,
+  "rejected": 6,
+  "duplicates": 93,
+  "verified": 8,
+  "created": 3,
+  "published_by_cat": {
+   "finance": 1,
+   "sports": 1,
+   "tech": 1
+  },
+  "errors": [
+   "‘Vibrant, design-led and surprisingly green’: why the Dutch : The lesson claims that 'Vintage Valhalla' is 'a term coined by Erik van Gerwen', but the source only states that he mentioned Eindhoven 'gets called' this, without attributing the coining of the term to him.",
+   "Racial and religious hate crimes at record high in England a: The lesson states that offences targeting Muslims 'climbed 15 percent to 5,132, reaching a record 3,660 offences', which is logically contradictory. The sources present 5,132 and 3,660 as two different statistics.; The lesson incorrectly attributes the observation of a spike in antisemitic hate crimes following the October 2025 Manchester synagogue attack to the Community Security Trust (CST), whereas Source 2 states that the Home Office reported this spike.",
+   "ההפגנות החלו: כביש 4 חסום לתנועה לשני הצדדים: title",
+   "BBC axes long-running Radio 4 show You and Yours in push tow: too close to the source wording; length 389",
+   "AI startup Manus raises $500 million in first funding round : length 388"
+  ],
+  "gemini_calls": 31,
+  "end": "2026-10-08T13:46:54.817Z"
+ },
+ {
   "run_id": "2026-10-08T06:10:44.657Z",
   "level": "C1",
   "sources_checked": 41,
