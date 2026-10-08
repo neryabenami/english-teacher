@@ -358,8 +358,8 @@
     ready: false,
     updated: null,
     loading: null,
-    load() {
-      if (this.ready || this.loading) return this.loading;
+    load(force) {
+      if ((this.ready && !force) || this.loading) return this.loading || Promise.resolve();
       this.loading = fetch('data/vocab.json').then((r) => r.json()).then((j) => {
         this.updated = j.updated;
         for (const [t, he, lvl, cat, ex, exHe, added, src] of j.words) {
@@ -467,7 +467,8 @@
     if (!S.daily || S.daily.date !== key) S.daily = { date: key };
     const d = S.daily;
     let changed = false;
-    if ((!d.word || !BY_ID[d.word] || !ET.atLevel(BY_ID[d.word]) || ET.isKnown(d.word)) && ET.Vocab.ready) {
+    if (!ET.Vocab.ready) return d; // until the words are loaded, keep today's picks as they are
+    if (!d.word || !BY_ID[d.word] || !ET.atLevel(BY_ID[d.word]) || ET.isKnown(d.word)) {
       // a word at the user's level, with an example, not already known; words added today are skipped so the pool is stable all day
       const pool = ITEMS.filter((i) => i.type === 'word' && i.ex && i.added !== key && ET.atLevel(i) && !ET.isKnown(i.id));
       const it = pool.length ? pool[hash(key + 'w') % pool.length] : ET.wordOfDay();

@@ -226,7 +226,7 @@
   const miniCard = (it, eyebrow) => `<button class="card mini-card" data-act="item" data-arg="${esc(it.id)}"><span class="eyebrow">${eyebrow}</span><span class="word">${esc(it.t)}</span><span class="small muted">${esc(it.he)}</span></button>`;
 
   const artImage = (a, cls) => (a.image ? `<span class="${cls}"><img src="${esc(a.image.url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="img-credit" dir="ltr">${esc(a.image.credit)}</span></span>` : `<span class="${cls} noimg"><span class="img-emo">${readCat(a.cat).icon}</span></span>`);
-  const dayCard = (it, label, cls, icon) => (it ? `<button class="card day-card" data-act="item" data-arg="${esc(it.id)}"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="w">${esc(it.t)}</span><span class="dc-row"><span class="he">${esc(it.he)}</span><span class="dc-say" data-act="say" data-arg="${esc(it.t)}" data-id="${esc(it.id)}" role="button" tabindex="0" aria-label="השמעת ${esc(it.t)}">${ic('speaker')}</span></span></button>` : '');
+  const dayCard = (it, label, cls, icon) => (!it && !ET.Vocab.ready ? `<div class="card day-card loading" aria-busy="true"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="sk"></span><span class="sk short"></span></div>` : it ? `<button class="card day-card" data-act="item" data-arg="${esc(it.id)}"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="w">${esc(it.t)}</span><span class="dc-row"><span class="he">${esc(it.he)}</span><span class="dc-say" data-act="say" data-arg="${esc(it.t)}" data-id="${esc(it.id)}" role="button" tabindex="0" aria-label="השמעת ${esc(it.t)}">${ic('speaker')}</span></span></button>` : '');
 
   SCREENS.home = () => {
     const A = ET.Articles;
@@ -1203,6 +1203,13 @@
       reloaded = true; location.reload();
     });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && RT.swReg) RT.swReg.update().catch(() => {}); });
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      const m = e.data || {};
+      if (m.type !== 'data-updated') return;
+      if (m.path === 'data/vocab.json') ET.Vocab.load(true).then(() => render());
+      if (m.path === 'data/news/index.json') ET.Articles.load(true).then(() => render());
+      if (m.path === 'data/dict-en-he.json') { ET.DictionarySource.entries = null; ET.DictionarySource.loading = null; ET.DictionarySource.load(); }
+    });
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
       RT.swReg = reg;
       const conn = navigator.connection;

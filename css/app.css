@@ -593,3 +593,8 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 /* v12: reading categories: all visible at once, equal size, 3 per row */
 .chips.read-cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow: visible; margin-inline: 0; padding-inline: 0; }
 .chips.read-cats .chip { min-height: 32px; padding: 0 6px; font-size: .8rem; justify-content: center; text-align: center; }
+
+/* v13: placeholder while the words load (same size as the real card) */
+.day-card.loading .sk { display: block; height: 18px; width: 55%; border-radius: 8px; background: var(--surface-2); animation: sk-pulse 1.2s ease-in-out infinite; }
+.day-card.loading .sk.short { height: 12px; width: 35%; }
+@keyframes sk-pulse { 50% { opacity: .5; } }
