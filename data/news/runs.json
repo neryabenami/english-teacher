@@ -1,5 +1,27 @@
 [
  {
+  "run_id": "2026-10-08T14:14:59.601Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 958,
+  "rejected": 3,
+  "duplicates": 93,
+  "verified": 5,
+  "created": 3,
+  "published_by_cat": {
+   "travel": 1,
+   "finance": 1,
+   "tech": 1
+  },
+  "errors": [
+   "Racial and religious hate crimes at record high in England a: number not in sources: 63; title",
+   "BBC axes long-running Radio 4 show You and Yours in push tow: title"
+  ],
+  "gemini_calls": 24,
+  "end": "2026-10-08T14:24:11.047Z"
+ },
+ {
   "run_id": "2026-10-08T13:36:00.543Z",
   "level": "C1",
   "sources_checked": 41,
