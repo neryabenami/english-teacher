@@ -632,3 +632,7 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .tw-fm.casual { background: var(--pink-soft); color: var(--pink); }
 .tw-fm.neutral { background: var(--accent-soft); color: var(--accent); }
 .tw-fm.formal { background: color-mix(in srgb, #5B7BF0 16%, var(--surface)); color: color-mix(in srgb, #5B7BF0 80%, var(--ink)); }
+
+/* v18: reading title centred and a little bigger */
+.read-head .grow { text-align: center; }
+.read-head h1 { font-size: 1.65rem; }
