@@ -1,9 +1,9 @@
-# Refreshes the real articles every 6 hours and publishes the app to GitHub Pages (free for public repos).
+# Writes the daily articles and words (every 6 hours, and on demand from the app when the level changes),
+# then publishes the app to GitHub Pages (free for public repos).
+# Code changes are published separately and at once by pages.yml, so they never wait for this long job.
 name: Update articles and deploy
 
 on:
-  push:
-    branches: [main]
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
@@ -18,17 +18,12 @@ permissions:
   pages: write
   id-token: write
 
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
-  deploy:
+  content:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: content
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,21 +38,21 @@ jobs:
         run: SOURCES_CHECK=1 node tools/news-pipeline.mjs
 
       - name: Write today's learning articles from real news
-        if: github.event_name != 'push' && !inputs.check_sources
+        if: ${{ !inputs.check_sources }}
         run: node tools/news-pipeline.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           READING_LEVEL: ${{ vars.READING_LEVEL }}
 
       - name: Add today's new words
-        if: github.event_name != 'push' && !inputs.check_sources
+        if: ${{ !inputs.check_sources }}
         run: node tools/add-daily-words.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           READING_LEVEL: ${{ vars.READING_LEVEL }}
 
       - name: Save articles and words to the repository
-        if: github.event_name != 'push' && !inputs.check_sources
+        if: ${{ !inputs.check_sources }}
         run: |
           if [ -n "$(git status --porcelain data)" ]; then
             git config user.name "github-actions[bot]"
@@ -68,9 +63,21 @@ jobs:
             for i in 1 2 3; do git pull --rebase -X theirs origin main && git push && break; sleep 5; done
           fi
 
-      # a run that waited in the queue must not publish an older copy: always deploy the newest commit (code + words + articles)
-      - name: Use the newest version of the repository
-        run: git pull --ff-only origin main || true
+  publish:
+    needs: content
+    if: ${{ !inputs.check_sources }}
+    runs-on: ubuntu-latest
+    # shared with pages.yml: one publish at a time; each one publishes the newest commit
+    concurrency:
+      group: pages-publish
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/configure-pages@v5
 
