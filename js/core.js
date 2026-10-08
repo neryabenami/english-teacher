@@ -392,7 +392,7 @@
         .catch(() => { this.map = this.map || {}; return this.map; }).finally(() => { this.loading = null; });
       return this.loading;
     },
-    of(it) { return (this.map && it && this.map[(it.type === 'expr' && it.kind === 'slang' ? 'slang:' : '') + it.t.toLowerCase()]) || null; }
+    of(it) { return (this.map && it && this.map[(it.type === 'expr' ? (it.kind === 'slang' ? 'slang:' : it.kind === 'phrase' ? 'phrase:' : '') : '') + it.t.toLowerCase()]) || null; }
   };
 
   /* ---------- real articles (collected by tools/fetch-articles.mjs, served next to the app) ---------- */

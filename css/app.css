@@ -624,3 +624,11 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 /* v16: slang window: "what does it mean?" box */
 .tw-box.what { background: var(--sun-soft); border-color: color-mix(in srgb, var(--sun) 30%, var(--sun-soft)); }
 .tw-box.what .tw-h { color: color-mix(in srgb, var(--sun) 60%, var(--ink)); }
+
+/* v17: useful expressions: formality tag */
+.tw-en.long { font-size: 1.75rem; }
+.tw-pills { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.tw-fm { font-size: .74rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.tw-fm.casual { background: var(--pink-soft); color: var(--pink); }
+.tw-fm.neutral { background: var(--accent-soft); color: var(--accent); }
+.tw-fm.formal { background: color-mix(in srgb, #5B7BF0 16%, var(--surface)); color: color-mix(in srgb, #5B7BF0 80%, var(--ink)); }

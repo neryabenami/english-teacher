@@ -816,6 +816,8 @@
      SHEETS
      ========================================================= */
   const REPORT_KINDS = ['תרגום שגוי', 'משמעות שגויה', 'הגייה', 'סלנג מיושן', 'דוגמה לא נכונה', 'אחר'];
+  // an expression split in the sentence ('take our health for granted'): mark each of its words
+  const highlightPhrase = (sentence, phrase) => { const one = highlight(sentence, phrase); if (one !== esc(sentence)) return one; let out = esc(sentence); phrase.split(/\s+/).filter((w) => w.length > 2).forEach((w) => { out = out.replace(new RegExp(`\\b(${escRe(esc(w))})\\b`, 'i'), '<mark style="background:var(--accent-soft);color:inherit;border-radius:4px;padding:0 2px">$1</mark>'); }); return out; };
   const highlight = (sentence, word) => esc(sentence).replace(new RegExp(`\\b(${escRe(esc(word))})\\b`, 'i'), '<mark style="background:var(--accent-soft);color:inherit;border-radius:4px;padding:0 2px">$1</mark>');
   function sheetContent() {
     const sh = RT.sheet;
@@ -824,6 +826,27 @@
       if (!it) return '';
       const r = ET.rec(it.id) || {};
       const ctx = sh.ctx || {};
+      if (it.type === 'expr' && it.kind === 'phrase' && !sh.ctx) {
+        // useful expressions: like topic words, plus how formal the expression is
+        const mn = ET.Meanings.of(it);
+        const FM = { casual: ['🗣️ יומיומי', 'casual'], neutral: ['👌 מתאים לכל מצב', 'neutral'], formal: ['💼 רשמי', 'formal'] };
+        const fm = mn && FM[mn.f];
+        return `<div class="grab"></div>
+        <div class="tw-close"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
+        <div class="tw-word">
+          <div class="tw-en ${it.t.length > 14 ? 'long' : ''}" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
+          <div class="tw-he">${esc(it.he)}</div>
+          <div class="tw-pills"><span class="tw-pos">ביטוי</span>${fm ? `<span class="tw-fm ${fm[1]}">${fm[0]}</span>` : ''}</div>
+        </div>
+        ${mn && mn.m ? `<div class="tw-box"><div class="tw-h">📄 משמעות</div><p>${esc(mn.m)}</p></div>` : ''}
+        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">💬 דוגמה במשפט</div>
+          <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlightPhrase(it.ex, it.t)}</span></div>
+          ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
+        <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
+        ${pathDots(it.id)}
+        <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
+        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
+      }
       if (it.type === 'expr' && it.kind === 'slang' && !sh.ctx) {
         // American slang: the big centred term, "what does it mean?" and the example
         const mn = ET.Meanings.of(it);

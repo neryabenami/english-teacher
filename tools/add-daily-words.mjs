@@ -216,6 +216,7 @@ if (hasGemini()) {
       if (p.length > 6) pool.push({ t: p[0].trim().toLowerCase(), he: p[1].trim(), lvl: p[3].trim(), cat: OLD_TOPIC[key] || key, ex: p[6].trim(), added: '' });
     }
   }
+  for (const e of vocab.exprs) if (e[0] === 'phrase') pool.push({ t: e[1].toLowerCase(), key: 'phrase:' + e[1].toLowerCase(), he: e[2], lvl: e[6], cat: 'phrase', ex: e[4], added: e[7] || '', slang: true, phrase: true });
   for (const e of vocab.exprs) if (e[0] === 'slang') pool.push({ t: e[1].toLowerCase(), key: 'slang:' + e[1].toLowerCase(), he: e[2], lvl: '', cat: 'slang', ex: e[4], added: e[7] || '', slang: true });
   for (const w of pool) w.key = w.key || w.t;
   const todo = pool.filter((w) => w.t && !meanings.words[w.key] && (TOPICS[w.cat] || w.slang))
@@ -228,13 +229,14 @@ if (hasGemini()) {
       const res = await gemini(
         'You write short, clear Hebrew explanations of English words for Hebrew-speaking learners.',
         `For each English word below (with its Hebrew translation and an example), write "m": one short sentence in natural Hebrew, with correct spelling, that explains what the word means in this sense (like a learner's dictionary, not just the translation), and "pos": noun|verb|adjective|adverb|phrase|other.
-${part.map((w) => `${w.t}${w.slang ? ' (American slang: explain what it means and how people use it)' : ''} — ${w.he} — ${w.ex || ''}`).join('\n')}
-Return ONLY JSON: {"meanings": {"<word>": {"m": "...", "pos": "..."}}}`);
+${part.map((w) => `${w.t}${w.phrase ? ' (everyday expression: also give "f": casual|neutral|formal)' : w.slang ? ' (American slang: explain what it means and how people use it)' : ''} — ${w.he} — ${w.ex || ''}`).join('\n')}
+For expressions, "f" = casual (friends and family), neutral (fits any situation) or formal (emails, meetings, documents).
+Return ONLY JSON: {"meanings": {"<word>": {"m": "...", "pos": "...", "f": "only for expressions"}}}`);
       for (const [k, v] of Object.entries((res && res.meanings) || {})) {
         const ent = part.find((w) => w.t === k.toLowerCase().trim()); // slang is stored as 'slang:<term>'
         const key = ent && ent.key;
         if (!key || !seen.has(key) || meanings.words[key] || !v || !goodHe(v.m) || v.m.length < 8 || v.m.length > 220) continue;
-        meanings.words[key] = { m: v.m.trim(), pos: String(v.pos || '').trim() };
+        meanings.words[key] = { m: v.m.trim(), pos: String(v.pos || '').trim(), ...(/^(casual|neutral|formal)$/.test(v.f) ? { f: v.f } : {}) };
         explained++;
       }
     } catch (e) { console.warn('gemini meanings failed:', e.message); break; }
