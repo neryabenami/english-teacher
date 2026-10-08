@@ -4,6 +4,7 @@
      base forms only). Gemini sorts them into the topics and adds the Hebrew meaning and an example at that level.
      When a level's band runs out, words from the next band up are used. Without a Gemini key, the old reserve
      (tools/vocab-reserve.json) is used, at the same level only.
+   - a Hebrew explanation (data/meanings.json) for every new topic word, and up to 300 older words per run.
    - 5 useful everyday expressions a day at the reader's level (Gemini).
    - 5 new American slang terms, any level: the curated list (tools/slang-reserve.txt) first, then Gemini.
    Nothing is ever removed, and a word that exists in the app (also one marked as known) is never added again.
@@ -43,6 +44,8 @@ vocab.exprs = vocab.exprs || [];
 const have = new Set(vocab.words.map((w) => w[0]));
 const dataJs = fs.readFileSync('js/data.js', 'utf8');
 for (const m of dataJs.matchAll(/^([a-z][a-z' -]*)\|/gm)) have.add(m[1].toLowerCase());
+const meanings = fs.existsSync('data/meanings.json') ? JSON.parse(fs.readFileSync('data/meanings.json', 'utf8')) : { words: {} };
+meanings.words = meanings.words || {};
 const haveExpr = new Set(vocab.exprs.map((e) => e[1].toLowerCase()));
 for (const m of dataJs.matchAll(/^(?:slang|spoken|phrasal|idiom|expr)\|[^|]*\|([^|]+)\|/gm)) haveExpr.add(m[1].toLowerCase());
 
@@ -198,6 +201,44 @@ Return ONLY JSON: {"phrases": [{"term": "...", "he": "...", "def": "...", "ex": 
     }
   } catch (e) { console.warn('gemini phrases failed:', e.message); }
 }
+
+/* ---------- Hebrew explanations ("משמעות") for topic words: every new word gets one, and a few hundred older words per run ---------- */
+const BACKFILL = 300;
+let explained = 0;
+if (hasGemini()) {
+  const OLD = { ...OLD_TOPIC, nature: 'nature' };
+  const pool = [];
+  for (const w of vocab.words) pool.push({ t: w[0], he: w[1], lvl: w[2], cat: OLD[w[3]] || w[3], ex: w[4], added: w[6] || '' });
+  // the app's built-in words (js/data.js): word|hebrew|pos|level|emoji|ipa|example|...
+  for (const [, key, block] of dataJs.matchAll(/^([a-z]+): `([\s\S]*?)`/gm)) {
+    for (const line of block.split('\n')) {
+      const p = line.split('|');
+      if (p.length > 6) pool.push({ t: p[0].trim().toLowerCase(), he: p[1].trim(), lvl: p[3].trim(), cat: OLD_TOPIC[key] || key, ex: p[6].trim(), added: '' });
+    }
+  }
+  const todo = pool.filter((w) => w.t && !meanings.words[w.t] && TOPICS[w.cat])
+    .sort((a, b) => (b.added === today) - (a.added === today) || (b.lvl === LEVEL) - (a.lvl === LEVEL) || b.added.localeCompare(a.added));
+  const seen = new Set();
+  const batch = todo.filter((w) => !seen.has(w.t) && seen.add(w.t)).slice(0, BACKFILL);
+  for (let i = 0; i < batch.length; i += 100) {
+    const part = batch.slice(i, i + 100);
+    try {
+      const res = await gemini(
+        'You write short, clear Hebrew explanations of English words for Hebrew-speaking learners.',
+        `For each English word below (with its Hebrew translation and an example), write "m": one short sentence in natural Hebrew, with correct spelling, that explains what the word means in this sense (like a learner's dictionary, not just the translation), and "pos": noun|verb|adjective|adverb|phrase|other.
+${part.map((w) => `${w.t} — ${w.he} — ${w.ex || ''}`).join('\n')}
+Return ONLY JSON: {"meanings": {"<word>": {"m": "...", "pos": "..."}}}`);
+      for (const [k, v] of Object.entries((res && res.meanings) || {})) {
+        const key = k.toLowerCase().trim();
+        if (!seen.has(key) || meanings.words[key] || !v || !goodHe(v.m) || v.m.length < 8 || v.m.length > 220) continue;
+        meanings.words[key] = { m: v.m.trim(), pos: String(v.pos || '').trim() };
+        explained++;
+      }
+    } catch (e) { console.warn('gemini meanings failed:', e.message); break; }
+  }
+}
+if (explained) { meanings.updated = today; fs.writeFileSync('data/meanings.json', JSON.stringify(meanings)); }
+console.log(`meanings: +${explained} · ${Object.keys(meanings.words).length} words explained`);
 
 if (words + slang + phrases > 0) vocab.updated = today;
 fs.writeFileSync('data/vocab.json', JSON.stringify(vocab));

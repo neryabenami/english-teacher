@@ -824,6 +824,25 @@
       if (!it) return '';
       const r = ET.rec(it.id) || {};
       const ctx = sh.ctx || {};
+      if (ET.isTopicWord(it) && !sh.ctx) {
+        const mn = ET.Meanings.of(it);
+        const pos = (mn && POS_HE[mn.pos]) || ET.POS[it.pos] || POS_HE[it.pos] || '';
+        return `<div class="grab"></div>
+        <div class="tw-close"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
+        <div class="tw-word">
+          <div class="tw-en" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
+          <div class="tw-he">${esc(it.he)}</div>
+          ${pos ? `<span class="tw-pos">${esc(pos)}</span>` : ''}
+        </div>
+        ${mn && mn.m ? `<div class="tw-box"><div class="tw-h">📄 משמעות</div><p>${esc(mn.m)}</p></div>` : ''}
+        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">💬 דוגמה במשפט</div>
+          <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlight(it.ex, it.t)}</span></div>
+          ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
+        <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
+        ${pathDots(it.id)}
+        <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
+        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
+      }
       return `<div class="grab"></div>
         <div class="head"><div class="term">${esc(it.t)}</div>
           <button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
@@ -1205,6 +1224,7 @@
       const m = e.data || {};
       if (m.type !== 'data-updated') return;
       if (m.path === 'data/vocab.json') ET.Vocab.load(true).then(() => render());
+      if (m.path === 'data/meanings.json') ET.Meanings.load(true).then(() => { if (RT.sheet) renderSheet(); });
       if (m.path === 'data/news/index.json') ET.Articles.load(true).then(() => render());
       if (m.path === 'data/dict-en-he.json') { ET.DictionarySource.entries = null; ET.DictionarySource.loading = null; ET.DictionarySource.load(); }
     });
@@ -1218,6 +1238,7 @@
 
   ET.DictionarySource.load();
   ET.Vocab.load().then(() => render());
+  ET.Meanings.load().then(() => { if (RT.sheet) renderSheet(); });
   render();
   syncLevel();
 })();

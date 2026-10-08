@@ -72,6 +72,7 @@
   ET.item = (id) => BY_ID[id];
   // a word is shown when its topic is one of the Words tab topics (removed topics disappear everywhere) and it is at the profile level
   const ACTIVE_CATS = new Set(D.CATEGORIES.map((c) => c.id));
+  ET.isTopicWord = (i) => !!i && i.type === 'word' && ACTIVE_CATS.has(i.cat);
   ET.atLevel = (i) => ACTIVE_CATS.has(i.cat) && (i.lvl === ET.S.profile.cefr || (ET.S.profile.cefr === 'C2' && i.lvl === 'C1'));
   ET.wordsOf = (cat) => ITEMS.filter((i) => i.type === 'word' && i.cat === cat && ET.atLevel(i));
   ET.exprsOf = (kind, cat) => ITEMS.filter((i) => i.type === 'expr' && (kind === 'texting' ? (i.cat === 'texting' || i.cat === 'abbr') : i.kind === kind) && (!cat || i.cat === cat));
@@ -379,6 +380,19 @@
       }).catch(() => { this.ready = true; }).finally(() => { this.loading = null; });
       return this.loading;
     }
+  };
+
+  /* Hebrew explanations of topic words (data/meanings.json: { word: { m: explanation, pos } }), filled daily by tools/add-daily-words.mjs */
+  ET.Meanings = {
+    map: null,
+    loading: null,
+    load(force) {
+      if ((this.map && !force) || this.loading) return this.loading || Promise.resolve(this.map);
+      this.loading = fetch('data/meanings.json').then((r) => (r.ok ? r.json() : {})).then((j) => { this.map = j.words || j; return this.map; })
+        .catch(() => { this.map = this.map || {}; return this.map; }).finally(() => { this.loading = null; });
+      return this.loading;
+    },
+    of(it) { return (this.map && it && this.map[it.t.toLowerCase()]) || null; }
   };
 
   /* ---------- real articles (collected by tools/fetch-articles.mjs, served next to the app) ---------- */

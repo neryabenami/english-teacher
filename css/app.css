@@ -602,3 +602,21 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 /* v14: My words */
 .big-tile.pink { background: linear-gradient(145deg, #FFB3CB, #E9608C); }
 button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: inherit; font-size: 1.3rem; font-weight: 800; cursor: pointer; }
+
+/* v15: topic word window: big centred word, meaning, example */
+.tw-close { display: flex; justify-content: flex-end; margin-bottom: -6px; }
+.tw-word { display: grid; justify-items: center; gap: 4px; text-align: center; }
+.tw-en { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; }
+.tw-he { font-size: 1.15rem; font-weight: 600; color: var(--muted); }
+.tw-pos { font-size: .74rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); }
+.speak.tw-spk { width: 30px; height: 30px; min-height: 0; padding: 0; border-radius: 50%; justify-content: center; flex: none; }
+.speak.tw-spk svg { width: 15px; height: 15px; }
+.tw-box { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 11px 13px; display: grid; gap: 6px; }
+.tw-box.ex { background: color-mix(in srgb, var(--accent) 9%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+.tw-h { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.tw-box.ex .tw-h { color: var(--accent); }
+.tw-box p { margin: 0; line-height: 1.55; }
+.tw-ex { display: flex; gap: 8px; align-items: flex-start; text-align: left; font-weight: 600; line-height: 1.55; }
+.tw-tr { font-size: .84rem; color: var(--muted); line-height: 1.5; }
+.tw-report { justify-self: center; display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: .78rem; }
+.tw-report svg { width: 14px; height: 14px; }
