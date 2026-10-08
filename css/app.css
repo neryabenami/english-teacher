@@ -589,3 +589,7 @@ textarea.input { padding: 12px 16px; min-height: 90px; resize: vertical; }
 .home .day-card { align-content: center; }
 .home .home-art { grid-template-columns: 38% 1fr; }
 .home .empty-art { grid-template-columns: 1fr; }
+
+/* v12: reading categories: all visible at once, equal size, 3 per row */
+.chips.read-cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow: visible; margin-inline: 0; padding-inline: 0; }
+.chips.read-cats .chip { min-height: 32px; padding: 0 6px; font-size: .8rem; justify-content: center; text-align: center; }

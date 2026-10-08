@@ -562,7 +562,7 @@
     const cat = catArg === undefined ? RT.readCat || 'all' : catArg || 'all';
     RT.readCat = cat;
     const chip = (id, he) => `<button class="chip ${cat === id ? 'on' : ''}" data-act="go" data-arg="reading/${id}">${he}</button>`;
-    const chips = `<div class="chips">${chip('all', 'הכל')}${D.READ_CATS.map((c) => chip(c.id, c.he)).join('')}</div>`;
+    const chips = `<div class="chips read-cats">${chip('all', 'הכל')}${D.READ_CATS.map((c) => chip(c.id, c.he)).join('')}</div>`;
     let body;
     if (cat === 'favorites') {
       const favs = Object.values(S.saved).filter((a) => a.display_title).sort((x, y) => (y.savedAt || 0) - (x.savedAt || 0));
