@@ -231,7 +231,7 @@
     if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'home') render(); });
     const d = ET.daily();
     const h = new Date().getHours();
-    const greet = h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב';
+    const greet = h >= 5 && h < 12 ? 'בוקר טוב' : h >= 12 && h < 17 ? 'צהריים טובים' : 'ערב טוב';
     // today's learning = the new words added today in all topics (at the user's level)
     const fresh = D.CATEGORIES.reduce((n, c) => n + ET.wordsOf(c.id).filter((w) => ET.isNewToday(w) && !ET.isKnown(w.id)).length, 0);
     const art = d.article && A.meta(d.article);
@@ -269,7 +269,7 @@
     if (!sec) {
       return `<div class="screen">
         <header class="topbar"><span class="grow"></span>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<button class="icon-btn" data-act="go" data-arg="dict" aria-label="חיפוש במילון">${ic('search')}</button></header>
-        <div class="words-head"><h1>לימוד מילים</h1><p>בחרו מה תרצו ללמוד היום</p>${ET.Vocab.updated ? `<span class="upd">עודכן לאחרונה: ${fmtDate(ET.Vocab.updated)}</span>` : ''}</div>
+        <div class="words-head"><h1>לימוד מילים</h1><p>בחרו מה תרצו ללמוד היום</p></div>
         <div class="stack">${WORD_SECS.map(([id, he, emo, color]) => `<button class="big-card" data-act="go" data-arg="words/${id}"><span class="big-tile ${color}" aria-hidden="true">${emo}</span><span class="big-title">${he}</span>${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
     }
     if (!ET.Vocab.ready) return `<div class="screen">${topbar('לימוד מילים', 'words')}<div class="card empty"><p>טוען מילים…</p></div></div>`;
@@ -592,9 +592,8 @@
       else body = '<div class="card empty"><div class="emo">📭</div><p>אין כרגע כתבות חדשות בקטגוריה הזאת. כתבות מתווספות כל יום.</p></div>';
     } else if (A.failed) body = `<div class="card empty"><div class="emo">📡</div><h2>אין חיבור לאינטרנט</h2><p>כתבות חדשות ייטענו כשהחיבור יחזור. בינתיים אפשר לקרוא את המועדפים.</p><button class="btn" data-act="go" data-arg="reading/favorites">למועדפים</button></div>`;
     else body = '<div class="card empty"><p>טוען כתבות…</p></div>';
-    const upd = A.index && A.index.updated ? ET.dayKey(new Date(A.index.updated)) : '';
     return `<div class="screen">
-      <header class="topbar read-head"><div class="grow"><h1>קריאה</h1>${upd ? `<span class="upd">עודכן לאחרונה: ${fmtDate(upd)}</span>` : ''}</div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}<span class="badge lvl">רמה ${esc(S.profile.cefr)}</span></header>
+      <header class="topbar read-head"><div class="grow"><h1>קריאה</h1></div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}</header>
       <div class="read-tools"><button class="chip ${cat === 'favorites' ? 'on' : ''}" data-act="go" data-arg="reading/favorites">🔖 מועדפים</button></div>
       ${chips}${body}
       <p class="note">כתבות לימוד מקוריות באנגלית, שנכתבות כל יום על בסיס ידיעות אמיתיות ממקורות מוכרים (כמו BBC, The Guardian, NPR ו־CNBC), בדיוק ברמה שלך. המקורות מופיעים בסוף כל כתבה.</p></div>`;
