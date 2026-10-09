@@ -1,5 +1,26 @@
 [
  {
+  "run_id": "2026-10-09T22:41:40.269Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [
+   "Geektime https://www.geektime.co.il/feed/"
+  ],
+  "candidates": 922,
+  "rejected": 4,
+  "duplicates": 120,
+  "verified": 4,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "Christian Bittar has conviction for rigging interest rates q: The claim that traders sought to 'bolster their institutions' trading positions' and that 'public outrage prompted severe regulatory and criminal scrutiny' is not mentioned in the source text.; The text states that all six men 'had previously served prison terms', but the source only states that they were 'sentenced to jail'.",
+   "‘A candlelit spa, followed by an ice-cold plunge and a night: The lesson states that the pool area at Centralbadet is 'illuminated solely by candlelight', whereas the source only says 'candles are lit around the pool' and 'swimming by candlelight is a treat', without claiming that candles are the only source of light.; The lesson claims guests can 'spot dolphins playing in the loch' at West Coast Wellness, but the source only advises to 'keep an eye out for dolphins', without confirming that they are actually spotted or playing there.",
+   "עליות באירופה ובחוזים בניו יורק; מחירי הנפט יורדים: number not in sources: 40; title"
+  ],
+  "gemini_calls": 13,
+  "end": "2026-10-09T22:52:09.377Z"
+ },
+ {
   "run_id": "2026-10-09T13:25:30.552Z",
   "level": "C1",
   "sources_checked": 41,
