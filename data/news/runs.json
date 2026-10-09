@@ -1,5 +1,23 @@
 [
  {
+  "run_id": "2026-10-09T13:25:30.552Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 941,
+  "rejected": 4,
+  "duplicates": 126,
+  "verified": 3,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "עליות באירופה ובחוזים בניו יורק; מחירי הנפט יורדים: The lesson incorrectly states that the market recovery occurred on Thursday and the tech selloff occurred on Wednesday. According to the source dated Friday, October 9, 2026, the tech selloff on Wall Street occurred 'yesterday' (Thursday, October 8) and the recovery is taking place on Friday, October 9.",
+   "After Going Hands-On With the New Marvel Comics App, I Still: The lesson states that 'tech journalists' (plural) had the opportunity to test the app at New York Comic Con, but the source only mentions a single journalist ('I', Jackie Thomas) trying it firsthand."
+  ],
+  "gemini_calls": 13,
+  "end": "2026-10-09T13:30:25.167Z"
+ },
+ {
   "run_id": "2026-10-09T06:14:01.624Z",
   "level": "C1",
   "sources_checked": 41,
