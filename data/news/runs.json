@@ -1,5 +1,29 @@
 [
  {
+  "run_id": "2026-10-09T06:14:01.624Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 955,
+  "rejected": 3,
+  "duplicates": 111,
+  "verified": 15,
+  "created": 12,
+  "published_by_cat": {
+   "world": 2,
+   "business": 2,
+   "tech": 5,
+   "sports": 2,
+   "health": 1
+  },
+  "errors": [
+   "Pentagon says execution of Fort Hood shooter will be livestr: length 248",
+   "'I rage and I don't care': Why women are reclaiming their an: too close to the source wording"
+  ],
+  "gemini_calls": 72,
+  "end": "2026-10-09T06:32:28.894Z"
+ },
+ {
   "run_id": "2026-10-08T23:23:47.887Z",
   "level": "C1",
   "sources_checked": 41,
