@@ -949,8 +949,8 @@
   }
   const openItem = (id, ctx, list) => { RT.sheet = { type: 'item', id, ctx, list }; renderSheet(); };
   // in the Words tab a word window walks through the list it was opened from (same order as on screen)
-  const sheetTop = (sh) => `<div class="tw-top"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button>${sh.list ? `<button class="tw-trash" data-act="trash-item" aria-label="מחיקה לתמיד">${ic('trash')}</button>` : ''}</div>`;
-  const sheetGrade = (sh, it) => (sh.list
+  const sheetTop = (sh) => `<div class="tw-top"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button>${sh.list || sh.home ? `<button class="tw-trash" data-act="trash-item" aria-label="מחיקה לתמיד">${ic('trash')}</button>` : ''}</div>`;
+  const sheetGrade = (sh, it) => (sh.home ? '' : sh.list
     ? `<div class="tw-nav"><button class="btn ghost" data-act="sheet-next">הבא</button><button class="btn ghost" data-act="sheet-prev" ${sh.list.indexOf(it.id) <= 0 ? 'disabled' : ''}>הקודם</button></div>`
     : `<div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>`);
   const toastUndo = (msg, act) => { const el = $('#toast'); el.classList.add('top'); el.innerHTML = `<span>${esc(msg)}</span><button class="toast-undo" data-act="${act}">בטל</button>`; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 5000); };
@@ -992,6 +992,7 @@
     item: (a) => {
       const list = parse().name === 'words' ? [...new Set([...document.querySelectorAll('#app .screen [data-act="item"]')].map((e) => e.dataset.arg))] : null;
       openItem(a, undefined, list && list.includes(a) ? list : null);
+      if (parse().name === 'home' && RT.sheet) { RT.sheet.home = true; renderSheet(); } // word / slang of the day: trash, no previous / next
     },
     'sheet-next': () => {
       const sh = RT.sheet; if (!sh || !sh.list) return;
@@ -1006,7 +1007,15 @@
     },
     // trash: the word is removed for good (known), the next one opens; "undo" for a few seconds
     'trash-item': () => {
-      const sh = RT.sheet; if (!sh || !sh.list) return;
+      const sh = RT.sheet; if (!sh) return;
+      if (sh.home) {
+        const id = sh.id, it = ET.item(id), d = ET.daily();
+        RT.undo = { id, home: true, rec: S.items[id] ? JSON.parse(JSON.stringify(S.items[id])) : null, word: d.word, slang: d.slang };
+        ET.grade(id, 5); ET.daily(); RT.sheet = null; Speech.stop(); renderSheet(); render();
+        toastUndo(`${it ? it.t : 'המילה'} נמחקה ולא תוצג יותר`, 'undo-trash');
+        return;
+      }
+      if (!sh.list) return;
       const id = sh.id, i = sh.list.indexOf(id), it = ET.item(id);
       RT.undo = { id, i, list: sh.list, rec: S.items[id] ? JSON.parse(JSON.stringify(S.items[id])) : null };
       ET.grade(id, 5);
@@ -1019,6 +1028,7 @@
       const u = RT.undo; if (!u) return;
       if (u.rec) S.items[u.id] = u.rec; else delete S.items[u.id];
       ET.save(); RT.undo = null;
+      if (u.home) { const d = ET.daily(); d.word = u.word; d.slang = u.slang; ET.save(); $('#toast').hidden = true; render(); return; }
       RT.sheet = { type: 'item', id: u.id, list: u.list };
       $('#toast').hidden = true; render(); renderSheet();
     },
