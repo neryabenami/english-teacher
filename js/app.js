@@ -632,6 +632,7 @@
   };
 
   SCREENS.article = (id) => {
+    Speech.article = id;
     const st = RT.art && RT.art.id === id ? RT.art : (RT.art = { id, body: null, err: false, loading: false });
     if (!st.body && !st.err && !st.loading) {
       st.loading = true;
@@ -1114,10 +1115,11 @@
     'article-done': () => { const id = parse().args[0]; if (!S.stats.articles[id]) { S.stats.articles[id] = Date.now(); ET.activity(); toast('כל הכבוד! עוד כתבה נקראה 📖'); } render(); },
     'fav-article': async (a) => {
       const A = ET.Articles;
-      if (A.isSaved(a)) { A.unsave(a); toast('הוסר מהמועדפים'); render(); return; }
+      if (A.isSaved(a)) { A.unsave(a); ET.Audio.drop(a); toast('הוסר מהמועדפים'); render(); return; }
       try {
         const body = RT.art && RT.art.id === a && RT.art.body ? RT.art.body : await A.body(a);
         A.save({ ...body, savedAt: Date.now() });
+        ET.Audio.keep(body);
         toast('נשמר במועדפים ⭐ זמין גם בלי אינטרנט');
       } catch (e) { toast('לא הצלחנו לשמור עכשיו. נסו שוב כשיש אינטרנט'); }
       render();
@@ -1290,7 +1292,7 @@
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && RT.sheet) { RT.sheet = null; renderSheet(); } });
   let lastRoute = parse().name;
-  window.addEventListener('hashchange', () => { if (lastRoute === 'reading' && parse().name !== 'reading') ET.Articles.feedLeave(); lastRoute = parse().name; Speech.stop(); RT.reading = false; RT.readIdx = 0; RT.sheet = null; RT.confirmReset = false; render(); window.scrollTo(0, 0); });
+  window.addEventListener('hashchange', () => { if (parse().name !== 'article') Speech.article = null; if (lastRoute === 'reading' && parse().name !== 'reading') ET.Articles.feedLeave(); lastRoute = parse().name; Speech.stop(); RT.reading = false; RT.readIdx = 0; RT.sheet = null; RT.confirmReset = false; render(); window.scrollTo(0, 0); });
   window.addEventListener('et-voices', () => { if (parse().name === 'profile') render(); });
   window.addEventListener('online', () => { RT.online = true; render(); syncLevel(); });
   window.addEventListener('offline', () => { RT.online = false; render(); });
@@ -1353,6 +1355,7 @@
     if (inSheet) ACT[dx < 0 ? 'sheet-next' : 'sheet-prev']();
     else if (onCard) ACT[dx < 0 ? 'card-next' : 'card-prev']();
   }, { passive: true });
+  ET.Audio.load().then(() => Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)));
   ET.DictionarySource.load();
   ET.Vocab.load().then(() => render());
   ET.Meanings.load().then(() => { if (RT.sheet) renderSheet(); });

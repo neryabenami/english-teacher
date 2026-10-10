@@ -4,7 +4,7 @@
    - Words, dictionary and the article list are served from the device at once and refreshed in the background;
      when the refreshed copy differs, open pages are told ('data-updated') and show the new content right away.
    - Opened articles and photos stay readable offline. */
-const VERSION = 'et-v4.14.3';
+const VERSION = 'et-v4.15.0';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js',
@@ -15,7 +15,8 @@ const FONTS = 'et-fonts';
 const ARTICLES = 'et-articles';
 const PHOTOS = 'et-photos';
 const DATA_CACHE = 'et-data';
-const KEEP = [VERSION, FONTS, ARTICLES, PHOTOS, DATA_CACHE];
+const AUDIO = 'et-audio', AUDIO_SAVED = 'et-audio-saved';
+const KEEP = [VERSION, FONTS, ARTICLES, PHOTOS, DATA_CACHE, AUDIO, AUDIO_SAVED];
 
 self.addEventListener('install', (e) => {
   // cache: 'reload' skips the browser's HTTP cache, so a new version is really new
@@ -72,6 +73,18 @@ self.addEventListener('fetch', (e) => {
       }
       return res;
     }))));
+    return;
+  }
+  // the "Heart" voice files: favourites first, then recently played (newest 500), then the network
+  if (url.pathname.startsWith('/english-teacher-audio/') && url.pathname.endsWith('.mp3')) {
+    e.respondWith(caches.match(req, { cacheName: AUDIO_SAVED }).then((hit) => hit || caches.open(AUDIO).then((c) => c.match(req).then((h) => h || fetch(req).then(async (res) => {
+      if (res.ok) {
+        await c.put(req, res.clone());
+        const keys = await c.keys();
+        if (keys.length > 500) await Promise.all(keys.slice(0, keys.length - 500).map((k) => c.delete(k)));
+      }
+      return res;
+    })))));
     return;
   }
   if (url.origin !== self.location.origin) return;

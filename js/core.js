@@ -519,6 +519,63 @@
   };
 
   /* ---------- speech (device TTS — free & offline) ---------- */
+  /* Audio made with the Kokoro voice "Heart" (repository english-teacher-audio, tools/make_audio.py there).
+     A text's file is found by key = first 12 hex chars of sha1(text trimmed, spaces collapsed, lower case). */
+  const sha1 = (str) => {
+    const bytes = new TextEncoder().encode(str);
+    const buf = new Uint8Array(((bytes.length + 9 + 63) >> 6) << 6);
+    buf.set(bytes); buf[bytes.length] = 0x80;
+    const dv = new DataView(buf.buffer), bits = bytes.length * 8;
+    dv.setUint32(buf.length - 4, bits >>> 0); dv.setUint32(buf.length - 8, Math.floor(bits / 4294967296));
+    let h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 = 0x10325476, h4 = 0xC3D2E1F0;
+    const w = new Uint32Array(80);
+    for (let i = 0; i < buf.length; i += 64) {
+      for (let t = 0; t < 16; t++) w[t] = dv.getUint32(i + t * 4);
+      for (let t = 16; t < 80; t++) { const x = w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16]; w[t] = (x << 1) | (x >>> 31); }
+      let a = h0, b = h1, c = h2, d = h3, e = h4;
+      for (let t = 0; t < 80; t++) {
+        const f = t < 20 ? (b & c) | (~b & d) : t < 40 ? b ^ c ^ d : t < 60 ? (b & c) | (b & d) | (c & d) : b ^ c ^ d;
+        const k = t < 20 ? 0x5A827999 : t < 40 ? 0x6ED9EBA1 : t < 60 ? 0x8F1BBCDC : 0xCA62C1D6;
+        const tmp = (((a << 5) | (a >>> 27)) + f + e + k + w[t]) >>> 0;
+        e = d; d = c; c = ((b << 30) | (b >>> 2)) >>> 0; b = a; a = tmp;
+      }
+      h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0; h4 = (h4 + e) >>> 0;
+    }
+    return [h0, h1, h2, h3, h4].map((h) => h.toString(16).padStart(8, '0')).join('');
+  };
+  ET.splitSentences = (text) => text.match(/[^.!?]+(?:[.!?]+["”’)\]]*\s*|$)/g) || [text];
+  ET.Audio = {
+    BASE: 'https://neryabenami.github.io/english-teacher-audio/',
+    words: null,
+    articles: {},
+    load() {
+      return fetch(this.BASE + 'index.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
+        .then((j) => { if (j) { this.words = new Set((j.words || '').split(',').filter(Boolean)); this.articles = j.articles || {}; } }).catch(() => {});
+    },
+    key: (t) => sha1(String(t || '').trim().replace(/\s+/g, ' ').toLowerCase()).slice(0, 12),
+    url(text, article) {
+      if (!this.words) return null;
+      const k = this.key(text);
+      if (this.words.has(k)) return this.BASE + 'w/' + k + '.mp3';
+      if (article && this.articles[article]) return this.BASE + 'a/' + article + '/' + k + '.mp3';
+      return null;
+    },
+    // a favourite article keeps its audio on the device for good (the server keeps only 30 days)
+    async keep(body) {
+      try {
+        if (!this.words) await this.load();
+        if (!body || !this.articles[body.id] || !('caches' in window)) return;
+        const c = await caches.open('et-audio-saved');
+        const urls = (body.paragraphs || []).flatMap((p) => ET.splitSentences(p)).filter((s) => s.trim()).map((s) => this.BASE + 'a/' + body.id + '/' + this.key(s) + '.mp3');
+        for (const u of urls) if (!(await c.match(u))) await c.add(u).catch(() => {});
+      } catch (e) { /* stays with the device voice */ }
+    },
+    async drop(id) {
+      try { if (!('caches' in window)) return; const c = await caches.open('et-audio-saved'); for (const r of await c.keys()) if (r.url.includes('/a/' + id + '/')) await c.delete(r); } catch (e) { /* ignore */ }
+    }
+  };
+  ET.Audio.load();
+
   const Speech = {
     ok: 'speechSynthesis' in window,
     voices: [],
@@ -546,7 +603,39 @@
       const femaleAny = this.list('en').find((x) => this.FEMALE.test(x.name));
       return chosen || (best && this.FEMALE.test(best.name) ? best : femaleAny || best) || this.voices.find((x) => x.lang.startsWith('en'));
     },
+    article: null, // the open article: its sentences are looked up in its own audio folder
+    audio: null,
+    // iPhone plays sound only after a tap: the first tap "unlocks" the one audio element we reuse
+    unlock() {
+      if (this.audio) return this.audio;
+      const n = 800, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+      const w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+      w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+      this.audio = new Audio(URL.createObjectURL(new Blob([b], { type: 'audio/wav' })));
+      const p = this.audio.play(); if (p) p.catch(() => {});
+      return this.audio;
+    },
     speak(text, opts = {}) {
+      const url = ET.Audio.url(text, this.article);
+      if (url) { this.stop(); this.play(url, text, opts); return true; }
+      return this.tts(text, opts);
+    },
+    async play(url, text, opts) {
+      const a = this.unlock(), my = (this.playing = {});
+      try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(r.status);
+        const blob = await r.blob();
+        if (this.playing !== my) return; // another word was tapped meanwhile
+        if (this.blobUrl) URL.revokeObjectURL(this.blobUrl);
+        this.blobUrl = URL.createObjectURL(blob);
+        a.onended = () => { if (this.playing === my) opts.onend && opts.onend(); };
+        a.src = this.blobUrl; a.playbackRate = opts.rate || 1;
+        await a.play();
+      } catch (e) { if (this.playing === my) this.tts(text, opts); }
+    },
+    tts(text, opts = {}) {
       if (!this.ok) { opts.onerror && opts.onerror(); return false; }
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -559,7 +648,7 @@
       speechSynthesis.speak(u);
       return true;
     },
-    stop() { if (this.ok) speechSynthesis.cancel(); }
+    stop() { this.playing = null; if (this.audio) { this.audio.onended = null; this.audio.pause(); } if (this.ok) speechSynthesis.cancel(); }
   };
   Speech.init();
   ET.Speech = Speech;
