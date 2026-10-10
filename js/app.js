@@ -592,7 +592,7 @@
     } else if (A.failed) body = `<div class="card empty"><div class="emo">📡</div><h2>אין חיבור לאינטרנט</h2><p>כתבות חדשות ייטענו כשהחיבור יחזור. בינתיים אפשר לקרוא את המועדפים.</p><button class="btn" data-act="go" data-arg="reading/favorites">למועדפים</button></div>`;
     else body = '<div class="card empty"><p>טוען כתבות…</p></div>';
     return `<div class="screen">
-      <header class="topbar read-head"><div class="grow"><h1>קריאה</h1></div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}</header>
+      <header class="topbar read-head"><div class="grow"><h1>מה מעניין אותך היום?</h1></div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}</header>
       <div class="read-tools"><button class="chip ${cat === 'favorites' ? 'on' : ''}" data-act="go" data-arg="reading/favorites">🔖 מועדפים</button></div>
       ${chips}${body}
       <p class="note">כתבות לימוד מקוריות באנגלית, שנכתבות כל יום על בסיס ידיעות אמיתיות ממקורות מוכרים (כמו BBC, The Guardian, NPR ו־CNBC), בדיוק ברמה שלך. המקורות מופיעים בסוף כל כתבה.</p></div>`;
