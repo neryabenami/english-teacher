@@ -77,7 +77,6 @@
   const li = (icon, title, sub, path, end = '') => `<button class="li" data-act="go" data-arg="${path}"><span class="ico">${I[icon] ? ic(icon) : icon}</span><span class="main"><span class="t">${title}</span>${sub ? `<span class="s" style="display:block">${sub}</span>` : ''}</span><span class="end">${end}${ic('chev', 'chev')}</span></button>`;
   const itemRow = (it, extra = '') => `<button class="li" data-act="item" data-arg="${esc(it.id)}">${it.emoji ? `<span class="ico">${it.emoji}</span>` : ''}<span class="main"><span class="t en" style="display:block">${esc(it.t)}</span><span class="s" style="display:block">${esc(it.he)}</span></span><span class="end">${extra}</span></button>`;
   const speakBtn = (text, id, label = '', cls = '') => `<button class="speak ${cls}" data-act="say" data-arg="${esc(text)}" ${id ? `data-id="${esc(id)}"` : ''} aria-label="השמעה">${ic('speaker')}${label ? ' ' + label : ''}</button>`;
-  const pathDots = (id) => { const p = (ET.rec(id) || {}).p || 0; const n = ET.PATH.filter((_, i) => p & (1 << i)).length; return `<div class="stack" style="gap:6px"><div class="path" title="${ET.PATH.join(' → ')}">${ET.PATH.map((l, i) => `<i class="${p & (1 << i) ? 'on' : ''}" title="${l}"></i>`).join('')}</div><div class="small muted" style="text-align:center">מסלול המילה: ${n ? ET.PATH.filter((_, i) => p & (1 << i)).slice(-1)[0] : 'עוד לא התחלנו'} (${n}/7)</div></div>`; };
 
   /* ---------- theme ---------- */
   const applyTheme = () => {
@@ -348,7 +347,7 @@
       <div class="term">${esc(it.t)}</div>
       ${it.ipa ? `<div class="ipa">${esc(it.ipa)}</div>` : ''}
       <div class="speak-row">${speakBtn(it.t, it.id, 'השמע')}<button class="speak" data-act="say-slow" data-arg="${esc(it.t)}" data-id="${esc(it.id)}">🐢 לאט</button></div>
-      ${rev ? `<div class="reveal"><div class="translation">${esc(it.he)}</div>${it.type === 'expr' ? exprDetails(it) : ''}${exampleBox(it)}${pathDots(it.id)}
+      ${rev ? `<div class="reveal"><div class="translation">${esc(it.he)}</div>${it.type === 'expr' ? exprDetails(it) : ''}${exampleBox(it)}
         <button class="link small" data-act="report" data-arg="${esc(it.id)}" style="justify-self:center">${'דיווח על טעות'}</button></div>` : '<p class="small muted" style="text-align:center;margin-top:auto">נסו להיזכר בתרגום, ואז לחצו על הכרטיס</p>'}
     </article>`;
   };
@@ -842,7 +841,6 @@
           <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlightPhrase(it.ex, it.t)}</span></div>
           ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
         <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
-        ${pathDots(it.id)}
         <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
         <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
       }
@@ -861,7 +859,6 @@
           <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlight(it.ex, it.t)}</span></div>
           ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
         <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
-        ${pathDots(it.id)}
         <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
         <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
       }
@@ -880,7 +877,6 @@
           <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlight(it.ex, it.t)}</span></div>
           ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
         <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
-        ${pathDots(it.id)}
         <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
         <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
       }
@@ -895,7 +891,6 @@
         ${ctx.sentence ? `<div class="example"><div class="small muted">מתוך הטקסט</div><div class="en-line">${highlight(ctx.sentence, ctx.word || it.t)}</div>${sentTrHtml(sh)}</div>` : ''}
         ${exampleBox(it)}
         <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
-        ${pathDots(it.id)}
         <div class="grid2"><button class="btn ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button><button class="btn ghost" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button></div>`;
     }
     if (sh.type === 'pop') {
