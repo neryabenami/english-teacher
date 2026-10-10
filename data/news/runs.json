@@ -1,5 +1,30 @@
 [
  {
+  "run_id": "2026-10-10T12:37:04.883Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 944,
+  "rejected": 7,
+  "duplicates": 110,
+  "verified": 11,
+  "created": 4,
+  "published_by_cat": {
+   "tech": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "SpaceX deal to acquire spectrum license hammers shares of AT: The sources do not identify Dish as a 'satellite provider'; this detail is an unsupported external addition.; The text states that Elon Musk hailed the 'regulatory submission' as a 'very big deal,' but Source 1 states he was referring to the spectrum deal itself.",
+   "Spa bliss in the Alps: hot springs and hiking in the shadow : The lesson states that the distillery is 'Europe’s highest microdistillery', whereas the source states it is 'one of Europe’s highest microdistilleries'.",
+   "UK savings: 5% interest rate deals may not last, say experts: too close to the source wording",
+   "gemini bad json"
+  ],
+  "gemini_calls": 42,
+  "end": "2026-10-10T12:52:23.558Z"
+ },
+ {
   "run_id": "2026-10-10T05:57:21.180Z",
   "level": "C1",
   "sources_checked": 41,
