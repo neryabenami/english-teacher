@@ -539,7 +539,8 @@
       return v.slice().sort((a, b) => score(a) - score(b));
     },
     voice(lang) {
-      const chosen = S.profile.voiceName && this.voices.find((x) => x.name === S.profile.voiceName);
+      // the voice the user picked on voices.html: "Google US English" (falls back to the best female voice where it doesn't exist, e.g. on iPhone)
+      const chosen = (S.profile.voiceName && this.voices.find((x) => x.name === S.profile.voiceName)) || this.voices.find((x) => x.name === 'Google US English');
       // the accent's best voice; if it's not a female voice, a female voice of another English accent is preferred
       const best = this.list(lang)[0];
       const femaleAny = this.list('en').find((x) => this.FEMALE.test(x.name));
