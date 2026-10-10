@@ -1,5 +1,28 @@
 [
  {
+  "run_id": "2026-10-10T21:47:59.837Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 953,
+  "rejected": 5,
+  "duplicates": 104,
+  "verified": 7,
+  "created": 2,
+  "published_by_cat": {
+   "gaming": 1,
+   "travel": 1
+  },
+  "errors": [
+   "fetch failed",
+   "Man named Hitler Mussolini elected mayor in Peru: The claim that local voters in Queropalca were 'far more focused on practical governance and community priorities than on historical nomenclature' is an unsupported addition not mentioned in either source.",
+   "UK savings: 5% interest rate deals may not last, say experts: number not in sources: 5.10",
+   "נשיא ההתאחדות: \"כולנו רוצים את רונאלדו בחזרה בנובמבר\": The text claims that 'According to Proença, maintaining internal stability is crucial as Portugal attempts to defend its Nations League title', but the source does not state that Proença made this specific claim linking internal stability to defending the title."
+  ],
+  "gemini_calls": 27,
+  "end": "2026-10-10T22:06:16.065Z"
+ },
+ {
   "run_id": "2026-10-10T12:37:04.883Z",
   "level": "C1",
   "sources_checked": 41,
