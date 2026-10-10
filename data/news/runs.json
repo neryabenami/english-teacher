@@ -1,5 +1,34 @@
 [
  {
+  "run_id": "2026-10-10T05:57:21.180Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 958,
+  "rejected": 11,
+  "duplicates": 115,
+  "verified": 15,
+  "created": 4,
+  "published_by_cat": {
+   "finance": 1,
+   "health": 1,
+   "business": 2
+  },
+  "errors": [
+   "Life-threatening Hurricane Isaias makes landfall in Florida: The claim that Georgia 'mobilized defensive resources' is unsupported; the sources state that Georgia declared a state of emergency, with no mention of mobilizing defensive resources.; The claim that Chevron's Pascagoula complex and the Vertex Alabama refinery 'monitored conditions closely to mitigate flood risks and safeguard fuel distribution to regional airports' misrepresents Source 3, which explicitly notes that representatives for both refineries did not return requests for comment about their preparations (Exxon was the company that stated it was closely monitoring weather, and only Pascagoula was identified as supplying regional airports).",
+   "Tesla drops 'Full Self-Driving' brand name in Europe after r: number not in sources: 1.5",
+   "SpaceX deal to acquire spectrum license hammers shares of AT: The text states that Musk revealed plans to deploy decentralized rooftop antennas 'addressing this challenge' raised by Tim Farrar, but Farrar made his comments following the October deal announcement, whereas Musk made his remarks months earlier in August.; The text claims SpaceX is 'eschewing conventional, cost-prohibitive cellular towers,' but SpaceX's FCC filing explicitly states that deployment will rely on sectorized antennas on 'towers, rooftops, and other structures.'",
+   "ישחק ב-NBA? נועם יעקב חתם על חוזה לא מובטח בקליבלנד קאבלירס: The addition of 'Filou' to the name of Belgian club Oostende ('Filou Oostende') is not mentioned in the sources, which only refer to it as Oostende.; The statement that Liron Fanan's 'familiarity with international talent and Israeli basketball could provide a supportive framework for Yaacov as he adapts to the high-stakes American professional landscape' is unsupported speculation not found in the sources.",
+   "Magic: The Gathering Returns to Marvel with Darkhold Destiny: The source text does not describe Dormammu as 'demonic' or Hela as 'ruler of the underworld'; these details are unmentioned outside lore added to the lesson.",
+   "I hitchhiked from Sydney to Perth, and found comfort in the : The text identifies Aston Brown as a 'journalist', but the provided source does not explicitly state his profession.",
+   "ICJ judge Navi Pillay wins Nobel peace prize for promoting i: length 400",
+   "An Anthropic AI model sent a false homicide tip to Philadelp: too close to the source wording",
+   "ChatGPT for Teens has special safeguards. A watchdog group f: length 397"
+  ],
+  "gemini_calls": 50,
+  "end": "2026-10-10T06:17:38.838Z"
+ },
+ {
   "run_id": "2026-10-09T22:41:40.269Z",
   "level": "C1",
   "sources_checked": 41,
