@@ -1355,7 +1355,11 @@
     if (inSheet) ACT[dx < 0 ? 'sheet-next' : 'sheet-prev']();
     else if (onCard) ACT[dx < 0 ? 'card-next' : 'card-prev']();
   }, { passive: true });
-  ET.Audio.load().then(() => Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)));
+  // favourites keep their audio on the device even if it was never played: checked at start and whenever the app comes back,
+  // so an article saved before its audio was made gets it as soon as it exists (the server keeps audio only 30 days)
+  const keepFavouriteAudio = () => ET.Audio.load().then(() => Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)));
+  keepFavouriteAudio();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepFavouriteAudio(); });
   ET.DictionarySource.load();
   ET.Vocab.load().then(() => render());
   ET.Meanings.load().then(() => { if (RT.sheet) renderSheet(); });
