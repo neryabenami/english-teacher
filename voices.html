@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>בחירת קול</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#F2F5F3; --surface:#fff; --surface-2:#E8EEEA; --line:#DCE4DF; --ink:#15201C; --muted:#5C6A64; --accent:#0A8A7A; --accent-soft:#D5F0EB; --pink:#D9467A; --pink-soft:#FDE3EC; --blue:#3A4FB5; --blue-soft:#E3E8FF; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0D1412; --surface:#16201D; --surface-2:#1F2B27; --line:#2A3833; --ink:#E7EFEB; --muted:#95A59F; --accent:#2CC3AD; --accent-soft:#123C35; --pink-soft:#3D1A27; --blue-soft:#1E2547; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:Rubik, system-ui, sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:20px 16px 40px; display:grid; gap:14px; }
+  h1 { margin:0; font-size:1.4rem; text-align:center; }
+  p.note { margin:0; color:var(--muted); font-size:.88rem; line-height:1.5; text-align:center; }
+  h2 { margin:10px 0 0; font-size:1.05rem; }
+  .list { display:grid; gap:8px; }
+  .v { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:10px 12px; display:flex; align-items:center; gap:10px; }
+  .num { width:28px; height:28px; border-radius:50%; background:var(--surface-2); display:grid; place-items:center; font-weight:700; font-size:.85rem; flex:none; }
+  .name { flex:1; min-width:0; }
+  .name b { display:block; direction:ltr; text-align:right; }
+  .name small { color:var(--muted); font-size:.75rem; }
+  .tag { font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--accent-soft); color:var(--accent); margin-inline-start:4px; }
+  .play { border:0; background:var(--accent); color:#fff; border-radius:999px; padding:9px 16px; font:inherit; font-weight:700; cursor:pointer; }
+  .f .num { background:var(--pink-soft); color:var(--pink); }
+  .m .num { background:var(--blue-soft); color:var(--blue); }
+  .empty { text-align:center; color:var(--muted); background:var(--surface); border-radius:16px; padding:18px; }
+  .tip { background:var(--surface); border-radius:16px; padding:12px 14px; font-size:.86rem; line-height:1.6; }
+</style>
+</head>
+<body>
+<main>
+  <h1>בחירת קול 🔊</h1>
+  <p class="note">אלה הקולות באנגלית שמותקנים בטלפון שלך. לחצו על "השמע", ותגידו לי את מספר הקול שאהבתם.</p>
+  <h2>קולות נשיים</h2><div class="list" id="f"></div>
+  <h2>קולות גבריים</h2><div class="list" id="m"></div>
+  <h2>קולות נוספים</h2><div class="list" id="o"></div>
+  <div class="tip"><b>טיפ לקול טבעי יותר באייפון:</b> הגדרות ← נגישות ← תוכן מדובר (Spoken Content) ← קולות (Voices) ← English. שם אפשר להוריד בחינם קולות איכותיים, כמו Ava, Zoe, Evan או Nathan בגרסת Premium או Enhanced. אחרי ההורדה הם יופיעו כאן עם התווית "איכות גבוהה".</div>
+</main>
+<script>
+  const FEMALE = /\b(ava|zoe|allison|samantha|susan|nicky|joelle|evelyn|noelle|serena|kate|stephanie|martha|karen|moira|tessa|fiona|veena|aria|jenny|michelle|sonia|libby|maisie|emma|ana|zira|hazel|heather|catherine|victoria|kathy|princess|shelley|sandy|flo|grandma|female)\b/i;
+  const MALE = /\b(david|mark|daniel|alex|fred|tom|aaron|arthur|oliver|george|james|ryan|guy|eric|thomas|rishi|gordon|lee|matthew|joey|justin|brian|evan|nathan|reed|rocko|ralph|albert|junior|grandpa|male)\b/i;
+  const TEXT = "Hi! It's nice to meet you. Let's learn some English together. The weather is lovely today.";
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let voices = [];
+  function draw() {
+    voices = speechSynthesis.getVoices().filter((v) => /^en[-_]/i.test(v.lang) || v.lang === 'en');
+    const good = (v) => /premium|enhanced|natural|neural/i.test(v.name);
+    voices.sort((a, b) => good(b) - good(a) || a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name));
+    const groups = { f: [], m: [], o: [] };
+    voices.forEach((v, i) => groups[FEMALE.test(v.name) ? 'f' : MALE.test(v.name) ? 'm' : 'o'].push(i));
+    let n = 0;
+    for (const [k, idx] of Object.entries(groups)) {
+      document.getElementById(k).innerHTML = idx.length ? idx.map((i) => { const v = voices[i]; n++; return `<div class="v ${k}"><span class="num">${n}</span><span class="name"><b>${esc(v.name.replace(/\s*\(.*?\)\s*/g, ' ').trim())}${good(v) ? '<span class="tag">איכות גבוהה</span>' : ''}</b><small>${esc(v.lang)}</small></span><button class="play" data-i="${i}">השמע</button></div>`; }).join('')
+        : '<div class="empty">לא נמצאו קולות בקבוצה הזאת</div>';
+    }
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.play'); if (!b) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(TEXT); u.voice = voices[+b.dataset.i]; u.lang = u.voice.lang; u.rate = 0.95;
+    speechSynthesis.speak(u);
+  });
+  draw();
+  speechSynthesis.onvoiceschanged = draw;
+  setTimeout(draw, 800);
+</script>
+</body>
+</html>
