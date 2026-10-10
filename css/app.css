@@ -636,3 +636,6 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 /* v18: reading title centred and a little bigger */
 .read-head .grow { text-align: center; }
 .read-head h1 { font-size: 1.65rem; }
+
+/* v19: words tab heading as one line */
+.words-head h1.long { font-size: 1.32rem; }

@@ -268,7 +268,7 @@
     if (!sec) {
       return `<div class="screen">
         <header class="topbar"><span class="grow"></span>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}</header>
-        <div class="words-head"><h1>לימוד מילים</h1><p>בחרו קטגוריה והתחילו ללמוד</p></div>
+        <div class="words-head"><h1 class="long">בחרו קטגוריה והתחילו ללמוד</h1></div>
         <div class="stack">${WORD_SECS.map(([id, he, emo, color]) => `<button class="big-card" data-act="go" data-arg="words/${id}"><span class="big-tile ${color}" aria-hidden="true">${emo}</span><span class="big-title">${he}</span>${ic('chev', 'chev')}</button>`).join('')}</div></div>`;
     }
     if (!ET.Vocab.ready) return `<div class="screen">${topbar('לימוד מילים', 'words')}<div class="card empty"><p>טוען מילים…</p></div></div>`;
