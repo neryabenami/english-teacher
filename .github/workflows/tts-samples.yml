@@ -1,0 +1,28 @@
+# Makes a few voice samples (Kokoro) to choose the app's voice. Changes nothing in the app.
+name: Voice samples
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  samples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the voice engine
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q espeak-ng ffmpeg
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q "kokoro>=0.9.4" soundfile
+      - name: Make the samples
+        run: python tools/tts-samples.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: voice-samples
+          path: samples/*.mp3
