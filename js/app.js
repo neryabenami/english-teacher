@@ -1011,7 +1011,9 @@
       if (sh.home) {
         const id = sh.id, it = ET.item(id), d = ET.daily();
         RT.undo = { id, home: true, rec: S.items[id] ? JSON.parse(JSON.stringify(S.items[id])) : null, word: d.word, slang: d.slang };
-        ET.grade(id, 5); ET.daily(); RT.sheet = null; Speech.stop(); renderSheet(); render();
+        ET.grade(id, 5);
+        const nd = ET.daily(); const next = it && it.type === 'expr' ? nd.slang : nd.word; // the next word / slang of the day, right away
+        RT.sheet = next && next !== id ? { type: 'item', id: next, home: true } : null; Speech.stop(); renderSheet(); render();
         toastUndo(`${it ? it.t : 'המילה'} נמחקה ולא תוצג יותר`, 'undo-trash');
         return;
       }
@@ -1028,7 +1030,7 @@
       const u = RT.undo; if (!u) return;
       if (u.rec) S.items[u.id] = u.rec; else delete S.items[u.id];
       ET.save(); RT.undo = null;
-      if (u.home) { const d = ET.daily(); d.word = u.word; d.slang = u.slang; ET.save(); $('#toast').hidden = true; render(); return; }
+      if (u.home) { const d = ET.daily(); d.word = u.word; d.slang = u.slang; ET.save(); $('#toast').hidden = true; if (RT.sheet) RT.sheet = { type: 'item', id: u.id, home: true }; render(); renderSheet(); return; }
       RT.sheet = { type: 'item', id: u.id, list: u.list };
       $('#toast').hidden = true; render(); renderSheet();
     },
