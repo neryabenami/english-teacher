@@ -63,7 +63,7 @@
   const parse = () => { const h = location.hash.replace(/^#\/?/, ''); const [name, ...args] = h.split('/').map((x) => decodeURIComponent(x)); return { name: name || 'home', args }; };
   const go = (path) => { if (location.hash === '#/' + path) render(); else location.hash = '#/' + path; };
   let toastT;
-  const toast = (msg) => { const el = $('#toast'); el.textContent = msg; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2400); };
+  const toast = (msg) => { const el = $('#toast'); el.classList.remove('top'); el.textContent = msg; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2400); };
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const bandHe = (cefr) => (ET.CEFR_INFO[cefr] || ET.CEFR_INFO.A2).he;
   const lvlBadge = (l) => `<span class="badge lvl">${l} · ${bandHe(l)}</span>`;
@@ -362,6 +362,7 @@
     }
     const s = RT.session;
     const close = `<button class="icon-btn" data-act="exit-session" aria-label="סגירה">${ic('x')}</button>`;
+    const browse = ['cat', 'sec', 'fav'].includes(s.kind); // Words-tab cards: previous / next, no grading
     if (!s.ids.length) {
       return `<div class="screen no-tabs"><header class="topbar">${close}<h1>${kind === 'review' ? 'חזרה' : 'כרטיסיות'}</h1></header><div class="empty card"><div class="emo">${kind === 'review' ? '🎉' : '📭'}</div><h2>${kind === 'review' ? 'אין מילים לחזרה כרגע' : 'אין כאן כרטיסיות כרגע'}</h2><p>${kind === 'review' ? 'כל הכבוד! המערכת תזכיר לך כשיגיע הזמן לחזור על מילים.' : 'נסו נושא אחר.'}</p><button class="btn" data-act="go" data-arg="words">ללימוד מילים</button></div></div>`;
     }
@@ -369,8 +370,8 @@
       if (S.resume && S.resume.key === key) { S.resume = null; ET.save(); }
       RT.lastSessionIds = s.ids.slice();
       return `<div class="screen no-tabs"><header class="topbar">${close}<h1>סיימת סבב</h1></header>
-        <div class="card result"><div class="big-emoji">🎉</div><h1>כל הכבוד!</h1><p class="muted">עברת על ${s.ids.length} כרטיסיות. המערכת תחזיר אליך כל מילה בדיוק בזמן הנכון.</p>
-          <div class="grid2" style="width:100%">${stat(s.res[5], 'הכרתי')}${stat(s.res[1], 'לא הכרתי')}</div></div>
+        <div class="card result"><div class="big-emoji">🎉</div><h1>כל הכבוד!</h1><p class="muted">עברת על ${s.ids.length} כרטיסיות.${browse ? '' : ' המערכת תחזיר אליך כל מילה בדיוק בזמן הנכון.'}</p>
+          ${browse ? '' : `<div class="grid2" style="width:100%">${stat(s.res[5], 'הכרתי')}${stat(s.res[1], 'לא הכרתי')}</div>`}</div>
         <button class="btn block" data-act="go" data-arg="quiz/session">${ic('quiz')} בחן את עצמי על המילים האלה</button>
         <button class="btn ghost block" data-act="restart-session">עוד סבב</button>
         <button class="link" data-act="go" data-arg="game/match" style="justify-self:center">או משחק התאמה קצר 🧩</button></div>`;
@@ -379,13 +380,14 @@
     if (!it) { s.i++; return SCREENS.session(kind, arg); }
     if (!ET.rec(it.id) || !(ET.rec(it.id).p & 1)) ET.mark(it.id, 'exposed');
     return `<div class="screen no-tabs">
-      <header class="topbar">${close}<div class="progress-top grow"><div class="bar"><i style="width:${(s.i / s.ids.length) * 100}%"></i></div><span class="small muted tnum">${s.i + 1}/${s.ids.length}</span></div></header>
+      <header class="topbar">${close}${browse ? `<button class="tw-trash" data-act="trash-card" aria-label="מחיקה לתמיד">${ic('trash')}</button>` : ''}<div class="progress-top grow"><div class="bar"><i style="width:${(s.i / s.ids.length) * 100}%"></i></div><span class="small muted tnum">${s.i + 1}/${s.ids.length}</span></div></header>
       ${flashcard(it, s.revealed)}
       ${s.revealed ? '' : '<button class="btn soft block" data-act="reveal">הצג תרגום</button>'}
-      <div class="grade two">
+      ${browse ? `<div class="tw-nav"><button class="btn ghost" data-act="card-next">הבא</button><button class="btn ghost" data-act="card-prev" ${s.i <= 0 ? 'disabled' : ''}>הקודם</button></div>`
+        : `<div class="grade two">
         <button class="g-bad" data-act="grade" data-arg="1">לא הכרתי<small>${ET.preview(it.id, 1)}</small></button>
         <button class="g-good" data-act="grade" data-arg="5">הכרתי ✓<small>${ET.preview(it.id, 5)}</small></button>
-      </div></div>`;
+      </div>`}</div>`;
   };
   const sessionExitPath = () => { const s = RT.session; if (!s) return 'home'; return s.kind === 'cat' ? 'words/topic/' + s.arg : s.kind === 'fav' ? (s.arg === 'words' ? 'words/topic/favorites' : 'words/' + s.arg + '/favorites') : s.kind === 'sec' ? 'words/' + s.arg : s.kind === 'list' ? 'mywords' : 'home'; };
   /* ---------- my words ---------- */
@@ -479,7 +481,7 @@
     const fb = answered ? `<div class="feedback ${q.ok ? 'ok' : 'no'}">${q.ok ? 'נכון! ✓' : `לא בדיוק. התשובה הנכונה: <span class="en">${esc(q.answer)}</span>`}${q.type !== 'mc_en' && q.type !== 'context' ? ` · ${esc(it.he)}` : ''}</div><button class="btn block" data-act="next-q">${z.i + 1 < z.qs.length ? 'לשאלה הבאה' : 'לתוצאות'}</button>` : '';
     if (q.type === 'listen' && !answered && !q.played) { q.played = true; RT.after = () => Speech.speak(it.t); }
     return `<div class="screen no-tabs">
-      <header class="topbar">${close}<div class="progress-top grow"><div class="bar"><i style="width:${(z.i / z.qs.length) * 100}%"></i></div><span class="small muted tnum">${z.i + 1}/${z.qs.length}</span></div></header>
+      <header class="topbar">${close}${browse ? `<button class="tw-trash" data-act="trash-card" aria-label="מחיקה לתמיד">${ic('trash')}</button>` : ''}<div class="progress-top grow"><div class="bar"><i style="width:${(z.i / z.qs.length) * 100}%"></i></div><span class="small muted tnum">${z.i + 1}/${z.qs.length}</span></div></header>
       <div class="q-card"><div class="q-type">${Q_LABEL[q.type]}</div>${prompt}${options}</div>${fb}</div>`;
   };
   const answerQ = (val) => {
@@ -830,59 +832,59 @@
         const FM = { casual: ['🗣️ יומיומי', 'casual'], neutral: ['👌 מתאים לכל מצב', 'neutral'], formal: ['💼 רשמי', 'formal'] };
         const fm = mn && FM[mn.f];
         return `<div class="grab"></div>
-        <div class="tw-close"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
+        ${sheetTop(sh)}
         <div class="tw-word">
           <div class="tw-en ${it.t.length > 14 ? 'long' : ''}" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
           <div class="tw-he">${esc(it.he)}</div>
           <div class="tw-pills"><span class="tw-pos">ביטוי</span>${fm ? `<span class="tw-fm ${fm[1]}">${fm[0]}</span>` : ''}</div>
         </div>
-        ${mn && mn.m ? `<div class="tw-box"><div class="tw-h">📄 משמעות</div><p>${esc(mn.m)}</p></div>` : ''}
-        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">💬 דוגמה במשפט</div>
+        ${mn && mn.m ? `<div class="tw-box"><div class="tw-h">משמעות 📄</div><p>${esc(mn.m)}</p></div>` : ''}
+        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">דוגמה במשפט 💬</div>
           <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlightPhrase(it.ex, it.t)}</span></div>
           ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
-        <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
-        <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
-        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
+        ${sheetGrade(sh, it)}
+        <button class="btn tw-add ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button>
+        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">דיווח על טעות ${ic('flag')}</button>`;
       }
       if (it.type === 'expr' && it.kind === 'slang' && !sh.ctx) {
         // American slang: the big centred term, "what does it mean?" and the example
         const mn = ET.Meanings.of(it);
         const what = (mn && mn.m) || (it.real && it.real !== it.he ? it.real : '');
         return `<div class="grab"></div>
-        <div class="tw-close"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
+        ${sheetTop(sh)}
         <div class="tw-word">
           <div class="tw-en" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
           <div class="tw-he">${esc(it.he)}</div>
         </div>
-        ${what ? `<div class="tw-box what"><div class="tw-h">💡 מה זה אומר?</div><p>${esc(what)}</p></div>` : ''}
-        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">💬 דוגמה במשפט</div>
+        ${what ? `<div class="tw-box what"><div class="tw-h">מה זה אומר? 💡</div><p>${esc(what)}</p></div>` : ''}
+        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">דוגמה במשפט 💬</div>
           <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlight(it.ex, it.t)}</span></div>
           ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
-        <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
-        <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
-        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
+        ${sheetGrade(sh, it)}
+        <button class="btn tw-add ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button>
+        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">דיווח על טעות ${ic('flag')}</button>`;
       }
       if (ET.isTopicWord(it) && !sh.ctx) {
         const mn = ET.Meanings.of(it);
         const pos = (mn && POS_HE[mn.pos]) || ET.POS[it.pos] || POS_HE[it.pos] || '';
         return `<div class="grab"></div>
-        <div class="tw-close"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
+        ${sheetTop(sh)}
         <div class="tw-word">
           <div class="tw-en" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
           <div class="tw-he">${esc(it.he)}</div>
           ${pos ? `<span class="tw-pos">${esc(pos)}</span>` : ''}
         </div>
-        ${mn && mn.m ? `<div class="tw-box"><div class="tw-h">📄 משמעות</div><p>${esc(mn.m)}</p></div>` : ''}
-        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">💬 דוגמה במשפט</div>
+        ${mn && mn.m ? `<div class="tw-box"><div class="tw-h">משמעות 📄</div><p>${esc(mn.m)}</p></div>` : ''}
+        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">דוגמה במשפט 💬</div>
           <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlight(it.ex, it.t)}</span></div>
           ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
-        <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
-        <button class="btn block ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button>
-        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button>`;
+        ${sheetGrade(sh, it)}
+        <button class="btn tw-add ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button>
+        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">דיווח על טעות ${ic('flag')}</button>`;
       }
       return `<div class="grab"></div>
         <div class="head"><div class="term">${esc(it.t)}</div>
-          <button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
+          ${sh.list ? `<button class="icon-btn flat tw-trash" data-act="trash-item" aria-label="מחיקה לתמיד">${ic('trash')}</button>` : ''}<button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
         <div class="row wrap" style="gap:6px">${it.ipa ? `<span class="muted en">${esc(it.ipa)}</span>` : ''}${it.lvl ? lvlBadge(it.lvl) : ''}${it.type === 'expr' ? `<span class="badge sun">${ET.KINDS[it.kind].he}</span>` : it.pos ? `<span class="badge">${ET.POS[it.pos] || ''}</span>` : ''}</div>
         <div class="row wrap">${speakBtn(it.t, it.id, 'השמע')}<button class="speak" data-act="say-slow" data-arg="${esc(it.t)}" data-id="${esc(it.id)}">🐢 לאט</button></div>
         <div class="translation" style="text-align:start">${it.emoji && it.type === 'word' ? it.emoji + ' ' : ''}${esc(it.he)}</div>
@@ -890,8 +892,12 @@
         ${it.type === 'expr' && !ctx.phrase ? exprDetails(it) : ''}
         ${ctx.sentence ? `<div class="example"><div class="small muted">מתוך הטקסט</div><div class="en-line">${highlight(ctx.sentence, ctx.word || it.t)}</div>${sentTrHtml(sh)}</div>` : ''}
         ${exampleBox(it)}
-        <div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>
-        <div class="grid2"><button class="btn ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? '✓ נמצא במילים שלי' : '⭐ הוסף למילים שלי'}</button><button class="btn ghost" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button></div>`;
+        ${sheetGrade(sh, it)}
+        <div class="grid2"><button class="btn ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button><button class="btn ghost" data-act="report" data-arg="${esc(it.id)}">${ic('flag')} דיווח על טעות</button></div>`;
+    }
+    if (sh.type === 'list-done') {
+      return `<div class="grab"></div><div class="list-done"><div class="big-emoji">🎉</div><h2>סיימת את הרשימה</h2><p class="muted">עברת על כל המילים כאן.</p></div>
+        <button class="btn block" data-act="close-sheet">חזרה לרשימה</button>`;
     }
     if (sh.type === 'pop') {
       const g = sh.gloss;
@@ -941,7 +947,13 @@
     if (keepNote && $('#report-note')) $('#report-note').value = keepNote;
     RT.lastSheet = RT.sheet;
   }
-  const openItem = (id, ctx) => { RT.sheet = { type: 'item', id, ctx }; renderSheet(); };
+  const openItem = (id, ctx, list) => { RT.sheet = { type: 'item', id, ctx, list }; renderSheet(); };
+  // in the Words tab a word window walks through the list it was opened from (same order as on screen)
+  const sheetTop = (sh) => `<div class="tw-top"><button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button>${sh.list ? `<button class="tw-trash" data-act="trash-item" aria-label="מחיקה לתמיד">${ic('trash')}</button>` : ''}</div>`;
+  const sheetGrade = (sh, it) => (sh.list
+    ? `<div class="tw-nav"><button class="btn ghost" data-act="sheet-next">הבא</button><button class="btn ghost" data-act="sheet-prev" ${sh.list.indexOf(it.id) <= 0 ? 'disabled' : ''}>הקודם</button></div>`
+    : `<div class="grade two"><button class="g-bad" data-act="know-item" data-arg="${esc(it.id)}" data-q="1">לא הכרתי</button><button class="g-good" data-act="know-item" data-arg="${esc(it.id)}" data-q="5">הכרתי ✓</button></div>`);
+  const toastUndo = (msg, act) => { const el = $('#toast'); el.classList.add('top'); el.innerHTML = `<span>${esc(msg)}</span><button class="toast-undo" data-act="${act}">בטל</button>`; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 5000); };
   function sentTrHtml(sh) {
     if (sh.sentTr) return `<div>${esc(sh.sentTr)}</div><div class="small muted">תרגום אוטומטי של המשפט</div>`;
     if (sh.sentBusy) return '<div class="muted small">מתרגם את המשפט…</div>';
@@ -977,7 +989,39 @@
     go: (a) => go(a),
     say: (a, el) => say(a, el),
     'say-slow': (a, el) => say(a, el, 0.6),
-    item: (a) => openItem(a),
+    item: (a) => {
+      const list = parse().name === 'words' ? [...new Set([...document.querySelectorAll('#app .screen [data-act="item"]')].map((e) => e.dataset.arg))] : null;
+      openItem(a, undefined, list && list.includes(a) ? list : null);
+    },
+    'sheet-next': () => {
+      const sh = RT.sheet; if (!sh || !sh.list) return;
+      const i = sh.list.indexOf(sh.id);
+      RT.sheet = i < sh.list.length - 1 ? { type: 'item', id: sh.list[i + 1], list: sh.list } : { type: 'list-done' };
+      Speech.stop(); renderSheet();
+    },
+    'sheet-prev': () => {
+      const sh = RT.sheet; if (!sh || !sh.list) return;
+      const i = sh.list.indexOf(sh.id);
+      if (i > 0) { RT.sheet = { type: 'item', id: sh.list[i - 1], list: sh.list }; Speech.stop(); renderSheet(); }
+    },
+    // trash: the word is removed for good (known), the next one opens; "undo" for a few seconds
+    'trash-item': () => {
+      const sh = RT.sheet; if (!sh || !sh.list) return;
+      const id = sh.id, i = sh.list.indexOf(id), it = ET.item(id);
+      RT.undo = { id, i, list: sh.list, rec: S.items[id] ? JSON.parse(JSON.stringify(S.items[id])) : null };
+      ET.grade(id, 5);
+      const list = sh.list.filter((x) => x !== id);
+      RT.sheet = list.length ? (i < list.length ? { type: 'item', id: list[i], list } : { type: 'list-done' }) : { type: 'list-done' };
+      Speech.stop(); render(); renderSheet();
+      toastUndo(`${it ? it.t : 'המילה'} נמחקה ולא תוצג יותר`, 'undo-trash');
+    },
+    'undo-trash': () => {
+      const u = RT.undo; if (!u) return;
+      if (u.rec) S.items[u.id] = u.rec; else delete S.items[u.id];
+      ET.save(); RT.undo = null;
+      RT.sheet = { type: 'item', id: u.id, list: u.list };
+      $('#toast').hidden = true; render(); renderSheet();
+    },
     lex: (a) => { RT.sheet = { type: 'lex', word: a }; renderSheet(); },
     word: (a, el) => {
       const sentence = sentenceOf(el);
@@ -1028,6 +1072,20 @@
       ET.grade(s.ids[s.i], +a); s.res[a] = (s.res[a] || 0) + 1; s.i++; s.revealed = false; Speech.stop();
       S.resume = s.i < s.ids.length && s.kind !== 'list' ? { key: s.key, kind: s.kind, arg: s.arg, ids: s.ids, i: s.i, res: s.res } : null;
       ET.save(); render(); window.scrollTo(0, 0);
+    },
+    'card-next': () => { const s = RT.session; if (!s) return; s.i++; s.revealed = false; Speech.stop(); S.resume = s.i < s.ids.length ? { key: s.key, kind: s.kind, arg: s.arg, ids: s.ids, i: s.i, res: s.res } : null; ET.save(); render(); window.scrollTo(0, 0); },
+    'card-prev': () => { const s = RT.session; if (!s || s.i <= 0) return; s.i--; s.revealed = false; Speech.stop(); render(); window.scrollTo(0, 0); },
+    'trash-card': () => {
+      const s = RT.session; if (!s) return;
+      const id = s.ids[s.i], it = ET.item(id);
+      RT.undoCard = { id, i: s.i, rec: S.items[id] ? JSON.parse(JSON.stringify(S.items[id])) : null };
+      ET.grade(id, 5); s.ids.splice(s.i, 1); s.revealed = false; Speech.stop(); ET.save(); render();
+      toastUndo(`${it ? it.t : 'המילה'} נמחקה ולא תוצג יותר`, 'undo-card');
+    },
+    'undo-card': () => {
+      const u = RT.undoCard, s = RT.session; if (!u || !s) return;
+      if (u.rec) S.items[u.id] = u.rec; else delete S.items[u.id];
+      s.ids.splice(u.i, 0, u.id); s.i = u.i; RT.undoCard = null; ET.save(); $('#toast').hidden = true; render();
     },
     'exit-session': () => { const p = sessionExitPath(); RT.session = null; go(p); },
     'restart-session': () => { RT.session = null; if (S.resume) S.resume = null; render(); },
@@ -1272,6 +1330,17 @@
     }).catch(() => {});
   }
 
+  let swipe = null;
+  addEventListener('touchstart', (e) => { const t = e.touches[0]; swipe = { x: t.clientX, y: t.clientY }; }, { passive: true });
+  addEventListener('touchend', (e) => {
+    if (!swipe) return;
+    const t = e.changedTouches[0], dx = t.clientX - swipe.x, dy = t.clientY - swipe.y; swipe = null;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const inSheet = RT.sheet && RT.sheet.list && e.target.closest && e.target.closest('.sheet');
+    const onCard = !RT.sheet && parse().name === 'session' && RT.session && ['cat', 'sec', 'fav'].includes(RT.session.kind);
+    if (inSheet) ACT[dx < 0 ? 'sheet-next' : 'sheet-prev']();
+    else if (onCard) ACT[dx < 0 ? 'card-next' : 'card-prev']();
+  }, { passive: true });
   ET.DictionarySource.load();
   ET.Vocab.load().then(() => render());
   ET.Meanings.load().then(() => { if (RT.sheet) renderSheet(); });

@@ -640,3 +640,19 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 /* v19: words tab heading as one line */
 .words-head h1.long { font-size: 1.32rem; }
 .words-head:has(h1.long) { margin-bottom: 22px; }
+
+/* v20: word window: trash, previous / next, smaller add button */
+.tw-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: -6px; }
+.tw-trash { background: none; border: 0; padding: 6px; color: var(--accent); display: grid; place-items: center; cursor: pointer; }
+.tw-trash svg { width: 19px; height: 19px; }
+.icon-btn.tw-trash { color: var(--accent); }
+.tw-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tw-nav .btn { background: var(--surface-2); color: var(--ink); border: 0; font-weight: 700; min-height: 48px; }
+.tw-nav .btn:disabled { opacity: .45; }
+.btn.tw-add { justify-self: center; align-self: center; width: auto; min-height: 40px; padding: 0 22px; font-size: .9rem; }
+.list-done { display: grid; justify-items: center; gap: 6px; text-align: center; padding: 18px 0 6px; }
+.list-done .big-emoji { font-size: 2.6rem; }
+.list-done h2 { margin: 0; }
+.toast .toast-undo { margin-inline-start: 12px; background: none; border: 0; color: #7BE3CF; font-weight: 800; font: inherit; cursor: pointer; }
+.toast.top { top: calc(env(safe-area-inset-top, 0px) + 14px); bottom: auto; display: flex; align-items: center; gap: 4px; }
+.tw-report { align-self: center; }
