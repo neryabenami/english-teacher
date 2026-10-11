@@ -1,5 +1,22 @@
 [
  {
+  "run_id": "2026-10-11T15:17:19.265Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [
+   "Ynet https://www.ynet.co.il/Integration/StoryRss545.xml"
+  ],
+  "candidates": 913,
+  "rejected": 0,
+  "duplicates": 123,
+  "verified": 0,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [],
+  "gemini_calls": 0,
+  "end": "2026-10-11T15:17:47.835Z"
+ },
+ {
   "run_id": "2026-10-11T14:55:33.034Z",
   "level": "C1",
   "sources_checked": 41,
