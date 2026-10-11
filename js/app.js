@@ -912,9 +912,13 @@
     if (!RT.sheet) { sheetRoot.innerHTML = ''; RT.lastSheet = null; return; }
     const keepNote = $('#report-note') ? $('#report-note').value : '';
     const same = RT.lastSheet === RT.sheet;
+    // moving between words of an open window: no slide-up and no backdrop fade (that was the flicker); the new card settles in place
+    const swap = !same && !!RT.lastSheet;
+    const move = swap ? (RT.swiped ? 'settle' : 'swap') : '';
+    RT.swiped = false;
     const pop = RT.sheet.type === 'pop';
     const full = RT.sheet.type === 'item' || RT.sheet.type === 'list-done';
-    sheetRoot.innerHTML = `<div class="backdrop ${pop ? 'clear' : ''}" data-act="close-sheet"></div><div class="sheet ${pop ? 'pop' : ''} ${full ? 'full' : ''}" role="dialog" aria-modal="${pop ? 'false' : 'true'}" ${same ? 'style="animation:none"' : ''}>${sheetContent()}</div>`;
+    sheetRoot.innerHTML = `<div class="backdrop ${pop ? 'clear' : ''}" data-act="close-sheet" ${same || swap ? 'style="animation:none"' : ''}></div><div class="sheet ${pop ? 'pop' : ''} ${full ? 'full' : ''} ${move}" role="dialog" aria-modal="${pop ? 'false' : 'true'}" ${same ? 'style="animation:none"' : ''}>${sheetContent()}</div>`;
     if (keepNote && $('#report-note')) $('#report-note').value = keepNote;
     RT.lastSheet = RT.sheet;
   }
@@ -1372,7 +1376,7 @@
     el.style.transform = `translateX(${sw.dx < 0 ? -130 : 130}%) rotate(${sw.dx < 0 ? -14 : 14}deg)`;
     setTimeout(() => {
       const name = sw.sheet ? (sw.dx < 0 ? 'sheet-next' : 'sheet-prev') : (sw.dx < 0 ? 'card-next' : 'card-prev');
-      RT.lastSheet = RT.sheet; // no slide-up animation for the next card
+      RT.swiped = true; // the card underneath becomes the front card without any jump
       ACT[name]();
       if (!sw.sheet) window.scrollTo(0, 0);
     }, 200);

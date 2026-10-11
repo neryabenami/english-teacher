@@ -673,3 +673,9 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .tw-fm.daily { background: var(--sun-soft); color: color-mix(in srgb, var(--sun) 60%, var(--ink)); }
 .tw-fm.work { background: color-mix(in srgb, #5B7BF0 16%, var(--surface)); color: color-mix(in srgb, #5B7BF0 80%, var(--ink)); }
 .tw-fm.formal { background: var(--surface-2); color: var(--ink); }
+
+/* v23: moving between words without flicker */
+.sheet.full.swap { animation: card-swap .16s ease-out; }
+.sheet.full.settle { animation: card-settle .16s ease-out; }
+@keyframes card-swap { from { opacity: .55; } }
+@keyframes card-settle { from { transform: scale(.96); filter: brightness(.97); } }
