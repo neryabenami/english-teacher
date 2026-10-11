@@ -1,5 +1,26 @@
 [
  {
+  "run_id": "2026-10-11T14:35:52.069Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 943,
+  "rejected": 2,
+  "duplicates": 120,
+  "verified": 4,
+  "created": 2,
+  "published_by_cat": {
+   "finance": 1,
+   "travel": 1
+  },
+  "errors": [
+   "החברה הישראלית שזינקה לשיא של עשור וזו שאיבדה גובה: number not in sources: 41.10; number not in sources: 550,000",
+   "החזרי מס, איחוד הלוואות ומיחזור משכנתא בתקציב המשפחתי: length 403"
+  ],
+  "gemini_calls": 25,
+  "end": "2026-10-11T14:46:13.177Z"
+ },
+ {
   "run_id": "2026-10-11T13:54:51.720Z",
   "level": "C1",
   "sources_checked": 41,
