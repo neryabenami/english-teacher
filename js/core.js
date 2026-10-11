@@ -142,6 +142,22 @@
       if (!r.ok) { try { localStorage.removeItem(GH_KEY); } catch (e) { /* ignore */ } }
       return r;
     },
+    // trashed articles: their ids go to the repository variable HIDDEN_ARTICLES; the daily run publishes them and the audio run deletes their audio
+    async hide(ids) {
+      if (!ghToken() || !ids.length || !navigator.onLine) return false;
+      try {
+        const g = await gh('/actions/variables/HIDDEN_ARTICLES', 'GET');
+        const cur = g.ok ? ((await g.json()).value || '').split(',').filter(Boolean) : [];
+        const value = [...new Set([...cur, ...ids])].slice(-1500).join(',');
+        const r = g.ok ? await gh('/actions/variables/HIDDEN_ARTICLES', 'PATCH', { name: 'HIDDEN_ARTICLES', value })
+          : await gh('/actions/variables', 'POST', { name: 'HIDDEN_ARTICLES', value });
+        return r.ok;
+      } catch (e) { return false; }
+    },
+    async flushHidden() {
+      const q = S.hiddenQueue || []; if (!q.length) return;
+      if (await this.hide(q)) { S.hiddenQueue = []; ET.save(); }
+    },
     disconnect() { try { localStorage.removeItem(GH_KEY); } catch (e) { /* ignore */ } const st = this.state(); st.sent = ''; st.err = ''; ET.save(); },
     // Sends the level when it changed since the last send, then starts a run so articles at the new level arrive within minutes.
     async push(force) {
@@ -419,16 +435,22 @@
     forUser(cat) {
       const cutoff = Date.now() - FEED_DAYS * DAY;
       const shown = new Set(D.READ_CATS.map((c) => c.id)); // removed categories leave the feed (favourites keep them)
-      return this.all().filter((a) => a.english_level === S.profile.cefr && shown.has(a.category) && (!cat || a.category === cat) && new Date(a.first_published_in_app_at).getTime() >= cutoff)
+      const hidden = S.hiddenArticles || {};
+      return this.all().filter((a) => !hidden[a.id] && a.english_level === S.profile.cefr && shown.has(a.category) && (!cat || a.category === cat) && new Date(a.first_published_in_app_at).getTime() >= cutoff)
         .sort((x, y) => new Date(y.first_published_in_app_at) - new Date(x.first_published_in_app_at) || (y.interest_score || 0) - (x.interest_score || 0));
     },
     levelsAvailable() { return [...new Set(this.all().map((a) => a.english_level))]; },
     /* "new" is personal: published after the reader last looked at the feed, not opened yet, and less than 72 hours old */
-    isNew(a) {
-      const t = new Date(a.first_published_in_app_at).getTime();
-      const seen = (S.readFeed && S.readFeed.prevSeen) || 0;
-      return t > seen && !(S.opened || {})[a.id] && Date.now() < t + 72 * 36e5;
+    isNew(a) { return dayKey(new Date(a.first_published_in_app_at)) === dayKey(); }, // published today
+    // trash: the article is gone for good on this device (feed, favourites, its audio); the server audio goes too (see LevelSync.hide)
+    hide(id) {
+      S.hiddenArticles = S.hiddenArticles || {}; S.hiddenArticles[id] = Date.now();
+      const fav = S.saved[id]; if (fav) delete S.saved[id];
+      if (S.daily && S.daily.article === id) S.daily.article = null;
+      ET.save(true); ET.Audio.drop(id);
+      return fav || null;
     },
+    unhide(id, fav) { if (S.hiddenArticles) delete S.hiddenArticles[id]; if (fav) S.saved[id] = fav; ET.save(true); if (fav) ET.Audio.keep(fav); },
     markOpened(id) { S.opened = S.opened || {}; if (!S.opened[id]) { S.opened[id] = Date.now(); ET.save(); } },
     /* call when the reader enters / leaves the feed */
     feedEnter() { S.readFeed = S.readFeed || {}; if (!S.readFeed.inSession) { S.readFeed.prevSeen = S.readFeed.lastSeen || 0; S.readFeed.inSession = true; } },
@@ -571,7 +593,7 @@
       } catch (e) { /* stays with the device voice */ }
     },
     async drop(id) {
-      try { if (!('caches' in window)) return; const c = await caches.open('et-audio-saved'); for (const r of await c.keys()) if (r.url.includes('/a/' + id + '/')) await c.delete(r); } catch (e) { /* ignore */ }
+      try { if (!('caches' in window)) return; for (const name of ['et-audio-saved', 'et-audio']) { const c = await caches.open(name); for (const r of await c.keys()) if (r.url.includes('/a/' + id + '/')) await c.delete(r); } } catch (e) { /* ignore */ }
     }
   };
   ET.Audio.load();

@@ -656,3 +656,9 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .toast .toast-undo { margin-inline-start: 12px; background: none; border: 0; color: #7BE3CF; font-weight: 800; font: inherit; cursor: pointer; }
 .toast.top { top: calc(env(safe-area-inset-top, 0px) + 14px); bottom: auto; display: flex; align-items: center; gap: 4px; }
 .tw-report { align-self: center; }
+
+/* v21: article card: trash at the bottom of the card, under the bookmark */
+.art-card { position: relative; }
+.art-card .star-btn { grid-column: 3; grid-row: 1; }
+.art-trash { position: absolute; bottom: 10px; inset-inline-end: 14px; width: 34px; height: 34px; display: grid; place-items: center; color: var(--accent); background: none; border: 0; cursor: pointer; }
+.art-trash svg { width: 19px; height: 19px; }

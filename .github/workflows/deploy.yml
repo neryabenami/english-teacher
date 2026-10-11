@@ -51,6 +51,12 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           READING_LEVEL: ${{ vars.READING_LEVEL }}
 
+      - name: Publish the articles the reader deleted (their audio is removed by the audio run)
+        if: ${{ !inputs.check_sources }}
+        run: node -e "require('fs').writeFileSync('data/hidden.json', JSON.stringify((process.env.HIDDEN || '').split(',').filter(Boolean)))"
+        env:
+          HIDDEN: ${{ vars.HIDDEN_ARTICLES }}
+
       - name: Save articles and words to the repository
         if: ${{ !inputs.check_sources }}
         run: |

@@ -205,11 +205,12 @@
     const srcs = [...new Set((a.sources || []).map((s) => s.name))];
     const isNew = ET.Articles.isNew(a);
     return `<div class="card art-card" data-act="go" data-arg="article/${esc(a.id)}" role="link" tabindex="0">${artImage({ ...a, cat: a.category }, 'thumb art-thumb')}<span class="art-main">
-      <span class="src">${readCat(a.category).he} · ${esc(srcs.slice(0, 2).join(', '))}${srcs.length > 2 ? ` +${srcs.length - 2}` : ''} · ${ago(a.published_at)}</span>
+      <span class="src">${readCat(a.category).he} · ${esc(srcs.slice(0, 2).join(', '))}${srcs.length > 2 ? ` +${srcs.length - 2}` : ''}</span>
       <button class="art-title" lang="en" dir="ltr" data-act="toggle-title" data-arg="${esc(a.id)}" aria-expanded="${open}">${esc(a.display_title)}</button>
       ${open ? `<span class="title-he">${a.display_title_he ? `<b>${esc(a.display_title_he)}</b>` : ''}</span>` : ''}
-      <span class="row wrap" style="gap:6px">${isNew ? '<span class="badge new">חדש</span>' : ''}<span class="badge">${a.reading_time} דק׳ קריאה</span><span class="badge lvl">${esc(a.english_level)}</span>${fav && pos > 3 && pos < 97 ? `<span class="badge sun">נקרא ${pos}%</span>` : ''}${read ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span>
-      <button class="star-btn ${fav ? 'on' : ''}" data-act="fav-article" data-arg="${esc(a.id)}" aria-label="${fav ? 'הסרה מהמועדפים' : 'שמירה למועדפים'}" aria-pressed="${fav}">${fav ? icFill('bookmark') : ic('bookmark')}</button></div>`;
+      <span class="row wrap" style="gap:6px">${isNew ? '<span class="badge new">חדש</span>' : ''}<span class="badge">${a.reading_time} דק׳ קריאה</span>${fav && pos > 3 && pos < 97 ? `<span class="badge sun">נקרא ${pos}%</span>` : ''}${read ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span>
+      <button class="star-btn ${fav ? 'on' : ''}" data-act="fav-article" data-arg="${esc(a.id)}" aria-label="${fav ? 'הסרה מהמועדפים' : 'שמירה למועדפים'}" aria-pressed="${fav}">${fav ? icFill('bookmark') : ic('bookmark')}</button>
+      <button class="art-trash" data-act="hide-article" data-arg="${esc(a.id)}" aria-label="מחיקת הכתבה">${ic('trash')}</button></div>`;
   };
   const stat = (n, label) => `<div class="stat"><b>${n}</b><span>${label}</span></div>`;
   const ring = (pct, top, sub) => { const c = 2 * Math.PI * 38; return `<div class="ring" role="img" aria-label="${Math.round(pct * 100)}% מהיעד היומי"><svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="38" stroke="currentColor" stroke-opacity=".25" stroke-width="8" fill="none"/><circle cx="44" cy="44" r="38" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - pct)).toFixed(1)}"/></svg><div class="ring-txt"><b class="tnum">${top}</b><span>${sub}</span></div></div>`; };
@@ -651,7 +652,7 @@
     let n = 0;
     const paras = a.paragraphs.map((p) => `<p>${splitSentences(p).map((s) => `<span class="sent" data-s="${n++}">${tokenize(s, phrases)}</span>`).join('')}</p>`).join('');
     const srcNames = [...new Set(a.sources.map((s) => s.name))];
-    return `<div class="screen">${topbar('', 'reading', `<span class="badge lvl">${esc(a.english_level)}</span><button class="icon-btn ${saved ? 'active' : ''}" data-act="fav-article" data-arg="${esc(id)}" aria-label="${saved ? 'הסרה מהמועדפים' : 'שמירה למועדפים'}" aria-pressed="${saved}">${saved ? icFill('bookmark') : ic('bookmark')}</button>`)}
+    return `<div class="screen">${topbar('', 'reading', `<button class="icon-btn ${saved ? 'active' : ''}" data-act="fav-article" data-arg="${esc(id)}" aria-label="${saved ? 'הסרה מהמועדפים' : 'שמירה למועדפים'}" aria-pressed="${saved}">${saved ? icFill('bookmark') : ic('bookmark')}</button>`)}
       ${a.image ? `<figure class="art-hero"><img src="${esc(a.image.url)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"><figcaption dir="ltr">${a.image.page ? `<a href="${esc(a.image.page)}" target="_blank" rel="noopener">${esc(a.image.credit)}</a>` : esc(a.image.credit)}</figcaption></figure>` : ''}
       <div class="src-line"><span>${readCat(a.category).icon} ${esc(readCat(a.category).he)} · ${a.reading_time} דק׳ קריאה · ${ago(a.published_at)}</span></div>
       <div><h1 class="art-h" lang="en" dir="ltr">${esc(a.display_title)}</h1>${a.display_title_he ? `<p class="art-he">${esc(a.display_title_he)}</p>` : ''}</div>
@@ -1124,6 +1125,21 @@
       } catch (e) { toast('לא הצלחנו לשמור עכשיו. נסו שוב כשיש אינטרנט'); }
       render();
     },
+    'hide-article': (a) => {
+      const it = ET.Articles.meta(a);
+      const fav = ET.Articles.hide(a);
+      RT.undoArticle = { id: a, fav };
+      if (RT.openTitle === a) RT.openTitle = null;
+      render();
+      toastUndo('הכתבה נמחקה ולא תוצג יותר', 'undo-article');
+      // after the undo window the server hears about it (its audio is deleted in the next audio run)
+      setTimeout(() => {
+        if (!(S.hiddenArticles || {})[a]) return;
+        S.hiddenQueue = [...new Set([...(S.hiddenQueue || []), a])]; ET.save(); ET.LevelSync.flushHidden();
+      }, 6000);
+      void it;
+    },
+    'undo-article': () => { const u = RT.undoArticle; if (!u) return; ET.Articles.unhide(u.id, u.fav); RT.undoArticle = null; $('#toast').hidden = true; render(); },
     'toggle-title': (a) => { RT.openTitle = RT.openTitle === a ? null : a; render(); },
 
     'tr-sentence': () => { const sh = RT.sheet; if (!sh) return; sh.trTried = false; popLookups(sh, true); },
@@ -1294,7 +1310,7 @@
   let lastRoute = parse().name;
   window.addEventListener('hashchange', () => { if (parse().name !== 'article') Speech.article = null; if (lastRoute === 'reading' && parse().name !== 'reading') ET.Articles.feedLeave(); lastRoute = parse().name; Speech.stop(); RT.reading = false; RT.readIdx = 0; RT.sheet = null; RT.confirmReset = false; render(); window.scrollTo(0, 0); });
   window.addEventListener('et-voices', () => { if (parse().name === 'profile') render(); });
-  window.addEventListener('online', () => { RT.online = true; render(); syncLevel(); });
+  window.addEventListener('online', () => { RT.online = true; render(); syncLevel(); ET.LevelSync.flushHidden(); });
   window.addEventListener('offline', () => { RT.online = false; render(); });
   if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
@@ -1359,6 +1375,7 @@
   // so an article saved before its audio was made gets it as soon as it exists (the server keeps audio only 30 days)
   const keepFavouriteAudio = () => ET.Audio.load().then(() => Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)));
   keepFavouriteAudio();
+  ET.LevelSync.flushHidden();
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepFavouriteAudio(); });
   ET.DictionarySource.load();
   ET.Vocab.load().then(() => render());
