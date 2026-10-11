@@ -1,5 +1,5 @@
-# Writes the day's articles and words early in the morning (Israel 04:30 and 06:30 in summer, an hour earlier in winter;
-# the second run only retries what failed), and fills missing meanings / examples later in the day.
+# Writes the day's articles and words early in the morning (three attempts, the last at Israel 06:30 in summer / 05:30 in winter;
+# a later attempt only completes what is missing), and fills missing meanings / examples later in the day.
 # Also runs on demand from the app when the level changes.
 # then publishes the app to GitHub Pages (free for public repos).
 # Code changes are published separately and at once by pages.yml, so they never wait for this long job.
@@ -7,8 +7,9 @@ name: Update articles and deploy
 
 on:
   schedule:
-    - cron: '30 1 * * *'   # the day's new words and articles
-    - cron: '30 3 * * *'   # retry what failed (quotas are per day, nothing is added twice)
+    - cron: '7 1 * * *'    # the day's new words and articles (Israel 04:00 summer / 03:00 winter)
+    - cron: '22 2 * * *'   # complete what is missing (5 words per category, one article per category; nothing is added twice)
+    - cron: '37 3 * * *'   # last attempt - its audio is made at 04:20 UTC, all ready before 08:00 Israel time
     - cron: '0 11 * * *'   # fill gaps only
     - cron: '0 17 * * *'   # fill gaps only
   workflow_dispatch:

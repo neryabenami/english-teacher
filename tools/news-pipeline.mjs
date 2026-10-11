@@ -182,6 +182,7 @@ async function gemini(system, user) {
     console.log(`model ${model} unavailable (${last.slice(0, 40)}), trying the next one`);
     MODELS.shift();
   }
+  MODELS = null; // all busy now: the next call lists the models again (they are often free again a few minutes later)
   throw new Error('gemini: no model available');
 }
 /* Every level gets a light, enjoyable 3-4 minute daily read. Higher levels read faster, so their articles are longer.
@@ -338,27 +339,43 @@ for (const c of clusters) {
   c.newest = Math.min(...c.items.map((x) => hoursAgo(x.date)));
   c.score = Math.max(...c.items.map((x) => x.weight)) + Math.min(3, c.items.length - 1) * 1.5 - Math.min(c.newest, 168) / 24 + Math.min(1, c.items[0].desc.length / 300);
 }
-// round-robin over categories (one each, then a second), widening the time window only when a category has nothing fresh
-const picked = [];
-for (let round = 1; round <= PER_CAT_DAY && picked.length < budget; round++) {
-  for (const cat of CATS) {
-    if (picked.length >= budget) break;
-    if ((perCatToday[cat] || 0) + picked.filter((p) => p.cat === cat).length >= round) continue;
-    for (const windowH of [24, 48, 168]) {
-      const best = clusters.filter((c) => c.cat === cat && c.newest <= windowH && !picked.includes(c)).sort((a, b) => b.score - a.score)[0];
-      if (best) { picked.push(best); break; }
-    }
-  }
+// per category: stories ranked by freshness window (24h, then 48h, then a week) and score; if one fails the checks, the next is tried
+const MAX_TRIES = 6;
+const openCats = CATS.filter((cat) => (perCatToday[cat] || 0) < PER_CAT_DAY);
+const ranked = {};
+for (const cat of openCats) {
+  const seen = new Set();
+  ranked[cat] = [24, 48, 168].flatMap((w) => clusters.filter((c) => c.cat === cat && c.newest <= w).sort((x, y) => y.score - x.score))
+    .filter((c) => !seen.has(c) && seen.add(c)).slice(0, MAX_TRIES);
 }
-const queue = picked;
-console.log(`level ${LEVEL} · candidates ${items.length} · clusters ${clusters.length} · picked ${queue.length} (budget ${budget})`);
+const queue = openCats.map((cat) => ranked[cat][0]).filter(Boolean);
+console.log(`level ${LEVEL} · candidates ${items.length} · clusters ${clusters.length} · categories to fill ${openCats.join(', ') || 'none'}`);
 
 if (!KEY) {
   console.warn('GEMINI_API_KEY is not set: stories were found and verified, but no lessons can be written. Nothing published.');
   for (const c of queue.slice(0, 20)) console.log(` · [${c.cat}] ${c.items.map((x) => x.source).join(' + ')}: ${c.items[0].title}`);
 } else {
-  for (const c of queue) {
-    try {
+  let stop = false, waits = 0;
+  for (const cat of openCats) {
+    if (stop) break;
+    let done = false;
+    for (const c of ranked[cat]) {
+      if (done || stop) break;
+      // the AI busy: wait 3 minutes and try the same story again (up to 3 waits in a run; the next morning run tries again too)
+      for (;;) {
+        let busy = false;
+        done = await writeOne(c, cat).catch((e) => { run.errors.push(String(e.message || e).slice(0, 160)); busy = /no model available|quota/.test(String(e.message)); return false; });
+        if (!busy) break;
+        if (++waits > 3) { stop = true; break; }
+        await sleep(180000);
+      }
+    }
+    if (!done) console.log(` ✗ [${cat}] no article passed the checks today`);
+  }
+}
+
+async function writeOne(c, cat) {
+    {
       // 4. facts from the publishers' own pages (fall back to the feed text); need enough real material
       const texts = [];
       for (const it of c.items.slice(0, 3)) {
@@ -366,11 +383,12 @@ if (!KEY) {
         texts.push({ it, text: page.length > 400 ? page : it.desc });
       }
       const material = texts.map((t, i) => `[${i + 1}] ${t.it.source} — "${t.it.title}" (${t.it.date})\n${t.text}`).join('\n\n');
-      if ((texts.map((t) => t.text).join(' ').match(/\S+/g) || []).length < 150) { run.rejected++; continue; }
+      if ((texts.map((t) => t.text).join(' ').match(/\S+/g) || []).length < 150) { run.rejected++; return false; }
       run.verified++;
       // 5. original learning article at the reader's level
       const a = await writeArticle(c, material);
-      if (!a.is_real_news || !CATS.includes(a.category) || !a.article || (a.quality_score || 0) < 6) { run.rejected++; continue; }
+      if (!a.is_real_news || !a.article || (a.quality_score || 0) < 6) { run.rejected++; return false; }
+      a.category = cat; // the category comes from the story's source section, so every category gets its article
       // a too-short or too-long text gets one rewrite at the right length (same facts only)
       const n0 = words(a.article);
       if (n0 < SPEC.min || n0 > SPEC.max + 80) {
@@ -380,7 +398,7 @@ if (!KEY) {
       // 6. QA: local checks + independent fact check
       const problems = localChecks(a, material);
       if (!problems.length) { const qa = await checkArticle(material, a); if (!qa.ok) problems.push(...(qa.problems || ['fact check failed'])); }
-      if (problems.length) { run.rejected++; run.errors.push(`${c.items[0].title.slice(0, 60)}: ${problems.slice(0, 2).join('; ')}`); continue; }
+      if (problems.length) { run.rejected++; run.errors.push(`${c.items[0].title.slice(0, 60)}: ${problems.slice(0, 2).join('; ')}`); return false; }
       // 7. store
       const id = 'n-' + today.replace(/-/g, '') + '-' + Math.abs([...c.items[0].url].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7)).toString(36);
       const paragraphs = a.article.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
@@ -400,11 +418,8 @@ if (!KEY) {
       run.created++;
       run.published_by_cat[a.category] = (run.published_by_cat[a.category] || 0) + 1;
       console.log(` ✓ [${a.category}] ${meta.display_title} (${meta.sources.map((s) => s.name).join(', ')})`);
-    } catch (e) {
-      run.errors.push(String(e.message || e).slice(0, 160));
-      if (/quota/.test(String(e.message))) break;
+      return true;
     }
-  }
 }
 
 // cumulative: nothing is deleted; the app shows a clean recent window, favourites keep older ones

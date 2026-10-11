@@ -81,10 +81,10 @@ function candidates(min) {
 }
 let words = 0;
 async function wordsFromGemini() {
-  for (let round = 0; round < 3; round++) {
+  for (let round = 0; round < 5; round++) { // up to 5 rounds; each round also offers words of the next level band
     const open = Object.keys(TOPICS).filter((t) => needOf(t) > 0);
     if (!open.length) return;
-    const pool = candidates(600);
+    const pool = candidates(600 * (round + 1));
     const allowed = new Set(pool);
     const res = await gemini(
       'You build vocabulary lessons for Hebrew-speaking English learners. You only use words from the list you are given.',
@@ -134,7 +134,10 @@ function wordsFromReserve() {
 }
 let geminiOk = false;
 if (hasGemini()) {
-  try { await wordsFromGemini(); geminiOk = true; } catch (e) { console.warn('gemini words failed:', e.message); }
+  // if the AI is busy, wait and try again (up to 3 times in this run; the next morning run tries again too)
+  for (let attempt = 0; attempt < 3 && !geminiOk; attempt++) {
+    try { await wordsFromGemini(); geminiOk = true; } catch (e) { console.warn('gemini words failed:', e.message); if (attempt < 2) await sleep(180000); }
+  }
 }
 // no fallback to the old reserve: its words have no meaning and often no example (the next run adds what is missing)
 for (const t of Object.keys(TOPICS)) if (needOf(t) > 0) console.warn(`topic ${t}: ${needOf(t)} missing today at ${LEVEL}`);

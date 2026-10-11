@@ -42,5 +42,6 @@ export async function gemini(system, user) {
     console.log(`model ${model} unavailable (${last.slice(0, 40)}), trying the next one`);
     MODELS.shift();
   }
+  MODELS = null; // all busy now: the next call lists the models again (they are often free again a few minutes later)
   throw new Error('gemini: no model available');
 }
