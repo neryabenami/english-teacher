@@ -684,3 +684,8 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .boot { min-height: 80dvh; display: grid; place-items: center; }
 .boot img { width: 72px; height: 72px; border-radius: 18px; opacity: .9; animation: bootIn .3s ease-out; }
 @keyframes bootIn { from { opacity: 0; transform: scale(.94); } }
+
+/* v25: a word window shows its content in the middle of the screen (equal space above and below, whatever its length);
+   auto margins and not centering, so a very long one still starts at the top and scrolls instead of being cut */
+.sheet.full > .tw-word { margin-top: auto; }
+.sheet.full > .tw-report { margin-bottom: auto; }
