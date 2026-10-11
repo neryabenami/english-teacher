@@ -533,7 +533,7 @@
     if (!S.daily || S.daily.date !== key) S.daily = { date: key };
     const d = S.daily;
     let changed = false;
-    if (!ET.Vocab.ready || !ET.Meanings.map) return d; // until the words and meanings are loaded, keep today's picks as they are
+    if (!ET.Vocab.ready || !ET.Meanings.map || !ET.Audio.tried) return d; // until words, meanings and the audio list are loaded, keep today's picks as they are
     if (!d.word || !BY_ID[d.word] || !ET.atLevel(BY_ID[d.word]) || ET.isKnown(d.word) || !ET.Meanings.complete(BY_ID[d.word])) {
       // a word at the user's level, with an example, not already known; words added today are skipped so the pool is stable all day
       const pool = ITEMS.filter((i) => i.type === 'word' && i.added !== key && ET.atLevel(i) && !ET.isKnown(i.id) && ET.Meanings.complete(i));
@@ -582,9 +582,16 @@
     BASE: 'https://neryabenami.github.io/english-teacher-audio/',
     words: null,
     articles: {},
-    load() {
-      return fetch(this.BASE + 'index.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
-        .then((j) => { if (j) { this.words = new Set((j.words || '').split(',').filter(Boolean)); this.articles = j.articles || {}; } }).catch(() => {});
+    tried: false,
+    loading: null,
+    // the list comes from the device at once (the service worker keeps it) and is refreshed in the background
+    load(force) {
+      if (this.loading) return this.loading;
+      if (this.tried && !force) return Promise.resolve();
+      this.loading = fetch(this.BASE + 'index.json').then((r) => (r.ok ? r.json() : null))
+        .then((j) => { if (j) { this.words = new Set((j.words || '').split(',').filter(Boolean)); this.articles = j.articles || {}; } }).catch(() => {})
+        .finally(() => { this.tried = true; this.loading = null; });
+      return this.loading;
     },
     // until the audio list is known (first start without internet) nothing is hidden because of it
     has(text) { return !this.words || this.words.has(this.key(text)); },

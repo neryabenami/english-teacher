@@ -4,7 +4,7 @@
    - Words, dictionary and the article list are served from the device at once and refreshed in the background;
      when the refreshed copy differs, open pages are told ('data-updated') and show the new content right away.
    - Opened articles and photos stay readable offline. */
-const VERSION = 'et-v4.18.0';
+const VERSION = 'et-v4.19.0';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js',
@@ -87,6 +87,8 @@ self.addEventListener('fetch', (e) => {
     })))));
     return;
   }
+  // the list of voice files: like the other data, from the device at once and refreshed in the background
+  if (url.pathname === '/english-teacher-audio/index.json') { staleWhileRevalidate(e, url.origin + url.pathname); return; }
   if (url.origin !== self.location.origin) return;
   const scope = new URL(self.registration.scope).pathname;
   const path = url.pathname.startsWith(scope) ? url.pathname.slice(scope.length) : url.pathname;

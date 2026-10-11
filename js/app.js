@@ -106,20 +106,23 @@
     Object.entries(k.vals).forEach(([id, v]) => { const el = document.getElementById(id); if (el && !el.value && v) el.value = v; });
     if (k.focus) { const el = document.getElementById(k.focus); if (el) el.focus({ preventScroll: true }); }
   };
-  function render() {
+  function render(soft) {
     applyTheme();
     if (!S.onboarded) { tabbarEl.hidden = true; view.innerHTML = renderOnboarding(); renderSheet(); return; }
     const r = parse();
-    const keep = preserve();
     const fn = SCREENS[r.name] || SCREENS.home;
-    view.innerHTML = fn(...r.args);
-    restore(keep);
+    const html = fn(...r.args);
+    if (!(soft === true && html === RT.lastHtml)) { const keep = preserve(); view.innerHTML = html; restore(keep); }
+    RT.lastHtml = html;
     tabbarEl.hidden = ['session', 'quiz', 'game', 'placement'].includes(r.name);
     renderTabbar(r.name);
-    renderSheet();
+    renderSheet(soft === true);
     if (RT.after) { const f = RT.after; RT.after = null; f(); }
   }
   ET.render = render;
+  // new data (words, meanings, audio list, articles) often arrives several at once: one quiet redraw for all of them
+  let soonT = 0;
+  const soon = () => { if (!soonT) soonT = requestAnimationFrame(() => { soonT = 0; render(true); }); };
 
   /* =========================================================
      ONBOARDING
@@ -228,7 +231,7 @@
 
   SCREENS.home = () => {
     const A = ET.Articles;
-    if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'home') render(); });
+    if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'home') soon(); });
     const d = ET.daily();
     const h = new Date().getHours();
     const greet = h >= 5 && h < 12 ? 'בוקר טוב' : h >= 12 && h < 17 ? 'צהריים טובים' : 'ערב טוב';
@@ -262,7 +265,7 @@
   const newBadge = (it) => (ET.isNewToday(it) ? '<span class="badge new">חדש</span>' : '');
   const favEmpty = (what) => `<div class="card empty"><div class="emo">⭐</div><p>עוד אין כאן ${what} במועדפים. לחצו על הכוכבית בכרטיס כדי לשמור.</p></div>`;
   SCREENS.words = (sec, arg) => {
-    if (!ET.Vocab.ready && !ET.Vocab.loading) ET.Vocab.load().then(() => { if (parse().name === 'words') render(); });
+    if (!ET.Vocab.ready && !ET.Vocab.loading) ET.Vocab.load().then(() => { if (parse().name === 'words') soon(); });
     if (sec === 'expr') sec = ''; // common expressions were removed: old links open the hub
     if (sec === 'topic' && arg === 'favorites') sec = 'mine'; // favourites now live in My words
     /* hub: four big choices */
@@ -571,7 +574,7 @@
      ========================================================= */
   SCREENS.reading = (catArg) => {
     const A = ET.Articles;
-    if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'reading') render(); });
+    if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'reading') soon(); });
     A.feedEnter();
     const cat = catArg === undefined ? RT.readCat || 'all' : catArg || 'all';
     RT.readCat = cat;
@@ -908,8 +911,10 @@
     }
     return '';
   }
-  function renderSheet() {
+  function renderSheet(soft) {
     if (!RT.sheet) { sheetRoot.innerHTML = ''; RT.lastSheet = null; return; }
+    const content = sheetContent();
+    if (soft && RT.lastSheet === RT.sheet && RT.lastSheetHtml === content) return; // nothing changed in the open window
     const keepNote = $('#report-note') ? $('#report-note').value : '';
     const same = RT.lastSheet === RT.sheet;
     // moving between words of an open window: no slide-up and no backdrop fade (that was the flicker); the new card settles in place
@@ -918,9 +923,10 @@
     RT.swiped = false;
     const pop = RT.sheet.type === 'pop';
     const full = RT.sheet.type === 'item' || RT.sheet.type === 'list-done';
-    sheetRoot.innerHTML = `<div class="backdrop ${pop ? 'clear' : ''}" data-act="close-sheet" ${same || swap ? 'style="animation:none"' : ''}></div><div class="sheet ${pop ? 'pop' : ''} ${full ? 'full' : ''} ${move}" role="dialog" aria-modal="${pop ? 'false' : 'true'}" ${same ? 'style="animation:none"' : ''}>${sheetContent()}</div>`;
+    sheetRoot.innerHTML = `<div class="backdrop ${pop ? 'clear' : ''}" data-act="close-sheet" ${same || swap ? 'style="animation:none"' : ''}></div><div class="sheet ${pop ? 'pop' : ''} ${full ? 'full' : ''} ${move}" role="dialog" aria-modal="${pop ? 'false' : 'true'}" ${same ? 'style="animation:none"' : ''}>${content}</div>`;
     if (keepNote && $('#report-note')) $('#report-note').value = keepNote;
     RT.lastSheet = RT.sheet;
+    RT.lastSheetHtml = content;
   }
   const openItem = (id, ctx, list) => { RT.sheet = { type: 'item', id, ctx, list }; renderSheet(); };
   // in the Words tab a word window walks through the list it was opened from (same order as on screen)
@@ -1320,9 +1326,10 @@
     navigator.serviceWorker.addEventListener('message', (e) => {
       const m = e.data || {};
       if (m.type !== 'data-updated') return;
-      if (m.path === 'data/vocab.json') ET.Vocab.load(true).then(() => render());
-      if (m.path === 'data/meanings.json') ET.Meanings.load(true).then(() => { render(); if (RT.sheet) renderSheet(); });
-      if (m.path === 'data/news/index.json') ET.Articles.load(true).then(() => render());
+      if (m.path === 'data/vocab.json') ET.Vocab.load(true).then(soon);
+      if (m.path === 'data/meanings.json') ET.Meanings.load(true).then(soon);
+      if (m.path === 'data/news/index.json') ET.Articles.load(true).then(soon);
+      if (m.path === ET.Audio.BASE + 'index.json') ET.Audio.load(true).then(soon);
       if (m.path === 'data/dict-en-he.json') { ET.DictionarySource.entries = null; ET.DictionarySource.loading = null; ET.DictionarySource.load(); }
     });
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
@@ -1384,13 +1391,21 @@
   // favourites keep their audio on the device even if it was never played: checked at start and whenever the app comes back,
   // so an article saved before its audio was made gets it as soon as it exists (the server keeps audio only 30 days).
   // The audio list also decides what is shown (only words and articles that already have their audio), so the screen is redrawn.
-  const keepFavouriteAudio = () => ET.Audio.load().then(() => { render(); Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)); });
+  const keepFavouriteAudio = () => ET.Audio.load(true).then(() => { soon(); Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)); });
   keepFavouriteAudio();
   ET.LevelSync.flushHidden();
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepFavouriteAudio(); });
   ET.DictionarySource.load();
-  ET.Vocab.load().then(() => render());
-  ET.Meanings.load().then(() => { render(); if (RT.sheet) renderSheet(); });
-  render();
+  // the first screen is drawn once, when what it shows is ready (from the device this takes a moment), so nothing jumps;
+  // on a very slow first start it is drawn after 2.5 seconds anyway and fills in quietly
+  const basics = Promise.all([ET.Vocab.load(), ET.Meanings.load(), ET.Audio.load(), ET.Articles.load()]);
+  basics.then(soon);
+  if (S.onboarded) {
+    view.innerHTML = '<div class="boot"><img src="icons/icon.svg" alt=""></div>';
+    let first = false;
+    const firstDraw = () => { if (!first) { first = true; render(); } };
+    basics.then(firstDraw);
+    setTimeout(firstDraw, 2500);
+  } else render();
   syncLevel();
 })();
