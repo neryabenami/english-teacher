@@ -662,3 +662,14 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .art-card .star-btn { grid-column: 3; grid-row: 1; }
 .art-trash { position: absolute; bottom: 10px; inset-inline-end: 14px; width: 34px; height: 34px; display: grid; place-items: center; color: var(--accent); background: none; border: 0; cursor: pointer; }
 .art-trash svg { width: 19px; height: 19px; }
+
+/* v22: word windows on the whole screen (iPhone safe areas), Tinder-like swipe, one tag per word */
+.sheet.full { top: 0; bottom: 0; max-height: none; height: 100dvh; border-radius: 0; padding-top: calc(env(safe-area-inset-top, 0px) + 10px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); animation: up .25s cubic-bezier(.2, .9, .3, 1); touch-action: pan-y; }
+.sheet.full .grab { display: none; }
+.sheet-under { z-index: 40; transform: scale(.96); filter: brightness(.97); animation: none; pointer-events: none; }
+.flash { touch-action: pan-y; }
+.tw-fm.online { background: color-mix(in srgb, #8A5CF6 16%, var(--surface)); color: color-mix(in srgb, #8A5CF6 85%, var(--ink)); }
+.tw-fm.friends { background: var(--pink-soft); color: var(--pink); }
+.tw-fm.daily { background: var(--sun-soft); color: color-mix(in srgb, var(--sun) 60%, var(--ink)); }
+.tw-fm.work { background: color-mix(in srgb, #5B7BF0 16%, var(--surface)); color: color-mix(in srgb, #5B7BF0 80%, var(--ink)); }
+.tw-fm.formal { background: var(--surface-2); color: var(--ink); }

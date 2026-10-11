@@ -74,13 +74,13 @@
   const ACTIVE_CATS = new Set(D.CATEGORIES.map((c) => c.id));
   ET.isTopicWord = (i) => !!i && i.type === 'word' && ACTIVE_CATS.has(i.cat);
   ET.atLevel = (i) => ACTIVE_CATS.has(i.cat) && (i.lvl === ET.S.profile.cefr || (ET.S.profile.cefr === 'C2' && i.lvl === 'C1'));
-  ET.wordsOf = (cat) => ITEMS.filter((i) => i.type === 'word' && i.cat === cat && ET.atLevel(i));
+  ET.wordsOf = (cat) => ITEMS.filter((i) => i.type === 'word' && i.cat === cat && ET.atLevel(i) && ET.Meanings.complete(i));
   ET.exprsOf = (kind, cat) => ITEMS.filter((i) => i.type === 'expr' && (kind === 'texting' ? (i.cat === 'texting' || i.cat === 'abbr') : i.kind === kind) && (!cat || i.cat === cat));
   /* the two phrase areas of the Words tab */
   const EXPR_KINDS = ['expr', 'spoken', 'phrasal', 'idiom'];
   ET.EXPR_GROUPS = [['expr', 'ביטויים יום־יומיים'], ['spoken', 'Spoken English'], ['phrasal', 'Phrasal Verbs'], ['idiom', 'Idioms']];
   ET.levelOk = (i) => i.lvl === ET.S.profile.cefr || (ET.S.profile.cefr === 'C2' && i.lvl === 'C1');
-  ET.sectionItems = (sec) => ITEMS.filter((i) => i.type === 'expr' && (sec === 'phrases' ? i.kind === 'phrase' && ET.levelOk(i) : sec === 'expr' ? EXPR_KINDS.includes(i.kind) : i.kind === 'slang' && i.region !== 'בריטניה'));
+  ET.sectionItems = (sec) => ITEMS.filter((i) => i.type === 'expr' && (sec === 'phrases' || sec === 'slang' ? ET.Meanings.complete(i) : true) && (sec === 'phrases' ? i.kind === 'phrase' && ET.levelOk(i) : sec === 'expr' ? EXPR_KINDS.includes(i.kind) : i.kind === 'slang' && i.region !== 'בריטניה'));
 
   /* ---------- storage provider (local first) ---------- */
   const StorageProvider = {
@@ -243,7 +243,7 @@
     const cats = interestCats();
     const goal = S.profile.goal;
     const wantExpr = ['slang', 'conversation', 'movies', 'all'].includes(goal);
-    const fresh = ITEMS.filter((i) => !S.items[i.id] || !S.items[i.id].last).filter((i) => (i.type === 'word' ? ET.atLevel(i) : i.kind === 'slang' || (i.kind === 'phrase' && ET.levelOk(i))) && !i.id.startsWith('c:'));
+    const fresh = ITEMS.filter((i) => !S.items[i.id] || !S.items[i.id].last).filter((i) => (i.type === 'word' ? ET.atLevel(i) : i.kind === 'slang' || (i.kind === 'phrase' && ET.levelOk(i))) && !i.id.startsWith('c:') && ET.Meanings.complete(i));
     const score = (i) => (cats.has(i.cat) ? 0 : 2) + (i.type === 'expr' ? (wantExpr ? 0 : 3) : 0) + Math.random() * 2.5;
     return fresh.sort((a, b) => score(a) - score(b)).slice(0, n).map((i) => i.id);
   };
@@ -408,6 +408,18 @@
         .catch(() => { this.map = this.map || {}; return this.map; }).finally(() => { this.loading = null; });
       return this.loading;
     },
+    // meaning + example (+ when to use, for slang and expressions) of a topic word, slang or useful expression
+    card(it) {
+      if (!it) return null;
+      const mn = this.of(it) || {};
+      const m = mn.m || (it.kind === 'slang' && it.real && it.real !== it.he ? it.real : '');
+      const ex = it.ex || mn.ex || '';
+      const exHe = it.ex ? it.exHe || '' : mn.exHe || '';
+      const f = { casual: 'daily' }[mn.f] || mn.f || '';
+      return { m, ex, exHe, pos: mn.pos || it.pos || '', f };
+    },
+    // a word, slang or expression is shown only when it has both a meaning and an example sentence
+    complete(it) { const c = this.card(it); return !!(c && c.m && c.ex); },
     of(it) { return (this.map && it && this.map[(it.type === 'expr' ? (it.kind === 'slang' ? 'slang:' : it.kind === 'phrase' ? 'phrase:' : '') : '') + it.t.toLowerCase()]) || null; }
   };
 
@@ -521,15 +533,15 @@
     if (!S.daily || S.daily.date !== key) S.daily = { date: key };
     const d = S.daily;
     let changed = false;
-    if (!ET.Vocab.ready) return d; // until the words are loaded, keep today's picks as they are
-    if (!d.word || !BY_ID[d.word] || !ET.atLevel(BY_ID[d.word]) || ET.isKnown(d.word)) {
+    if (!ET.Vocab.ready || !ET.Meanings.map) return d; // until the words and meanings are loaded, keep today's picks as they are
+    if (!d.word || !BY_ID[d.word] || !ET.atLevel(BY_ID[d.word]) || ET.isKnown(d.word) || !ET.Meanings.complete(BY_ID[d.word])) {
       // a word at the user's level, with an example, not already known; words added today are skipped so the pool is stable all day
-      const pool = ITEMS.filter((i) => i.type === 'word' && i.ex && i.added !== key && ET.atLevel(i) && !ET.isKnown(i.id));
+      const pool = ITEMS.filter((i) => i.type === 'word' && i.added !== key && ET.atLevel(i) && !ET.isKnown(i.id) && ET.Meanings.complete(i));
       const it = pool.length ? pool[hash(key + 'w') % pool.length] : ET.wordOfDay();
       d.word = it.id; changed = true;
     }
-    if (!d.slang || !BY_ID[d.slang] || ET.isKnown(d.slang)) {
-      const pool = ITEMS.filter((i) => i.type === 'expr' && i.kind === 'slang' && i.region !== 'בריטניה' && !ET.isKnown(i.id));
+    if (!d.slang || !BY_ID[d.slang] || ET.isKnown(d.slang) || !ET.Meanings.complete(BY_ID[d.slang])) {
+      const pool = ITEMS.filter((i) => i.type === 'expr' && i.kind === 'slang' && i.region !== 'בריטניה' && !ET.isKnown(i.id) && ET.Meanings.complete(i));
       d.slang = pool[hash(key + 's') % pool.length].id; changed = true;
     }
     if (ET.Articles.index && (!d.article || !ET.Articles.meta(d.article))) {

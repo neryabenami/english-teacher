@@ -46,6 +46,7 @@ const dataJs = fs.readFileSync('js/data.js', 'utf8');
 for (const m of dataJs.matchAll(/^([a-z][a-z' -]*)\|/gm)) have.add(m[1].toLowerCase());
 const meanings = fs.existsSync('data/meanings.json') ? JSON.parse(fs.readFileSync('data/meanings.json', 'utf8')) : { words: {} };
 meanings.words = meanings.words || {};
+let explainedNew = 0;
 const haveExpr = new Set(vocab.exprs.map((e) => e[1].toLowerCase()));
 for (const m of dataJs.matchAll(/^(?:slang|spoken|phrasal|idiom|expr)\|[^|]*\|([^|]+)\|/gm)) haveExpr.add(m[1].toLowerCase());
 
@@ -96,8 +97,8 @@ ${pool.join(', ')}
 For each topic pick the requested number of words that a learner would clearly connect with that topic in everyday life. Be strict: if a word only loosely fits, skip it (e.g. never put "hospice" or "lager" under Travel). Use base dictionary forms only (no plurals, past tenses or -ing forms). Skip names, places, brands, abbreviations, vulgar or offensive words, and words that are not useful for learners. A word may be used once only. If not enough words fit a topic, return fewer.
 Mix nouns, verbs and adjectives that are used in the topic's real-life context (e.g. Travel: flight, luggage, delay, book, arrive, crowded).
 Only for feelings (up to 2 items) and conversation (up to 5 items): items may instead be short, very common spoken English phrases (2-5 words, e.g. "never mind", "I see what you mean") that are not from the list; mark them "phrase": true.
-For each item: "he" = the most common Hebrew meaning (1-3 words, natural Hebrew with correct spelling), "pos" = noun|verb|adjective|adverb|phrase|other, "ex" = a natural example sentence at ${LEVEL} level that contains it, "exHe" = its Hebrew translation.
-Return ONLY JSON: {"topics": {"<topic id>": [{"word": "...", "phrase": false, "he": "...", "pos": "...", "ex": "...", "exHe": "..."}]}}`);
+For each item: "he" = the most common Hebrew meaning (1-3 words, natural Hebrew with correct spelling), "pos" = noun|verb|adjective|adverb|phrase|other, "ex" = a natural example sentence at ${LEVEL} level that contains it, "exHe" = its Hebrew translation, "m" = one short sentence in natural Hebrew that explains what it means (like a learner's dictionary, not just the translation).
+Return ONLY JSON: {"topics": {"<topic id>": [{"word": "...", "phrase": false, "he": "...", "pos": "...", "ex": "...", "exHe": "...", "m": "..."}]}}`);
     const used = new Set();
     for (const [topic, list] of Object.entries((res && res.topics) || {})) {
       if (!TOPICS[topic]) continue;
@@ -106,10 +107,11 @@ Return ONLY JSON: {"topics": {"<topic id>": [{"word": "...", "phrase": false, "h
         const w = String(x.word || '').toLowerCase().trim();
         const phrase = PHRASE_TOPICS.has(topic) && x.phrase && /^[a-z']+( [a-z']+){1,4}$/.test(w) && phrasesToday(topic) < PHRASE_MAX[topic];
         if ((!phrase && !allowed.has(w)) || used.has(w) || have.has(w) || blocked(w)) continue; // only real words from the given list
-        if (!goodHe(x.he) || !goodHe(x.exHe) || blocked(x.ex)) continue;
+        if (!goodHe(x.he) || !goodHe(x.exHe) || !goodHe(x.m) || blocked(x.ex)) continue; // meaning + example are required
         if (!new RegExp(`\\b${w}`, 'i').test(x.ex || '')) continue;           // the example must contain the word
         used.add(w); have.add(w);
         vocab.words.push([w, x.he.trim(), LEVEL, topic, x.ex.trim(), x.exHe.trim(), today, 'g']);
+        meanings.words[w] = { m: x.m.trim(), pos: String(x.pos || '').trim() }; explainedNew++;
         words++;
       }
     }
@@ -133,7 +135,7 @@ let geminiOk = false;
 if (hasGemini()) {
   try { await wordsFromGemini(); geminiOk = true; } catch (e) { console.warn('gemini words failed:', e.message); }
 }
-if (!geminiOk) wordsFromReserve(); // only when Gemini is not available: the old reserve places words too loosely (e.g. "lager" under hotels)
+// no fallback to the old reserve: its words have no meaning and often no example (the next run adds what is missing)
 for (const t of Object.keys(TOPICS)) if (needOf(t) > 0) console.warn(`topic ${t}: ${needOf(t)} missing today at ${LEVEL}`);
 
 /* ---------- 5 American slang terms, any level ---------- */
@@ -155,15 +157,16 @@ if (slangToday() < PER_SLANG && hasGemini()) {
       `Suggest ${want + 3} common American slang words or short expressions (1-3 words) that are NOT in this list:
 ${[...haveExpr].join(', ')}
 
-For each: "term", "he" = the meaning in natural Hebrew (short), "def" = a short English definition, "ex" = a natural example sentence using the term, "exHe" = its Hebrew translation.
-Return ONLY JSON: {"slang": [{"term": "...", "he": "...", "def": "...", "ex": "...", "exHe": "..."}]}`);
+For each: "term", "he" = the meaning in natural Hebrew (short), "def" = a short English definition, "ex" = a natural example sentence using the term, "exHe" = its Hebrew translation, "m" = one short sentence in natural Hebrew that explains what it means and how people use it, "f" = when people use it, exactly one of: online (social media, chats), friends (talking with friends), daily (everyday speech with anyone), neutral (fits any situation, also work), work (meetings, work emails), formal (official letters, documents, speeches).
+Return ONLY JSON: {"slang": [{"term": "...", "he": "...", "def": "...", "ex": "...", "exHe": "...", "m": "...", "f": "..."}]}`);
     for (const x of (res && res.slang) || []) {
       if (slangToday() >= PER_SLANG) break;
       const t = String(x.term || '').trim();
       if (!/^[a-z' -]{2,30}$/i.test(t) || t.split(/\s+/).length > 3 || haveExpr.has(t.toLowerCase()) || blocked(t) || blocked(x.ex) || blocked(x.def)) continue;
-      if (!goodHe(x.he) || !goodHe(x.exHe) || !x.def || !x.ex) continue;
+      if (!goodHe(x.he) || !goodHe(x.exHe) || !goodHe(x.m) || !x.def || !x.ex) continue;
       haveExpr.add(t.toLowerCase());
       vocab.exprs.push(['slang', t, x.he.trim(), String(x.def).trim(), String(x.ex).trim(), x.exHe.trim(), 'B1', today]);
+      meanings.words['slang:' + t.toLowerCase()] = { m: x.m.trim(), pos: 'phrase', ...(['online', 'friends', 'daily', 'neutral', 'work', 'formal'].includes(x.f) ? { f: x.f } : {}) }; explainedNew++;
       slang++;
       await sleep(10);
     }
@@ -186,24 +189,27 @@ if (phraseNeed() > 0 && hasGemini()) {
         `Learner level: CEFR ${LEVEL}. Suggest ${want + 4} useful everyday English expressions that fit this level: phrasal verbs, fixed phrases and common sayings people really use (e.g. "figure out", "on the other hand", "it's up to you", "give it a try"). Not slang. 2-6 words each. Not in this list:
 ${known.join(', ') || '(empty)'}
 
-For each: "term", "he" = the meaning in natural Hebrew with correct spelling (short), "def" = a short English definition, "ex" = a natural example sentence at ${LEVEL} level that contains the expression, "exHe" = its Hebrew translation.
-Return ONLY JSON: {"phrases": [{"term": "...", "he": "...", "def": "...", "ex": "...", "exHe": "..."}]}`);
+For each: "term", "he" = the meaning in natural Hebrew with correct spelling (short), "def" = a short English definition, "ex" = a natural example sentence at ${LEVEL} level that contains the expression, "exHe" = its Hebrew translation, "m" = one short sentence in natural Hebrew that explains what it means, "f" = when people use it, exactly one of: online (social media, chats), friends (talking with friends), daily (everyday speech with anyone), neutral (fits any situation, also work), work (meetings, work emails), formal (official letters, documents, speeches).
+Return ONLY JSON: {"phrases": [{"term": "...", "he": "...", "def": "...", "ex": "...", "exHe": "...", "m": "...", "f": "..."}]}`);
       for (const x of (res && res.phrases) || []) {
         if (phraseNeed() <= 0) break;
         const t = String(x.term || '').trim().replace(/[.!?]+$/, '');
         const key = t.toLowerCase();
         if (!/^[a-z'’ -]{3,40}$/i.test(t) || t.split(/\s+/).length < 2 || t.split(/\s+/).length > 6) continue;
-        if (haveExpr.has(key) || have.has(key) || blocked(t) || blocked(x.ex) || !goodHe(x.he) || !goodHe(x.exHe) || !x.def || !x.ex) continue;
+        if (haveExpr.has(key) || have.has(key) || blocked(t) || blocked(x.ex) || !goodHe(x.he) || !goodHe(x.exHe) || !goodHe(x.m) || !x.def || !x.ex) continue;
         haveExpr.add(key);
         vocab.exprs.push(['phrase', t, x.he.trim(), String(x.def).trim(), String(x.ex).trim(), x.exHe.trim(), LEVEL, today]);
+        meanings.words['phrase:' + key] = { m: x.m.trim(), pos: 'phrase', ...(['online', 'friends', 'daily', 'neutral', 'work', 'formal'].includes(x.f) ? { f: x.f } : {}) }; explainedNew++;
         phrases++;
       }
     }
   } catch (e) { console.warn('gemini phrases failed:', e.message); }
 }
 
-/* ---------- Hebrew explanations ("משמעות") for topic words: every new word gets one, and a few hundred older words per run ---------- */
-const BACKFILL = 300;
+/* ---------- fill the gaps: every topic word, slang and expression needs a Hebrew meaning ("משמעות") and an example sentence;
+   slang and expressions also need "when to use it" (f). A few hundred items per run, today's and the reader's level first. ---------- */
+const BACKFILL = 400;
+const REGISTERS = ['online', 'friends', 'daily', 'neutral', 'work', 'formal'];
 let explained = 0;
 if (hasGemini()) {
   const OLD = { ...OLD_TOPIC, nature: 'nature' };
@@ -216,33 +222,48 @@ if (hasGemini()) {
       if (p.length > 6) pool.push({ t: p[0].trim().toLowerCase(), he: p[1].trim(), lvl: p[3].trim(), cat: OLD_TOPIC[key] || key, ex: p[6].trim(), added: '' });
     }
   }
-  for (const e of vocab.exprs) if (e[0] === 'phrase') pool.push({ t: e[1].toLowerCase(), key: 'phrase:' + e[1].toLowerCase(), he: e[2], lvl: e[6], cat: 'phrase', ex: e[4], added: e[7] || '', slang: true, phrase: true });
-  for (const e of vocab.exprs) if (e[0] === 'slang') pool.push({ t: e[1].toLowerCase(), key: 'slang:' + e[1].toLowerCase(), he: e[2], lvl: '', cat: 'slang', ex: e[4], added: e[7] || '', slang: true });
-  for (const w of pool) w.key = w.key || w.t;
-  const todo = pool.filter((w) => w.t && !meanings.words[w.key] && (TOPICS[w.cat] || w.slang))
-    .sort((a, b) => (b.slang || 0) - (a.slang || 0) || (b.added === today) - (a.added === today) || (b.lvl === LEVEL) - (a.lvl === LEVEL) || b.added.localeCompare(a.added));
+  for (const e of vocab.exprs) if (e[0] === 'phrase') pool.push({ t: e[1].toLowerCase(), key: 'phrase:' + e[1].toLowerCase(), he: e[2], lvl: e[6], cat: 'phrase', ex: e[4], added: e[7] || '', expr: 'expression' });
+  for (const e of vocab.exprs) if (e[0] === 'slang') pool.push({ t: e[1].toLowerCase(), key: 'slang:' + e[1].toLowerCase(), he: e[2], lvl: '', cat: 'slang', ex: e[4], added: e[7] || '', expr: 'American slang' });
+  // built-in slang (slang|cat|term|he|lit|real|example|...): its Hebrew meaning is "real"
+  for (const line of dataJs.split('\n')) {
+    const p = line.split('|');
+    if (p.length > 7 && p[0] === 'slang') pool.push({ t: p[2].trim().toLowerCase(), key: 'slang:' + p[2].trim().toLowerCase(), he: p[3].trim(), lvl: '', cat: 'slang', ex: p[6].trim(), added: '', expr: 'American slang', hasM: !!p[5].trim() && p[5].trim() !== p[3].trim() });
+  }
+  for (const w of pool) {
+    w.key = w.key || w.t;
+    const cur = meanings.words[w.key] || {};
+    w.needM = !cur.m && !w.hasM; w.needEx = !w.ex && !cur.ex; w.needF = !!w.expr && !cur.f;
+  }
+  const todo = pool.filter((w) => w.t && (TOPICS[w.cat] || w.expr) && (w.needM || w.needEx || w.needF))
+    .sort((a, b) => (!!b.expr - !!a.expr) || (b.added === today) - (a.added === today) || (b.lvl === LEVEL) - (a.lvl === LEVEL) || b.added.localeCompare(a.added));
   const seen = new Set();
   const batch = todo.filter((w) => !seen.has(w.key) && seen.add(w.key)).slice(0, BACKFILL);
-  for (let i = 0; i < batch.length; i += 100) {
-    const part = batch.slice(i, i + 100);
+  for (let i = 0; i < batch.length; i += 80) {
+    const part = batch.slice(i, i + 80);
     try {
       const res = await gemini(
-        'You write short, clear Hebrew explanations of English words for Hebrew-speaking learners.',
-        `For each English word below (with its Hebrew translation and an example), write "m": one short sentence in natural Hebrew, with correct spelling, that explains what the word means in this sense (like a learner's dictionary, not just the translation), and "pos": noun|verb|adjective|adverb|phrase|other.
-${part.map((w) => `${w.t}${w.phrase ? ' (everyday expression: also give "f": casual|neutral|formal)' : w.slang ? ' (American slang: explain what it means and how people use it)' : ''} — ${w.he} — ${w.ex || ''}`).join('\n')}
-For expressions, "f" = casual (friends and family), neutral (fits any situation) or formal (emails, meetings, documents).
-Return ONLY JSON: {"meanings": {"<word>": {"m": "...", "pos": "...", "f": "only for expressions"}}}`);
-      for (const [k, v] of Object.entries((res && res.meanings) || {})) {
-        const ent = part.find((w) => w.t === k.toLowerCase().trim()); // slang is stored as 'slang:<term>'
-        const key = ent && ent.key;
-        if (!key || !seen.has(key) || meanings.words[key] || !v || !goodHe(v.m) || v.m.length < 8 || v.m.length > 220) continue;
-        meanings.words[key] = { m: v.m.trim(), pos: String(v.pos || '').trim(), ...(/^(casual|neutral|formal)$/.test(v.f) ? { f: v.f } : {}) };
-        explained++;
+        'You write short, clear Hebrew explanations and natural example sentences for Hebrew-speaking English learners.',
+        `For each item below write what is asked in brackets:
+- "m": one short sentence in natural Hebrew, with correct spelling, that explains what it means (like a learner's dictionary, not just the translation); for slang also how people use it.
+- "pos": noun|verb|adjective|adverb|phrase|other.
+- "ex": a natural English example sentence that contains the item, and "exHe": its Hebrew translation.
+- "f": when people use it, exactly one of: online (social media, chats), friends (talking with friends), daily (everyday speech with anyone), neutral (fits any situation, also work), work (meetings, work emails), formal (official letters, documents, speeches).
+${part.map((w) => `${w.t}${w.expr ? ` (${w.expr})` : ''} — ${w.he}${w.ex ? ` — e.g. "${w.ex}"` : ''} [${[w.needM && 'm, pos', w.needEx && 'ex, exHe', w.needF && 'f'].filter(Boolean).join(', ')}]`).join('\n')}
+Return ONLY JSON: {"items": {"<item exactly as written>": {"m": "...", "pos": "...", "ex": "...", "exHe": "...", "f": "..."}}}`);
+      for (const [k, v] of Object.entries((res && res.items) || {})) {
+        const ent = part.find((w) => w.t === k.toLowerCase().trim());
+        if (!ent || !v) continue;
+        const cur = meanings.words[ent.key] || {};
+        let changed = false;
+        if (ent.needM && goodHe(v.m) && v.m.length >= 8 && v.m.length <= 220) { cur.m = v.m.trim(); cur.pos = String(v.pos || cur.pos || '').trim(); changed = true; }
+        if (ent.needEx && v.ex && goodHe(v.exHe) && !blocked(v.ex) && v.ex.toLowerCase().includes(ent.t.split(' ')[0])) { cur.ex = String(v.ex).trim(); cur.exHe = v.exHe.trim(); changed = true; }
+        if (ent.needF && REGISTERS.includes(v.f)) { cur.f = v.f; changed = true; }
+        if (changed) { meanings.words[ent.key] = cur; explained++; }
       }
     } catch (e) { console.warn('gemini meanings failed:', e.message); break; }
   }
 }
-if (explained) { meanings.updated = today; fs.writeFileSync('data/meanings.json', JSON.stringify(meanings)); }
+if (explained || explainedNew) { meanings.updated = today; fs.writeFileSync('data/meanings.json', JSON.stringify(meanings)); }
 console.log(`meanings: +${explained} · ${Object.keys(meanings.words).length} words explained`);
 
 if (words + slang + phrases > 0) vocab.updated = today;

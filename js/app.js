@@ -821,6 +821,29 @@
   // an expression split in the sentence ('take our health for granted'): mark each of its words
   const highlightPhrase = (sentence, phrase) => { const one = highlight(sentence, phrase); if (one !== esc(sentence)) return one; let out = esc(sentence); phrase.split(/\s+/).filter((w) => w.length > 2).forEach((w) => { out = out.replace(new RegExp(`\\b(${escRe(esc(w))})\\b`, 'i'), '<mark style="background:var(--accent-soft);color:inherit;border-radius:4px;padding:0 2px">$1</mark>'); }); return out; };
   const highlight = (sentence, word) => esc(sentence).replace(new RegExp(`\\b(${escRe(esc(word))})\\b`, 'i'), '<mark style="background:var(--accent-soft);color:inherit;border-radius:4px;padding:0 2px">$1</mark>');
+  /* the word card (topic words, slang, useful expressions): big centred word, one tag, meaning, example */
+  const REGISTER = { online: '📱 ברשתות', friends: '😎 בין חברים', daily: '🗣️ יומיומי', neutral: '👌 מתאים לכל מצב', work: '💼 בעבודה', formal: '🎩 רשמי' };
+  const wordCard = (sh, it) => {
+    const r = ET.rec(it.id) || {};
+    const c = ET.Meanings.card(it) || {};
+    const expr = it.type === 'expr';
+    const tag = expr ? (REGISTER[c.f] ? `<span class="tw-fm ${c.f}">${REGISTER[c.f]}</span>` : '')
+      : ((POS_HE[c.pos] || ET.POS[c.pos]) ? `<span class="tw-pos">${esc(POS_HE[c.pos] || ET.POS[c.pos])}</span>` : '');
+    return `<div class="grab"></div>
+        ${sheetTop(sh)}
+        <div class="tw-word">
+          <div class="tw-en ${it.t.length > 14 ? 'long' : ''}" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
+          <div class="tw-he">${esc(it.he)}</div>
+          ${tag ? `<div class="tw-pills">${tag}</div>` : ''}
+        </div>
+        ${c.m ? `<div class="tw-box"><div class="tw-h">משמעות 📄</div><p>${esc(c.m)}</p></div>` : ''}
+        ${c.ex ? `<div class="tw-box ex"><div class="tw-h">דוגמה במשפט 💬</div>
+          <div class="tw-ex" lang="en" dir="ltr">${speakBtn(c.ex, it.id, '', 'sm tw-spk')}<span>${expr ? highlightPhrase(c.ex, it.t) : highlight(c.ex, it.t)}</span></div>
+          ${c.exHe ? `<div class="tw-tr">${esc(c.exHe)}</div>` : ''}</div>` : ''}
+        ${sheetGrade(sh, it)}
+        <button class="btn tw-add ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button>
+        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">דיווח על טעות ${ic('flag')}</button>`;
+  };
   function sheetContent() {
     const sh = RT.sheet;
     if (sh.type === 'item') {
@@ -828,62 +851,7 @@
       if (!it) return '';
       const r = ET.rec(it.id) || {};
       const ctx = sh.ctx || {};
-      if (it.type === 'expr' && it.kind === 'phrase' && !sh.ctx) {
-        // useful expressions: like topic words, plus how formal the expression is
-        const mn = ET.Meanings.of(it);
-        const FM = { casual: ['🗣️ יומיומי', 'casual'], neutral: ['👌 מתאים לכל מצב', 'neutral'], formal: ['💼 רשמי', 'formal'] };
-        const fm = mn && FM[mn.f];
-        return `<div class="grab"></div>
-        ${sheetTop(sh)}
-        <div class="tw-word">
-          <div class="tw-en ${it.t.length > 14 ? 'long' : ''}" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
-          <div class="tw-he">${esc(it.he)}</div>
-          <div class="tw-pills"><span class="tw-pos">ביטוי</span>${fm ? `<span class="tw-fm ${fm[1]}">${fm[0]}</span>` : ''}</div>
-        </div>
-        ${mn && mn.m ? `<div class="tw-box"><div class="tw-h">משמעות 📄</div><p>${esc(mn.m)}</p></div>` : ''}
-        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">דוגמה במשפט 💬</div>
-          <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlightPhrase(it.ex, it.t)}</span></div>
-          ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
-        ${sheetGrade(sh, it)}
-        <button class="btn tw-add ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button>
-        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">דיווח על טעות ${ic('flag')}</button>`;
-      }
-      if (it.type === 'expr' && it.kind === 'slang' && !sh.ctx) {
-        // American slang: the big centred term, "what does it mean?" and the example
-        const mn = ET.Meanings.of(it);
-        const what = (mn && mn.m) || (it.real && it.real !== it.he ? it.real : '');
-        return `<div class="grab"></div>
-        ${sheetTop(sh)}
-        <div class="tw-word">
-          <div class="tw-en" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
-          <div class="tw-he">${esc(it.he)}</div>
-        </div>
-        ${what ? `<div class="tw-box what"><div class="tw-h">מה זה אומר? 💡</div><p>${esc(what)}</p></div>` : ''}
-        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">דוגמה במשפט 💬</div>
-          <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlight(it.ex, it.t)}</span></div>
-          ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
-        ${sheetGrade(sh, it)}
-        <button class="btn tw-add ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button>
-        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">דיווח על טעות ${ic('flag')}</button>`;
-      }
-      if (ET.isTopicWord(it) && !sh.ctx) {
-        const mn = ET.Meanings.of(it);
-        const pos = (mn && POS_HE[mn.pos]) || ET.POS[it.pos] || POS_HE[it.pos] || '';
-        return `<div class="grab"></div>
-        ${sheetTop(sh)}
-        <div class="tw-word">
-          <div class="tw-en" lang="en" dir="ltr">${esc(it.t)}${speakBtn(it.t, it.id, '', 'sm tw-spk')}</div>
-          <div class="tw-he">${esc(it.he)}</div>
-          ${pos ? `<span class="tw-pos">${esc(pos)}</span>` : ''}
-        </div>
-        ${mn && mn.m ? `<div class="tw-box"><div class="tw-h">משמעות 📄</div><p>${esc(mn.m)}</p></div>` : ''}
-        ${it.ex ? `<div class="tw-box ex"><div class="tw-h">דוגמה במשפט 💬</div>
-          <div class="tw-ex" lang="en" dir="ltr">${speakBtn(it.ex, it.id, '', 'sm tw-spk')}<span>${highlight(it.ex, it.t)}</span></div>
-          ${it.exHe ? `<div class="tw-tr">${esc(it.exHe)}</div>` : ''}</div>` : ''}
-        ${sheetGrade(sh, it)}
-        <button class="btn tw-add ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button>
-        <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">דיווח על טעות ${ic('flag')}</button>`;
-      }
+      if ((ET.isTopicWord(it) || (it.type === 'expr' && (it.kind === 'slang' || it.kind === 'phrase'))) && !sh.ctx) return wordCard(sh, it);
       return `<div class="grab"></div>
         <div class="head"><div class="term">${esc(it.t)}</div>
           ${sh.list ? `<button class="icon-btn flat tw-trash" data-act="trash-item" aria-label="מחיקה לתמיד">${ic('trash')}</button>` : ''}<button class="icon-btn flat" data-act="close-sheet" aria-label="סגירה">${ic('x')}</button></div>
@@ -945,7 +913,8 @@
     const keepNote = $('#report-note') ? $('#report-note').value : '';
     const same = RT.lastSheet === RT.sheet;
     const pop = RT.sheet.type === 'pop';
-    sheetRoot.innerHTML = `<div class="backdrop ${pop ? 'clear' : ''}" data-act="close-sheet"></div><div class="sheet ${pop ? 'pop' : ''}" role="dialog" aria-modal="${pop ? 'false' : 'true'}" ${same ? 'style="animation:none"' : ''}>${sheetContent()}</div>`;
+    const full = RT.sheet.type === 'item' || RT.sheet.type === 'list-done';
+    sheetRoot.innerHTML = `<div class="backdrop ${pop ? 'clear' : ''}" data-act="close-sheet"></div><div class="sheet ${pop ? 'pop' : ''} ${full ? 'full' : ''}" role="dialog" aria-modal="${pop ? 'false' : 'true'}" ${same ? 'style="animation:none"' : ''}>${sheetContent()}</div>`;
     if (keepNote && $('#report-note')) $('#report-note').value = keepNote;
     RT.lastSheet = RT.sheet;
   }
@@ -1348,7 +1317,7 @@
       const m = e.data || {};
       if (m.type !== 'data-updated') return;
       if (m.path === 'data/vocab.json') ET.Vocab.load(true).then(() => render());
-      if (m.path === 'data/meanings.json') ET.Meanings.load(true).then(() => { if (RT.sheet) renderSheet(); });
+      if (m.path === 'data/meanings.json') ET.Meanings.load(true).then(() => { render(); if (RT.sheet) renderSheet(); });
       if (m.path === 'data/news/index.json') ET.Articles.load(true).then(() => render());
       if (m.path === 'data/dict-en-he.json') { ET.DictionarySource.entries = null; ET.DictionarySource.loading = null; ET.DictionarySource.load(); }
     });
@@ -1361,25 +1330,56 @@
   }
 
   let swipe = null;
-  addEventListener('touchstart', (e) => { const t = e.touches[0]; swipe = { x: t.clientX, y: t.clientY }; }, { passive: true });
-  addEventListener('touchend', (e) => {
-    if (!swipe) return;
-    const t = e.changedTouches[0], dx = t.clientX - swipe.x, dy = t.clientY - swipe.y; swipe = null;
-    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    const inSheet = RT.sheet && RT.sheet.list && e.target.closest && e.target.closest('.sheet');
-    const onCard = !RT.sheet && parse().name === 'session' && RT.session && ['cat', 'sec', 'fav'].includes(RT.session.kind);
-    if (inSheet) ACT[dx < 0 ? 'sheet-next' : 'sheet-prev']();
-    else if (onCard) ACT[dx < 0 ? 'card-next' : 'card-prev']();
+  const neighbour = (dir) => { // the card that comes next in the swipe direction (-1: next, +1: previous)
+    const sh = RT.sheet; if (!sh || !sh.list) return '';
+    const i = sh.list.indexOf(sh.id) + (dir < 0 ? 1 : -1);
+    const it = ET.item(sh.list[i]);
+    return it ? wordCard({ ...sh, id: it.id }, it) : '';
+  };
+  addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    const sheet = RT.sheet && RT.sheet.list && e.target.closest && e.target.closest('.sheet.full');
+    const card = !RT.sheet && parse().name === 'session' && RT.session && ['cat', 'sec', 'fav'].includes(RT.session.kind) && e.target.closest && e.target.closest('.flash');
+    swipe = { x: t.clientX, y: t.clientY, el: sheet || card || null, sheet: !!sheet, mode: null, dx: 0 };
   }, { passive: true });
-  // favourites keep their audio on the device even if it was never played: checked at start and whenever the app comes back,
-  // so an article saved before its audio was made gets it as soon as it exists (the server keeps audio only 30 days)
-  const keepFavouriteAudio = () => ET.Audio.load().then(() => Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)));
-  keepFavouriteAudio();
-  ET.LevelSync.flushHidden();
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepFavouriteAudio(); });
+  addEventListener('touchmove', (e) => {
+    if (!swipe || !swipe.el) return;
+    const t = e.touches[0], dx = t.clientX - swipe.x, dy = t.clientY - swipe.y;
+    if (!swipe.mode) { if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return; swipe.mode = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; }
+    if (swipe.mode !== 'x') return;
+    e.preventDefault();
+    swipe.dx = dx;
+    if (swipe.sheet) {
+      const dir = dx < 0 ? -1 : 1;
+      if (swipe.dir !== dir) { // show the card that is about to come in, underneath
+        swipe.dir = dir;
+        let under = sheetRoot.querySelector('.sheet-under');
+        const html = neighbour(dir);
+        if (!under) { under = document.createElement('div'); under.className = 'sheet full sheet-under'; sheetRoot.insertBefore(under, swipe.el); }
+        under.innerHTML = html; under.hidden = !html;
+      }
+    }
+    swipe.el.style.transition = 'none';
+    swipe.el.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`;
+  }, { passive: false });
+  addEventListener('touchend', () => {
+    const sw = swipe; swipe = null;
+    if (!sw || !sw.el || sw.mode !== 'x') return;
+    const go = Math.abs(sw.dx) > 90 && (!sw.sheet || neighbour(sw.dx < 0 ? -1 : 1) || sw.dx < 0);
+    const el = sw.el;
+    el.style.transition = 'transform .22s ease-out';
+    if (!go) { el.style.transform = ''; setTimeout(() => { const u = sheetRoot.querySelector('.sheet-under'); if (u) u.remove(); }, 230); return; }
+    el.style.transform = `translateX(${sw.dx < 0 ? -130 : 130}%) rotate(${sw.dx < 0 ? -14 : 14}deg)`;
+    setTimeout(() => {
+      const name = sw.sheet ? (sw.dx < 0 ? 'sheet-next' : 'sheet-prev') : (sw.dx < 0 ? 'card-next' : 'card-prev');
+      RT.lastSheet = RT.sheet; // no slide-up animation for the next card
+      ACT[name]();
+      if (!sw.sheet) window.scrollTo(0, 0);
+    }, 200);
+  });
   ET.DictionarySource.load();
   ET.Vocab.load().then(() => render());
-  ET.Meanings.load().then(() => { if (RT.sheet) renderSheet(); });
+  ET.Meanings.load().then(() => { render(); if (RT.sheet) renderSheet(); });
   render();
   syncLevel();
 })();
