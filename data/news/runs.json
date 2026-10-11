@@ -1,5 +1,25 @@
 [
  {
+  "run_id": "2026-10-11T13:54:51.720Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 946,
+  "rejected": 3,
+  "duplicates": 116,
+  "verified": 5,
+  "created": 2,
+  "published_by_cat": {
+   "business": 1,
+   "gaming": 1
+  },
+  "errors": [
+   "Healing waters: 10 of the best spa towns in Europe for a res: too close to the source wording; length 661"
+  ],
+  "gemini_calls": 20,
+  "end": "2026-10-11T14:08:07.278Z"
+ },
+ {
   "run_id": "2026-10-11T12:55:58.270Z",
   "level": "C1",
   "sources_checked": 41,
