@@ -1377,6 +1377,13 @@
       if (!sw.sheet) window.scrollTo(0, 0);
     }, 200);
   });
+  // favourites keep their audio on the device even if it was never played: checked at start and whenever the app comes back,
+  // so an article saved before its audio was made gets it as soon as it exists (the server keeps audio only 30 days).
+  // The audio list also decides what is shown (only words and articles that already have their audio), so the screen is redrawn.
+  const keepFavouriteAudio = () => ET.Audio.load().then(() => { render(); Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)); });
+  keepFavouriteAudio();
+  ET.LevelSync.flushHidden();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepFavouriteAudio(); });
   ET.DictionarySource.load();
   ET.Vocab.load().then(() => render());
   ET.Meanings.load().then(() => { render(); if (RT.sheet) renderSheet(); });

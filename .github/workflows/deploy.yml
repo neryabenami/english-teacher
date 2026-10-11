@@ -1,11 +1,16 @@
-# Writes the daily articles and words (every 6 hours, and on demand from the app when the level changes),
+# Writes the day's articles and words early in the morning (Israel 04:30 and 06:30 in summer, an hour earlier in winter;
+# the second run only retries what failed), and fills missing meanings / examples later in the day.
+# Also runs on demand from the app when the level changes.
 # then publishes the app to GitHub Pages (free for public repos).
 # Code changes are published separately and at once by pages.yml, so they never wait for this long job.
 name: Update articles and deploy
 
 on:
   schedule:
-    - cron: '17 */6 * * *'
+    - cron: '30 1 * * *'   # the day's new words and articles
+    - cron: '30 3 * * *'   # retry what failed (quotas are per day, nothing is added twice)
+    - cron: '0 11 * * *'   # fill gaps only
+    - cron: '0 17 * * *'   # fill gaps only
   workflow_dispatch:
     inputs:
       check_sources:
@@ -38,7 +43,7 @@ jobs:
         run: SOURCES_CHECK=1 node tools/news-pipeline.mjs
 
       - name: Write today's learning articles from real news
-        if: ${{ !inputs.check_sources }}
+        if: ${{ !inputs.check_sources && github.event.schedule != '0 11 * * *' && github.event.schedule != '0 17 * * *' }}
         run: node tools/news-pipeline.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -48,6 +53,7 @@ jobs:
         if: ${{ !inputs.check_sources }}
         run: node tools/add-daily-words.mjs
         env:
+          FILL_ONLY: ${{ (github.event.schedule == '0 11 * * *' || github.event.schedule == '0 17 * * *') && '1' || '' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           READING_LEVEL: ${{ vars.READING_LEVEL }}
 

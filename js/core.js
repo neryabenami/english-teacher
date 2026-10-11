@@ -419,7 +419,7 @@
       return { m, ex, exHe, pos: mn.pos || it.pos || '', f };
     },
     // a word, slang or expression is shown only when it has both a meaning and an example sentence
-    complete(it) { const c = this.card(it); return !!(c && c.m && c.ex); },
+    complete(it) { const c = this.card(it); return !!(c && c.m && c.ex && ET.Audio.has(it.t) && ET.Audio.has(c.ex)); },
     of(it) { return (this.map && it && this.map[(it.type === 'expr' ? (it.kind === 'slang' ? 'slang:' : it.kind === 'phrase' ? 'phrase:' : '') : '') + it.t.toLowerCase()]) || null; }
   };
 
@@ -448,7 +448,7 @@
       const cutoff = Date.now() - FEED_DAYS * DAY;
       const shown = new Set(D.READ_CATS.map((c) => c.id)); // removed categories leave the feed (favourites keep them)
       const hidden = S.hiddenArticles || {};
-      return this.all().filter((a) => !hidden[a.id] && a.english_level === S.profile.cefr && shown.has(a.category) && (!cat || a.category === cat) && new Date(a.first_published_in_app_at).getTime() >= cutoff)
+      return this.all().filter((a) => !hidden[a.id] && ET.Audio.articleReady(a.id) && a.english_level === S.profile.cefr && shown.has(a.category) && (!cat || a.category === cat) && new Date(a.first_published_in_app_at).getTime() >= cutoff)
         .sort((x, y) => new Date(y.first_published_in_app_at) - new Date(x.first_published_in_app_at) || (y.interest_score || 0) - (x.interest_score || 0));
     },
     levelsAvailable() { return [...new Set(this.all().map((a) => a.english_level))]; },
@@ -586,6 +586,9 @@
       return fetch(this.BASE + 'index.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
         .then((j) => { if (j) { this.words = new Set((j.words || '').split(',').filter(Boolean)); this.articles = j.articles || {}; } }).catch(() => {});
     },
+    // until the audio list is known (first start without internet) nothing is hidden because of it
+    has(text) { return !this.words || this.words.has(this.key(text)); },
+    articleReady(id) { return !this.words || !!this.articles[id]; },
     key: (t) => sha1(String(t || '').trim().replace(/\s+/g, ' ').toLowerCase()).slice(0, 12),
     url(text, article) {
       if (!this.words) return null;

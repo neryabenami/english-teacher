@@ -14,7 +14,8 @@ import { BLOCK, STOP } from './vocab-shared.mjs';
 import { gemini, hasGemini } from './gemini.mjs';
 
 const PER_TOPIC = 5;
-const MIN_TOTAL = 20;   // a category with fewer words at the reader's level gets filled up to this (new categories start full enough)
+// in the early-morning runs only (FILL_ONLY=1 in the later runs: no new items, only missing meanings / examples)
+const FILL_ONLY = process.env.FILL_ONLY === '1';
 const PER_SLANG = 5;
 /* the 10 categories of the Words tab: words are placed by the context they are used in, mixing nouns, verbs and adjectives */
 const TOPICS = {
@@ -58,10 +59,10 @@ const blocked = (s) => (String(s).toLowerCase().match(/[a-z]+/g) || []).some((w)
 /* ---------- 5 words per topic, at the reader's level ---------- */
 const RANK = JSON.parse(fs.readFileSync('tools/en-rank.json', 'utf8'));
 const LEMMAS = new Set(JSON.parse(fs.readFileSync('tools/en-lemmas.json', 'utf8')));
-// per level: a level change brings its own 5; a thin category is filled up to MIN_TOTAL
+// per level: a level change brings its own 5
 const needOf = (topic) => {
   const mine = vocab.words.filter((w) => w[3] === topic && w[2] === LEVEL);
-  return Math.max(PER_TOPIC - mine.filter((w) => w[6] === today).length, MIN_TOTAL - mine.length);
+  return FILL_ONLY ? 0 : PER_TOPIC - mine.filter((w) => w[6] === today).length;
 };
 const phrasesToday = (topic) => vocab.words.filter((w) => w[3] === topic && w[6] === today && w[0].includes(' ')).length;
 function candidates(min) {
@@ -139,7 +140,7 @@ if (hasGemini()) {
 for (const t of Object.keys(TOPICS)) if (needOf(t) > 0) console.warn(`topic ${t}: ${needOf(t)} missing today at ${LEVEL}`);
 
 /* ---------- 5 American slang terms, any level ---------- */
-const slangToday = () => vocab.exprs.filter((e) => e[7] === today && e[0] === 'slang').length;
+const slangToday = () => (FILL_ONLY ? PER_SLANG : vocab.exprs.filter((e) => e[7] === today && e[0] === 'slang').length);
 let slang = 0;
 for (const line of fs.readFileSync('tools/slang-reserve.txt', 'utf8').split(/\r?\n/).filter((l) => l && !l.startsWith('#'))) {
   if (slangToday() >= PER_SLANG) break;
@@ -175,9 +176,8 @@ Return ONLY JSON: {"slang": [{"term": "...", "he": "...", "def": "...", "ex": ".
 
 /* ---------- 5 useful everyday expressions a day, at the reader's level (a new level starts with at least 20) ---------- */
 const PER_PHRASE = 5;
-const PHRASE_MIN = 20;
 const myPhrases = () => vocab.exprs.filter((e) => e[0] === 'phrase' && e[6] === LEVEL);
-const phraseNeed = () => Math.max(PER_PHRASE - myPhrases().filter((e) => e[7] === today).length, PHRASE_MIN - myPhrases().length);
+const phraseNeed = () => (FILL_ONLY ? 0 : PER_PHRASE - myPhrases().filter((e) => e[7] === today).length);
 let phrases = 0;
 if (phraseNeed() > 0 && hasGemini()) {
   try {

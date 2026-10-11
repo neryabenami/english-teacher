@@ -13,8 +13,8 @@ const OUT = path.resolve('data/news');
 const LEVEL = /^(A1|A2|B1|B2|C1|C2)$/.test(process.env.READING_LEVEL || '') ? process.env.READING_LEVEL : 'B1';
 let MODEL = process.env.GEMINI_MODEL || '';
 const KEY = process.env.GEMINI_API_KEY || '';
-const DAILY_MAX = +(process.env.DAILY_MAX || 16);   // articles per day: 2 per category (free Gemini quota: 2-3 calls per article)
-const PER_CAT_DAY = 2;                               // keeps the feed balanced
+const DAILY_MAX = +(process.env.DAILY_MAX || 8);    // articles per day: one per category
+const PER_CAT_DAY = 1;                               // one new article a day in each category
 const UA = 'Mozilla/5.0 (compatible; english-teacher-app; +https://github.com/neryabenami/english-teacher)';
 
 export const CATS = ['world', 'business', 'finance', 'tech', 'sports', 'gaming', 'travel', 'health'];
