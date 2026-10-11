@@ -254,7 +254,9 @@ if (hasGemini()) {
 ${part.map((w) => `${w.t}${w.expr ? ` (${w.expr})` : ''} — ${w.he}${w.ex ? ` — e.g. "${w.ex}"` : ''} [${[w.needM && 'm, pos', w.needEx && 'ex, exHe', w.needF && 'f'].filter(Boolean).join(', ')}]`).join('\n')}
 Return ONLY JSON: {"items": {"<item exactly as written>": {"m": "...", "pos": "...", "ex": "...", "exHe": "...", "f": "..."}}}`);
       for (const [k, v] of Object.entries((res && res.items) || {})) {
-        const ent = part.find((w) => w.t === k.toLowerCase().trim());
+        // the AI sometimes repeats the note in brackets or the translation ("rizz (American slang)"), so those are cut off
+        const name = k.toLowerCase().replace(/\s+—.*$/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+        const ent = part.find((w) => w.t === name);
         if (!ent || !v) continue;
         const cur = meanings.words[ent.key] || {};
         let changed = false;
