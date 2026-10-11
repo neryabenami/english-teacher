@@ -253,11 +253,19 @@ if (hasGemini()) {
 - "f": when people use it, exactly one of: online (social media, chats), friends (talking with friends), daily (everyday speech with anyone), neutral (fits any situation, also work), work (meetings, work emails), formal (official letters, documents, speeches).
 ${part.map((w) => `${w.t}${w.expr ? ` (${w.expr})` : ''} — ${w.he}${w.ex ? ` — e.g. "${w.ex}"` : ''} [${[w.needM && 'm, pos', w.needEx && 'ex, exHe', w.needF && 'f'].filter(Boolean).join(', ')}]`).join('\n')}
 Return ONLY JSON: {"items": {"<item exactly as written>": {"m": "...", "pos": "...", "ex": "...", "exHe": "...", "f": "..."}}}`);
-      for (const [k, v] of Object.entries((res && res.items) || {})) {
+      // the answer comes as {item: {...}} or, from some models, as a list [{item, ...}]
+      const items = (res && res.items) || res || {};
+      const answers = Array.isArray(items) ? items.map((x) => [String((x && (x.item || x.term || x.word || x.t)) || ''), x]) : Object.entries(items);
+      let matched = 0;
+      const unmatched = [];
+      for (const [k, v] of answers) {
         // the AI sometimes repeats the note in brackets or the translation ("rizz (American slang)"), so those are cut off
-        const name = k.toLowerCase().replace(/\s+—.*$/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+        const name = k.toLowerCase().replace(/["“”]/g, '').replace(/\s*—.*$/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
         const ent = part.find((w) => w.t === name);
-        if (!ent || !v) continue;
+        if (!ent || !v) { unmatched.push(k); continue; }
+        matched++;
+        // "f" sometimes comes with its explanation or capitalised ("Friends (talking with friends)")
+        if (v.f) v.f = String(v.f).toLowerCase().trim().split(/[^a-z]/)[0];
         const cur = meanings.words[ent.key] || {};
         let changed = false;
         if (ent.needM && goodHe(v.m) && v.m.length >= 8 && v.m.length <= 220) { cur.m = v.m.trim(); cur.pos = String(v.pos || cur.pos || '').trim(); changed = true; }
@@ -265,6 +273,7 @@ Return ONLY JSON: {"items": {"<item exactly as written>": {"m": "...", "pos": ".
         if (ent.needF && REGISTERS.includes(v.f)) { cur.f = v.f; changed = true; }
         if (changed) { meanings.words[ent.key] = cur; explained++; }
       }
+      console.log(`meanings batch ${i / 80 + 1}: ${matched} of ${part.length} answered${unmatched.length ? ' · not matched: ' + unmatched.slice(0, 5).join(' | ') : ''}`);
     } catch (e) { console.warn('gemini meanings failed:', e.message); break; }
   }
 }
