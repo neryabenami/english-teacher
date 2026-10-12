@@ -1,5 +1,44 @@
 [
  {
+  "run_id": "2026-10-12T07:14:46.108Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 933,
+  "rejected": 14,
+  "duplicates": 117,
+  "verified": 22,
+  "created": 8,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "Riyadh airport hit again after deadly Houthi missile attack,: The claim that 'commercial airlines [are] rerouting flights' is unsupported; the sources only mention warnings issued to airlines by the Houthis, airport closures, and a State Department advisory warning of possible flight cancellations and travel disruptions, but do not state that airlines were rerouting flights.",
+   "Trump says Russia and Ukraine agree to an 'energy ceasefire': The text attributes the assessment that holding an election is 'logistically impossible with roughly one-fifth of the nation occupied and millions displaced abroad' to President Zelenskyy, whereas the source presents this as background analysis widely noted by observers/reporters, not a statement made by Zelenskyy.",
+   "החברה הישראלית שמציעה במבצע דלק חינם לחצי שנה: length 274",
+   "זינוק של יותר מפי 5 מאז השפל: הקאמבק של טבע: length 283",
+   "איראן באיום חדש: \"ערוכים להכניס לשימוש יכולות חדשות\": length 385",
+   "How Zach Cregger’s Resident Evil stands out from all other g: length 398",
+   "\"פורטוגל של רונאלדו מעולם לא הייתה כמו ארגנטינה עם מסי\": length 398",
+   "ירושלים נרגשת, מדמון: \"יגיע הרבה קהל, מאמין שנשמח אותו\": length 401",
+   "הפועל ת\"א מפרגנת לג'רמן, ויודעת: \"אי אפשר שיהיו נפילות כאלה\": length 394",
+   "מנואל נוייר \"שיחק באש\" ונכווה. הטור של דני דבורין: The source states the match date is 2026-10-12, which refers to a future/fictional event, but the lesson presents it as a past/recent real-world event without acknowledging the futuristic context.",
+   "Steven Spielberg's Polarizing Fantasy Film Gets Official New: too close to the source wording",
+   "5 Exciting Games Stuck In Development For More Than 10 Years: too close to the source wording",
+   "Is it true that … muscle turns into fat if you stop working : length 372",
+   "The kindness of strangers: In one of my darkest periods, a f: length 386"
+  ],
+  "gemini_calls": 68,
+  "end": "2026-10-12T07:31:02.579Z"
+ },
+ {
   "run_id": "2026-10-11T15:17:19.265Z",
   "level": "C1",
   "sources_checked": 41,
