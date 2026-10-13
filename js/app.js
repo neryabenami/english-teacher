@@ -301,7 +301,7 @@
     if (sec === 'mine') {
       const list = ET.favorites('all').map((it) => ({ it, at: (S.items[it.id] || {}).savedAt || (S.items[it.id] || {}).seen || 0 })).sort((x, y) => y.at - x.at).map((x) => x.it);
       if (!list.length) return `<div class="screen">${topbar('⭐ המילים שלי', 'words')}<div class="card empty"><div class="emo">⭐</div><h2>עוד לא שמרת מילים</h2><p>כל מילה שתשמרו בכוכבית, בכל חלקי לימוד מילים, וכל מילה שתשמרו מתוך כתבה, תופיע כאן.</p></div></div>`;
-      return `<div class="screen">${topbar('⭐ המילים שלי', 'words')}
+      return `<div class="screen">${topbar('⭐ המילים שלי', 'words', countPill(list.length, 'מילה אחת', 'מילים'))}
         <button class="btn block" data-act="go" data-arg="session/fav/all">${ic('play')} התחל כרטיסיות</button>
         <div class="sw-list">${list.map(mineCard).join('')}</div></div>`;
     }
