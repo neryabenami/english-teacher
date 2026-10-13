@@ -1,5 +1,24 @@
 [
  {
+  "run_id": "2026-10-13T09:33:43.169Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 952,
+  "rejected": 1,
+  "duplicates": 103,
+  "verified": 2,
+  "created": 1,
+  "published_by_cat": {
+   "finance": 1
+  },
+  "errors": [
+   "סמסונג, מאחוריך: זאת החברה הסינית שתשבור את שוק השבבים?: The source does not state that CXMT is a 'state-backed' producer; it only identifies it as China's largest memory manufacturer."
+  ],
+  "gemini_calls": 13,
+  "end": "2026-10-13T09:41:12.547Z"
+ },
+ {
   "run_id": "2026-10-13T07:37:16.663Z",
   "level": "C1",
   "sources_checked": 41,
