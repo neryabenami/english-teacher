@@ -75,6 +75,8 @@
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const topbar = (title, back, extra = '') => `<header class="topbar">${back ? `<button class="icon-btn" data-act="go" data-arg="${back}" aria-label="חזרה">${ic('back')}</button>` : ''}<h1>${title}</h1>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}${extra}</header>`;
   const li = (icon, title, sub, path, end = '') => `<button class="li" data-act="go" data-arg="${path}"><span class="ico">${I[icon] ? ic(icon) : icon}</span><span class="main"><span class="t">${title}</span>${sub ? `<span class="s" style="display:block">${sub}</span>` : ''}</span><span class="end">${end}${ic('chev', 'chev')}</span></button>`;
+  // how many items a list has, top left of its screen (1,235 with thousands commas)
+  const countPill = (n, one, many) => `<span class="count-pill">${n === 1 ? one : n.toLocaleString('en-US') + ' ' + many}</span>`;
   const itemRow = (it, extra = '') => `<button class="li" data-act="item" data-arg="${esc(it.id)}">${it.emoji ? `<span class="ico">${it.emoji}</span>` : ''}<span class="main"><span class="t en" style="display:block">${esc(it.t)}</span><span class="s" style="display:block">${esc(it.he)}</span></span><span class="end">${extra}</span></button>`;
   const speakBtn = (text, id, label = '', cls = '') => `<button class="speak ${cls}" data-act="say" data-arg="${esc(text)}" ${id ? `data-id="${esc(id)}"` : ''} aria-label="השמעה">${ic('speaker')}${label ? ' ' + label : ''}</button>`;
 
@@ -290,7 +292,7 @@
       const fresh = all.filter(ET.isNewToday);
       const rest = all.filter((i) => !ET.isNewToday(i));
       if (!all.length) return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}${fav ? favEmpty('מילים') : '<div class="card empty"><p>כל המילים בנושא הזה כבר מוכרות לך 🎉 מילים חדשות יתווספו מחר.</p></div>'}</div>`;
-      return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics', fav ? '' : `<span class="count-pill">${all.length === 1 ? 'מילה אחת' : all.length.toLocaleString('en-US') + ' מילים'}</span>`)}
+      return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics', fav ? '' : countPill(all.length, 'מילה אחת', 'מילים'))}
         <button class="btn block" data-act="go" data-arg="${fav ? 'session/fav/words' : 'session/cat/' + arg}">${ic('play')} התחל כרטיסיות</button>
         ${fresh.length ? `<h3 class="group-h">נוספו היום</h3><div class="list">${fresh.map((it) => itemRow(it, newBadge(it))).join('')}</div>` : ''}
         ${rest.length ? `<div class="list">${rest.slice(0, shown).map((it) => itemRow(it)).join('')}</div>` : ''}
@@ -311,7 +313,7 @@
     const fresh = items.filter(ET.isNewToday);
     const rest = items.filter((i) => !ET.isNewToday(i));
     if (!items.length) return `<div class="screen">${topbar(title, 'words')}<div class="card empty"><p>${isSlang ? 'כל הסלנג כבר מוכר לך 🎉' : 'ביטויים ברמה שלך יתווספו בעדכון הקרוב.'}</p></div></div>`;
-    return `<div class="screen">${topbar(title, 'words')}
+    return `<div class="screen">${topbar(title, 'words', isSlang ? countPill(items.length, 'מילה אחת', 'מילים') : countPill(items.length, 'ביטוי אחד', 'ביטויים'))}
       <button class="btn block" data-act="go" data-arg="session/sec/${sec}">${ic('play')} התחל כרטיסיות</button>
       ${fresh.length ? `<h3 class="group-h">נוספו היום</h3><div class="list">${fresh.map((it) => itemRow(it, newBadge(it))).join('')}</div>` : ''}
       ${rest.length ? `<div class="list">${rest.map((it) => itemRow(it)).join('')}</div>` : ''}</div>`;
