@@ -136,7 +136,7 @@
     const back = `<button class="icon-btn" data-act="onb-back" aria-label="חזרה">${ic('back')}</button>`;
     if (o.step === 'welcome') {
       return `<div class="onb"><div class="welcome grow">
-        <div class="logo">${ic('logo')}</div>
+        <img class="logo" src="icons/icon.svg" alt="">
         <h1>מדברים אנגלית</h1>
         <p class="muted" style="max-width:340px">לומדים אנגלית אמיתית בקצב שלכם. חינם לגמרי, וגם בלי אינטרנט.</p>
         <div class="bullets">
@@ -290,7 +290,7 @@
       const fresh = all.filter(ET.isNewToday);
       const rest = all.filter((i) => !ET.isNewToday(i));
       if (!all.length) return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}${fav ? favEmpty('מילים') : '<div class="card empty"><p>כל המילים בנושא הזה כבר מוכרות לך 🎉 מילים חדשות יתווספו מחר.</p></div>'}</div>`;
-      return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics')}
+      return `<div class="screen">${topbar(c.icon + ' ' + c.he, 'words/topics', fav ? '' : `<span class="count-pill">${all.length === 1 ? 'מילה אחת' : all.length.toLocaleString('en-US') + ' מילים'}</span>`)}
         <button class="btn block" data-act="go" data-arg="${fav ? 'session/fav/words' : 'session/cat/' + arg}">${ic('play')} התחל כרטיסיות</button>
         ${fresh.length ? `<h3 class="group-h">נוספו היום</h3><div class="list">${fresh.map((it) => itemRow(it, newBadge(it))).join('')}</div>` : ''}
         ${rest.length ? `<div class="list">${rest.slice(0, shown).map((it) => itemRow(it)).join('')}</div>` : ''}

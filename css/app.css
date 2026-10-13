@@ -689,3 +689,7 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
    auto margins and not centering, so a very long one still starts at the top and scrolls instead of being cut */
 .sheet.full > .tw-word { margin-top: auto; }
 .sheet.full > .tw-report { margin-bottom: auto; }
+
+/* v26: how many words a topic has, at the top left of the topic screen; the welcome screen shows the app icon */
+.count-pill { background: var(--accent-soft, #E3F2EE); color: var(--accent); font-weight: 700; font-size: .85rem; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+.welcome img.logo { display: block; background: none; }
