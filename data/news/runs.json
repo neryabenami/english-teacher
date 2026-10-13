@@ -1,5 +1,41 @@
 [
  {
+  "run_id": "2026-10-13T07:37:16.663Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 951,
+  "rejected": 16,
+  "duplicates": 90,
+  "verified": 22,
+  "created": 7,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "מיקרוסופט מפטרת עשרות עובדים במרכז הפיתוח בישראל: The claim that the cuts 'dismantle specific engineering units' is not supported by the sources; the sources only state that dozens of positions are being eliminated across groups like Copilot Studio and Industry AI, with some employees moving to other roles and roughly half of the Copilot Studio group estimated to remain.",
+   "הבורסה בתל אביב פתחה באדום: חברות הטכנולוגיה מושכות מטה, הבנ: length 310",
+   "BT charged me for more than a year despite landline being de: stray letters in the Hebrew text",
+   "\"אף אחד לא מוכן לקחת סיכון\": המכה הקשה של ענף הקייטרינג לאיר: fact check failed",
+   "בורסת דרום קוריאה צוללת בעקבות מניות השבבים: length 343",
+   "חסר תקדים: קיצוץ רוחבי במשרדי הממשלה - רגע לפני הבחירות: length 726",
+   "האזהרה של קרן המטבע הבינלאומית - וההפתעה לגבי ישראל: number not in sources: 19",
+   "Saracens sack academy player Auvaa after latest incident: length 378; stray letters in the Hebrew text",
+   "\"אני, אני, אני\": המתקפה המפתיעה נגד קיליאן אמבפה: length 381",
+   "ההודעה הקולית שחשפה: כך כמעט הגיע ריאן שרקי לפריז סן ז'רמן: length 371",
+   "Viking’s two head coaches on Champions League adventure: ‘Fo: length 386",
+   "Epic Games Delays Marvel and Star Wars Crossover Game Amid G: too close to the source wording"
+  ],
+  "gemini_calls": 72,
+  "end": "2026-10-13T07:58:55.679Z"
+ },
+ {
   "run_id": "2026-10-12T11:17:35.587Z",
   "level": "C1",
   "sources_checked": 41,
