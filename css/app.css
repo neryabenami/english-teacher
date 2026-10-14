@@ -693,3 +693,16 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 /* v26: how many words a topic has, at the top left of the topic screen; the welcome screen shows the app icon */
 .count-pill { background: var(--accent-soft, #E3F2EE); color: var(--accent); font-weight: 700; font-size: .85rem; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
 .welcome img.logo { display: block; background: none; }
+
+/* v27: a word window is a floating card in the middle of the screen (most of it, not all); the screen behind is blurred.
+   Centred with auto margins (not a transform), so the Tinder-like swipe can still move it with its own transform. */
+.backdrop:not(.clear) { -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); background: rgba(20, 30, 28, .3); }
+.sheet.full {
+  top: 0; bottom: 0; left: 0; right: 0; margin: auto;
+  width: calc(100% - 32px); max-width: 520px; height: -webkit-fit-content; height: fit-content; max-height: 84dvh;
+  border-radius: 28px; padding: 14px 18px 18px; box-shadow: 0 24px 60px rgba(0, 0, 0, .25);
+  animation: card-pop .2s cubic-bezier(.2, .9, .3, 1);
+}
+.sheet.full > .tw-word { margin-top: 0; }
+.sheet.full > .tw-report { margin-bottom: 0; }
+@keyframes card-pop { from { opacity: 0; transform: scale(.94); } }
