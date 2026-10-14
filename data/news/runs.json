@@ -1,5 +1,39 @@
 [
  {
+  "run_id": "2026-10-14T06:01:13.861Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 948,
+  "rejected": 9,
+  "duplicates": 99,
+  "verified": 17,
+  "created": 7,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "health": 1
+  },
+  "errors": [
+   "​FTC and seven states seek contempt ruling against Shkreli o: too close to the source wording; stray letters in the Hebrew text",
+   "FBI arrests Saudi OpenAI employee who allegedly planted reco: length 319",
+   "Elon Musk becomes biggest donor of US midterms cycle with $3: length 393; stray letters in the Hebrew text",
+   "Chip stocks slide after Broadcom boss likens AI investing to: length 396",
+   "בריטניה אישרה את פרויקט הנפט של נאוויטס בפוקלנד; המניה זינקה: number not in sources: 50,000; number not in sources: 180,000",
+   "שמרה על התואר: בני יהודה זכתה בגביע הטוטו: length 364",
+   "מוראנט פירגן, לילארד מתחבר: פורטלנד מתלהבת מדני אבדיה: length 368",
+   "gemini bad json",
+   "מוכן לעונה: 26 נקודות לאבדיה, עוד ניצחון לפורטלנד: length 357",
+   "'I could never hear on my left side - until I got a prosthet: too close to the source wording"
+  ],
+  "gemini_calls": 70,
+  "end": "2026-10-14T06:18:57.672Z"
+ },
+ {
   "run_id": "2026-10-13T11:02:13.231Z",
   "level": "C1",
   "sources_checked": 41,
