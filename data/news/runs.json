@@ -1,5 +1,40 @@
 [
  {
+  "run_id": "2026-10-15T05:47:54.362Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 925,
+  "rejected": 12,
+  "duplicates": 98,
+  "verified": 18,
+  "created": 6,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "gaming": 1,
+   "health": 1
+  },
+  "errors": [
+   "מדד S&P 500 ונאסד\"ק רשמו את יום המסחר הגרוע ביותר שלהם מזה ש: number not in sources: 786,000; length 398",
+   "האיום הקיומי הנסתר: \"ישראל בדרך לקריסה כלכלית-חברתית\": number not in sources: 36,000; number not in sources: 14,000",
+   "The UK energy secretary is flirting with a bad idea for bill: too close to the source wording",
+   "The Apple HomeView Is Like a Giant Apple Watch for the Home: length 288",
+   "יעקב שחר אישר: \"מחפש גוף רציני שייקח את מכבי חיפה קדימה\": length 358",
+   "חזרה למסלול: הפועל ת\"א הביסה 82:100 את בשיקטאש: length 370",
+   "Jackson steps up again as Aston Villa revival continues: length 342",
+   "אובסט סחף לניצחון באיסטנבול, וירטוס המשיכה במומנטום: length 400",
+   "דוידה שוב לא התאמן: המחליף והתוכנית של מכבי תל אביב לטדי: length 342",
+   "אין אוהדים, אין תירוצים, יהיו נקודות? המבחן של באר שבע: length 359",
+   "Valve May Be Working on an OLED Steam Frame, According to Da: length 400",
+   "Callina Liang Says She Felt 'A Lot of Pressure' After Seeing: length 314"
+  ],
+  "gemini_calls": 64,
+  "end": "2026-10-15T06:11:41.260Z"
+ },
+ {
   "run_id": "2026-10-14T09:00:13.862Z",
   "level": "C1",
   "sources_checked": 41,
