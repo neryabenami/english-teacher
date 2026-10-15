@@ -1,5 +1,24 @@
 [
  {
+  "run_id": "2026-10-15T08:34:22.997Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [
+   "Geektime https://www.geektime.co.il/feed/"
+  ],
+  "candidates": 906,
+  "rejected": 0,
+  "duplicates": 113,
+  "verified": 1,
+  "created": 1,
+  "published_by_cat": {
+   "travel": 1
+  },
+  "errors": [],
+  "gemini_calls": 11,
+  "end": "2026-10-15T08:35:29.050Z"
+ },
+ {
   "run_id": "2026-10-15T07:34:32.503Z",
   "level": "C1",
   "sources_checked": 41,
