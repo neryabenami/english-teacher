@@ -1,5 +1,27 @@
 [
  {
+  "run_id": "2026-10-15T07:34:32.503Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 932,
+  "rejected": 3,
+  "duplicates": 108,
+  "verified": 5,
+  "created": 1,
+  "published_by_cat": {
+   "sports": 1
+  },
+  "errors": [
+   "fetch failed",
+   "חזרה למסלול: הפועל ת\"א הביסה 82:100 את בשיקטאש: The lesson text mentions 'Tyrique Jones' as a key contributor, but this name does not appear in the provided sources.; The lesson text claims the match was held on 'Wednesday', which is supported by the sources, but the source dates (2026-10-14) correspond to a Wednesday, which is consistent; however, the inclusion of 'Tyrique Jones' is a factual error based on the provided text.",
+   "Jackson steps up again as Aston Villa revival continues: length 387",
+   "The Welsh mountain inn that helped conquer Everest: length 397"
+  ],
+  "gemini_calls": 23,
+  "end": "2026-10-15T07:42:33.305Z"
+ },
+ {
   "run_id": "2026-10-15T05:47:54.362Z",
   "level": "C1",
   "sources_checked": 41,
