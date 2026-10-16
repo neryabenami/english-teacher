@@ -1,5 +1,41 @@
 [
  {
+  "run_id": "2026-10-16T05:44:30.969Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 922,
+  "rejected": 15,
+  "duplicates": 98,
+  "verified": 21,
+  "created": 7,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "health": 1
+  },
+  "errors": [
+   "Apple and Meta team up to make Muse AI model run on Mac comp: too close to the source wording",
+   "מחנות בשוק לעסקת ענק בחצי מיליארד שקל: כך גבר זוג ירושלמי על: length 358",
+   "\"עומדת להיות הפתעה\": הסוקר שמשוכנע שהוא פענח את הבוחר הישראל: number not in sources: 2019; number not in sources: 2000",
+   "Fed's Warsh withholds Fed rate signal, praises recent global: length 347",
+   "John Healey poised to raise taxes on banks in budget: length 367",
+   "בכיר בבנק הפועלים: \"אולי המשקיעים מניחים שגם המשבר הבא ייראה: number not in sources: 19",
+   "Tech market sell-off deepens amid fears over US inflation an: too close to the source wording",
+   "אופקו הודיעה שתמכור נכסים נוספים מרשת המעבדות תמורת 722 מילי: length 366",
+   "Tech Now: length 382; stray letters in the Hebrew text",
+   "מכבי נתניה הודיעה על השעייתו של מאור לוי: \"התנהלות לא נאותה\": length 337",
+   "Southgate does not see return to Premier League management: stray letters in the Hebrew text",
+   "Teen's death inspires mum's drive for earlier rare cancer di: length 306"
+  ],
+  "gemini_calls": 103,
+  "end": "2026-10-16T06:06:01.192Z"
+ },
+ {
   "run_id": "2026-10-15T08:34:22.997Z",
   "level": "C1",
   "sources_checked": 41,
