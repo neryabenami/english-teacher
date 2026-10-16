@@ -1,5 +1,20 @@
 [
  {
+  "run_id": "2026-10-16T08:28:34.318Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 925,
+  "rejected": 0,
+  "duplicates": 105,
+  "verified": 0,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [],
+  "gemini_calls": 0,
+  "end": "2026-10-16T08:28:53.616Z"
+ },
+ {
   "run_id": "2026-10-16T07:20:12.658Z",
   "level": "C1",
   "sources_checked": 41,
