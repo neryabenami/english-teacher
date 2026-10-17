@@ -1,5 +1,40 @@
 [
  {
+  "run_id": "2026-10-17T05:29:53.170Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 941,
+  "rejected": 12,
+  "duplicates": 90,
+  "verified": 19,
+  "created": 7,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "health": 1
+  },
+  "errors": [
+   "Katie Zacharia leaving White House role less than five days : The claim that Zacharia's departure marks 'the briefest tenure for a White House press spokesperson in modern presidential history' is not supported by the sources; Source [1] only states it is the 'quickest among Trump's White House press team.'; Source [1] identifies Hakeem Jeffries as 'the top Democrat in the House of Representatives', not specifically as 'House Minority Leader'.",
+   "Palestinians and US journalist injured by Israeli settlers i: The lesson states that the United Nations reported attacks have resulted in 'fatalities' (plural), but the sources state the UN reported settler attacks had killed one Palestinian.",
+   "‘They took land off people’: Obama faces backlash over Israe: The claim that Obama observed 'an equivalent number of Jews' (to roughly seven million Palestinians) reside in the region is not supported by the sources, which mention 'millions of Jews' and 'approximately seven million Palestinians' without stating or equating the number of Jews.",
+   "Blue Origin plans $330 million Florida expansion to ramp New: The claim that SpaceX's commercial withdrawal has 'stranded commercial operators, including Amazon' is unsupported; the sources state that commercial satellite customers have struggled to purchase a Falcon launch after 2028, but do not state that operators or Amazon have been stranded.",
+   "בורסת תל אביב ננעלה בעליות חדות בסופו של שבוע מצויין: number not in sources: 50,000",
+   "דודו אוטמזגין פוטר מהחברה שנושאת את שמו: \"אולי זה יפגע קצת ב: number not in sources: 300,000",
+   "Over $600 Million in Polymarket Election Trades Took Place A: The lesson claims trading persisted 'uninterrupted for 123 days', whereas the sources state that 'bursts of seemingly irrational trading continued' over those 123 days rather than continuous, uninterrupted trading.; The lesson describes the transactions as 'automated transaction loops', but the sources only refer to them as 'trade loops' and note it was unlikely algorithms were being used to eke out profits; calling them 'automated' is unsupported.",
+   "Some companies give AI to everyone. This CEO is doing the op: The source states that customer-service workers have spent years resolving complex issues, which is 'a skill that's valuable across a business,' but it does not state or attribute to Chisell that this is a skill 'that algorithms cannot replicate.'",
+   "The ultra-rich are spending one million dollars a day fighti: number not in sources: 298",
+   "Real demand Tebas resign over Goebbels comparison: The claim that Real Madrid are the 'reigning champions' is not supported by the sources, which only state that the club are '15-time European champions' and hold a 'record 36 Spanish league titles'.",
+   "Arteta told Arsenal job cuts will help create success: The text describes Viktor Gyökeres as a 'summer signing', but the sources do not state when he joined Arsenal.; The text describes the £1.4m deficit as 'post-tax', but Source 1 only refers to an 'overall loss of £1.4m' without specifying whether it was post-tax."
+  ],
+  "gemini_calls": 63,
+  "end": "2026-10-17T06:06:10.074Z"
+ },
+ {
   "run_id": "2026-10-16T08:28:34.318Z",
   "level": "C1",
   "sources_checked": 41,
