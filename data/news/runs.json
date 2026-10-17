@@ -1,5 +1,22 @@
 [
  {
+  "run_id": "2026-10-17T08:01:10.110Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 930,
+  "rejected": 1,
+  "duplicates": 99,
+  "verified": 1,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "A Greece for all seasons: my autumn roadtrip through the Pel: The source states that in AD 600 a bishop 'is said to have led' the Spartan population to Monemvasia to fortify themselves, rather than stating as a verified fact that it was founded in AD 600.; The claim that the kafenion in Pylos overlooks the Bay of Navarino is not stated in the source (the source mentions the Bay of Navarino only in reference to a canyoning trail to its north)."
+  ],
+  "gemini_calls": 4,
+  "end": "2026-10-17T08:05:50.128Z"
+ },
+ {
   "run_id": "2026-10-17T07:03:07.641Z",
   "level": "C1",
   "sources_checked": 41,
