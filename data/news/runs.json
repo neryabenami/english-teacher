@@ -1,5 +1,24 @@
 [
  {
+  "run_id": "2026-10-17T07:03:07.641Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [
+   "Geektime https://www.geektime.co.il/feed/"
+  ],
+  "candidates": 910,
+  "rejected": 1,
+  "duplicates": 101,
+  "verified": 1,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "A Greece for all seasons: my autumn roadtrip through the Pel: The claim that malvasia wine was 'once renowned across Europe' is not supported by the source, which only describes it as 'a prized export' with traces of Venetian trade, without mentioning Europe.; The text misattributes the clarinet music and dancing of the kalamatianos to the port kafenions in Pylos; in the source, this occurred in taverna gardens at Sunday family parties in villages on the drive between Kalamata and Pylos, whereas at the kafenion in Pylos, patrons were watching a football match."
+  ],
+  "gemini_calls": 3,
+  "end": "2026-10-17T07:05:48.611Z"
+ },
+ {
   "run_id": "2026-10-17T05:29:53.170Z",
   "level": "C1",
   "sources_checked": 41,
