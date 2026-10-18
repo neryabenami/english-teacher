@@ -1,5 +1,22 @@
 [
  {
+  "run_id": "2026-10-18T08:18:47.743Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 930,
+  "rejected": 2,
+  "duplicates": 91,
+  "verified": 2,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "‘We hang on to summer a little longer here’: five of the bes: The lesson title ('Chasing the Mediterranean Autumn Sun') inaccurately classifies all destinations under the Mediterranean, whereas Cascais, Portugal is explicitly located on the Atlantic coast.; The claim that Senigallia is along 'Italy's Adriatic coast' is not supported by the source text, which mentions the Marche region but never mentions the Adriatic."
+  ],
+  "gemini_calls": 4,
+  "end": "2026-10-18T08:23:05.036Z"
+ },
+ {
   "run_id": "2026-10-18T07:18:23.886Z",
   "level": "C1",
   "sources_checked": 41,
