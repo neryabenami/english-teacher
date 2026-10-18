@@ -1,5 +1,25 @@
 [
  {
+  "run_id": "2026-10-18T07:18:23.886Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [
+   "Geektime https://www.geektime.co.il/feed/"
+  ],
+  "candidates": 904,
+  "rejected": 2,
+  "duplicates": 91,
+  "verified": 2,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "‘We hang on to summer a little longer here’: five of the bes: The text states that the village of Agua Amarga was the scenic backdrop for classic spaghetti westerns, whereas the source specifies that 'this corner of Spain' is known for spaghetti westerns, while only 'Sexy Beast' was filmed in Agua Amarga itself.; The claim that getting near Kaputas beach is difficult due to 'heavy vehicle traffic' is not supported by the source, which attributes its summer overcrowding to having 'become a victim of Instagram'.",
+   "A Greece for all seasons: my autumn roadtrip through the Pel: The source states that 'in AD600, a bishop is said to have led the Spartan population to the rock', presenting this as a legend or traditional account, whereas the lesson asserts as definitive historical fact that it was 'Historically settled around AD 600, when a bishop sought sanctuary'.; The lesson claims that autumn in Messinia coincides with harvest festivals honoring wine, but the source explicitly attributes wine festivals to Laconia ('wines, oranges and chestnuts in Laconia, figs in Messinia, and olives near Kalamata')."
+  ],
+  "gemini_calls": 6,
+  "end": "2026-10-18T07:22:24.489Z"
+ },
+ {
   "run_id": "2026-10-18T05:43:34.912Z",
   "level": "C1",
   "sources_checked": 41,
