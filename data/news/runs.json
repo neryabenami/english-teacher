@@ -1,5 +1,41 @@
 [
  {
+  "run_id": "2026-10-18T05:43:34.912Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 930,
+  "rejected": 12,
+  "duplicates": 95,
+  "verified": 19,
+  "created": 7,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "health": 1
+  },
+  "errors": [
+   "Katie Zacharia leaving White House role less than five days : The claim that Zacharia's exit marked 'the swiftest departure from the role in modern presidential history' is unsupported; the sources only state it was the quickest among Donald Trump's White House press team.; The concluding statement that the exit underscored 'persistent concerns regarding vetting procedures inside the White House' is an unsupported addition not found in the sources.",
+   "European diplomats attacked by Israeli settlers in West Bank: The claim that the injured Palestinian man 'subsequently required hospital treatment' is not supported by the sources, which state only that he 'needed six stitches for a head injury' without specifying where he was treated.",
+   "Here's how the CoreWeave sell-off is affecting OpenAI vs. An: The lesson text incorrectly states that enterprise revenue was 2% of revenue 'last year' (referring to 2025), whereas the source says it was 2% of revenue 'last year' relative to the 2026 interview context, but the source text specifically notes 'enterprise was like 2% of revenue last year' and 'This year... 15% of our revenue is enterprise contracts'. The lesson text implies a jump from 2% to 50% in one year, whereas the source says 15% is enterprise and more than 50% is B2B.; The lesson text claims Replit 'replaced' Anthropic with OpenAI, while the source clarifies that Replit is 'no longer working with Anthropic' according to the CEO, but also that 'Anthropic hasn’t been completely cut out' and 'the partnership was still in place' according to insiders.",
+   "כחול לבן זהוב: אנשי עסקים ישראלים מסתערים על מיאמי: The lesson states that MUTRA became the first kosher establishment globally to earn a Michelin star four months ago (relative to October 2026), which is a claim not found in the source text. The source mentions the restaurant won a star, but does not specify the timeline of the award relative to the current date or confirm it as the first in the world.; The lesson claims the Israeli tech sector alone adds $6 billion to the local market, whereas the source text states it contributes $6 billion to the economy of Miami, but adds a caveat that Miami is not yet at the level of Silicon Valley or New York.",
+   "From 3,000 feathers to pet portraits, Rolls-Royce rides high: length 402",
+   "No further action against government adviser's wife over Pal: too close to the source wording; length 344",
+   "TikTok permanently bans ‘Musk’ documentary advertising accou: length 371",
+   "הפועל רמת גן גאה: \"נלחמנו על הכבוד שלנו\": length 347",
+   "Pikmin 4 is $20 off ahead of its $10 Nintendo Switch 2 updat: number not in sources: 50; length 402",
+   "Every Major Game Releasing in November That Isn’t GTA 6: length 379",
+   "Game of Thrones Prequel The Mad King Officially Returns in 2: too close to the source wording; length 400",
+   "A Greece for all seasons: my autumn roadtrip through the Pel: The source states harvest festivals celebrate 'wines, oranges and chestnuts in Laconia', but the lesson text incorrectly attributes 'chestnuts' to Laconia and 'olives' to Kalamata while omitting wines and oranges, and the source links 'figs' to Messinia, which is correctly stated, but the list of harvest items is incomplete compared to the source.; The lesson text claims the journey 'typically commences in Kalamata', which is an addition not supported by the source, as the author only describes their personal trip starting there."
+  ],
+  "gemini_calls": 61,
+  "end": "2026-10-18T05:53:12.704Z"
+ },
+ {
   "run_id": "2026-10-17T08:01:10.110Z",
   "level": "C1",
   "sources_checked": 41,
