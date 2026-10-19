@@ -1,5 +1,38 @@
 [
  {
+  "run_id": "2026-10-19T05:59:43.366Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [
+   "Geektime https://www.geektime.co.il/feed/"
+  ],
+  "candidates": 906,
+  "rejected": 10,
+  "duplicates": 90,
+  "verified": 18,
+  "created": 8,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "UAE agrees with Saudi Arabia to re-enter Yemen conflict amid: The lesson states that 'Saudi forces previously intercepted UAE arms consignments, leading STC leader Aidarous al-Zubaidi to seek refuge in Abu Dhabi.' According to the source, Saudi forces bombed (not intercepted) UAE arms shipments, and Zubaidi fled to Abu Dhabi after a failed STC attempt to take charge across the south and announce a referendum, not as a result of actions against arms shipments.",
+   "What does a White House press secretary do?: The sources do not mention cabinet secretaries or make a comparison between cabinet secretaries and the press secretary.; The sources do not state or imply that the White House press secretary fielded questions or addressed controversies regarding the ballroom renovation; Source [2] does not mention the press secretary or press briefings at all.",
+   "המניות שיפלו היום בת\"א, והאזהרה של בנקי ההשקעות למשקיעים בוו: title",
+   "Wikipedia often gets taken for granted – but its history is : The source does not identify Sandi Toksvig as a 'broadcaster'; this is outside knowledge.; The claim that debates 'superseded typical commercial ambitions' is not stated or supported in the source.",
+   "Pokémon Officially Returns to Galar in 2027 for New Release: The source does not state that Aardman Animations is a \"British studio\"; this introduces outside knowledge not found in the text.",
+   "The Best 'Peanuts' Great Pumpkin Comic Strip Came Out 2 Year: The source text does not mention Linus's full name ('Van Pelt').; The source text does not state that 'millions of television viewers' watched or were introduced to the special."
+  ],
+  "gemini_calls": 57,
+  "end": "2026-10-19T06:28:58.837Z"
+ },
+ {
   "run_id": "2026-10-18T08:18:47.743Z",
   "level": "C1",
   "sources_checked": 41,
