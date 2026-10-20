@@ -1,5 +1,46 @@
 [
  {
+  "run_id": "2026-10-20T05:54:01.403Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 941,
+  "rejected": 19,
+  "duplicates": 95,
+  "verified": 26,
+  "created": 8,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "Ex-OpenAI worker accused of planting device had Saudi suppor: number not in sources: 2.2",
+   "Funding shortages force World Food Programme to cut aid to G: number not in sources: 500,000",
+   "טראמפ מבסוט? המלחמה באיראן יצרה מעצמת אנרגיה חדשה: length 715",
+   "‘You can’t make this stuff up’: why we remain fascinated by : too close to the source wording; length 395",
+   "New AI tool can predict cancer survival by a single patient : length 401",
+   "Calls to strengthen workplace privacy in Australia as employ: length 346",
+   "AI firm Anthropic to commit 5% of shares to fund for ‘public: The source states SpaceX is 'listed on the Nasdaq in the US', but the lesson mentions SpaceX shares without addressing the listing details, though that is minor. More critically, the source states Anthropic was valued at $965bn and raised $65bn, but the lesson text leaves out the $965bn valuation figure entirely. Additionally, the source states SpaceX lost about 9% of its value since it joined the stock market in June, which is omitted. However, looking strictly at the text generated vs sources: The lesson states 'SpaceX ... shares rose by 1% in pre-market trading on Monday' and 'lost about 9% of its value since it joined the stock market in June' - wait, the lesson text *omitted* those sentences from the source. The lesson text leaves out some source details, but let's check if anything in the lesson is *unsupported* or *contradicted*. The lesson says: 'SpaceX, which is listed on the Nasdaq in the US...'- wait, the lesson text *does not* contain the SpaceX Nasdaq part or the stock price movements! Let me re-read the lesson text. The lesson text ends at 'United States government.' It completely omitted the SpaceX stock market details present in the source paragraph. This is fine for summarization. Are there any false claims? Let's check: Anthropic, Claude chatbot, 5%, valuation in May, $65bn raised, $48bn giveaway, shareholder approval, 2% for every 50% increase, non-profits, direct distributions, public apprehension, labor/environment/social, $200m previously committed, founded 2021 by 7 former OpenAI employees, public benefit corporation, IPO in November, 1.5 trillion target, Elon Musk, Tesla, SpaceX, give one SpaceX share to every kid, OpenAI 5% stake to US government. Everything mentioned in the lesson text is supported by the source text. No unsupported facts are present in the lesson text.",
+   "Ronaldo given 30-day suspension and £215 fine by Portuguese : length 371; stray letters in the Hebrew text",
+   "Modern Warfare 4 Is Legitimately a Top-5 Call of Duty Campai: length 319",
+   "Love and Deepspace Launches Blade Runner Crossover as Fans D: length 398",
+   "PlayStation 6 RAM and Storage Alone May Cost $680, According: too close to the source wording",
+   "Clayface Stars Praise Batman: The Animated Series and Ron Pe: length 267",
+   "'I started ketamine at 14 and needed nappies at 22' - the ri: length 398",
+   "The Ebola crisis is far outpacing the response, Congo's IRC : length 376",
+   "Is it true that … you need to take 10,000 steps a day to be : length 378",
+   "Charity offers to meet James McClean over therapy comments: too close to the source wording"
+  ],
+  "gemini_calls": 87,
+  "end": "2026-10-20T06:29:15.004Z"
+ },
+ {
   "run_id": "2026-10-19T09:16:29.141Z",
   "level": "C1",
   "sources_checked": 41,
