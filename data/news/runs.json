@@ -1,5 +1,20 @@
 [
  {
+  "run_id": "2026-10-21T07:48:52.319Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 940,
+  "rejected": 0,
+  "duplicates": 120,
+  "verified": 0,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [],
+  "gemini_calls": 0,
+  "end": "2026-10-21T07:49:13.786Z"
+ },
+ {
   "run_id": "2026-10-21T05:54:59.612Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1412,39 +1427,5 @@
   ],
   "gemini_calls": 22,
   "end": "2026-10-05T16:29:38.704Z"
- },
- {
-  "run_id": "2026-10-05T16:23:51.615Z",
-  "level": "B1",
-  "sources_checked": 43,
-  "sources_failed": [],
-  "candidates": 1071,
-  "rejected": 0,
-  "duplicates": 97,
-  "verified": 18,
-  "created": 0,
-  "published_by_cat": {},
-  "errors": [
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us",
-   "gemini 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to us"
-  ],
-  "gemini_calls": 18,
-  "end": "2026-10-05T16:24:23.965Z"
  }
 ]
