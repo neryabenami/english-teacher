@@ -1,5 +1,40 @@
 [
  {
+  "run_id": "2026-10-21T05:54:59.612Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 939,
+  "rejected": 13,
+  "duplicates": 106,
+  "verified": 21,
+  "created": 8,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "US judge dismisses sexual abuse lawsuit from Sam Altman’s si: length 383",
+   "Audit regulator looking into Manchester City accounting: too close to the source wording",
+   "Chancellor rejects calls to raise Capital Gains Tax in Budge: stray letters in the Hebrew text",
+   "US bans use of China’s DeepSeek AI tools by government agenc: too close to the source wording",
+   "Shrek 2 Remastered Officially Announced With Must-See GTA 6-: too close to the source wording",
+   "ID@Xbox Showcase October 2026: Everything Announced: length 386",
+   "Fan Uses AI to Fix Oblivion Remastered PC Performance: length 373",
+   "Mel Brooks Insisted on Shooting His Scenes for Spaceballs: T: length 392",
+   "AMD FSR 4.1 Is Finally Coming to Xbox Series X, Rivaling PS5: length 363",
+   "‘How green are our valleys?’: in the footsteps of miners on : stray letters in the Hebrew text"
+  ],
+  "gemini_calls": 78,
+  "end": "2026-10-21T06:21:43.169Z"
+ },
+ {
   "run_id": "2026-10-20T08:51:10.241Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1411,20 +1446,5 @@
   ],
   "gemini_calls": 18,
   "end": "2026-10-05T16:24:23.965Z"
- },
- {
-  "run_id": "2026-10-05T16:12:10.018Z",
-  "level": "B1",
-  "sources_checked": 43,
-  "sources_failed": [],
-  "candidates": 1071,
-  "rejected": 0,
-  "duplicates": 96,
-  "verified": 0,
-  "created": 0,
-  "published_by_cat": {},
-  "errors": [],
-  "gemini_calls": 0,
-  "end": "2026-10-05T16:12:31.309Z"
  }
 ]
