@@ -1,5 +1,20 @@
 [
  {
+  "run_id": "2026-10-22T08:53:52.761Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 943,
+  "rejected": 0,
+  "duplicates": 110,
+  "verified": 0,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [],
+  "gemini_calls": 0,
+  "end": "2026-10-22T08:54:12.614Z"
+ },
+ {
   "run_id": "2026-10-22T07:44:39.606Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1363,29 +1378,5 @@
   ],
   "gemini_calls": 52,
   "end": "2026-10-06T00:23:17.659Z"
- },
- {
-  "run_id": "2026-10-05T20:38:52.608Z",
-  "level": "C1",
-  "sources_checked": 27,
-  "sources_failed": [],
-  "candidates": 608,
-  "rejected": 4,
-  "duplicates": 67,
-  "verified": 8,
-  "created": 4,
-  "published_by_cat": {
-   "health": 1,
-   "world": 2,
-   "travel": 1
-  },
-  "errors": [
-   "Trump says 'threat' led US to pull bombers from RAF Fairford: length 427",
-   "US supreme court hears big oil’s bid to block climate damage: length 374",
-   "Gears of War: E-Day review – an alien invasion shouldn’t be : length 424",
-   "NHL legend Ovechkin will retire at end of season: number not in sources: 2006; length 373"
-  ],
-  "gemini_calls": 40,
-  "end": "2026-10-05T20:53:13.366Z"
  }
 ]
