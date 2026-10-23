@@ -1,5 +1,25 @@
 [
  {
+  "run_id": "2026-10-23T07:42:06.391Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 932,
+  "rejected": 3,
+  "duplicates": 105,
+  "verified": 4,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "‘The run ends in the centre of this beautiful village’: read: The source states that sabotage was carried out at the heavy-water plant during the Second World War, but does not mention 'Nazi' supplies.; The source does not state that Strandafjellet is 'further northwest' relative to Gausta.",
+   "El Al too suspends Morocco flights; United expands destinati: The source does not mention 'analysts'; it passively states that prices are expected to drop below $1,000.; The source specifies 'utilizing leased aircraft', not specifically 'wet-leasing'.",
+   "fetch failed",
+   "A Greece for all seasons: my autumn roadtrip through the Pel: The lesson claims that patrons in Pylos were celebrating over plates of cured pork and okra stew, but the source states that the author ate syglino (cured pork) and okra stew earlier in the journey at Taverna Ores in the village of Parori near Mystras, having only an ouzo at a kafenion in Pylos.; The source describes a 'statue of Leonidas' without stating that it is made of bronze."
+  ],
+  "gemini_calls": 16,
+  "end": "2026-10-23T08:12:30.705Z"
+ },
+ {
   "run_id": "2026-10-23T05:55:43.116Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1353,35 +1373,5 @@
   ],
   "gemini_calls": 54,
   "end": "2026-10-06T15:18:21.676Z"
- },
- {
-  "run_id": "2026-10-06T06:26:06.503Z",
-  "level": "C1",
-  "sources_checked": 27,
-  "sources_failed": [],
-  "candidates": 608,
-  "rejected": 11,
-  "duplicates": 69,
-  "verified": 13,
-  "created": 2,
-  "published_by_cat": {
-   "business": 1,
-   "tech": 1
-  },
-  "errors": [
-   "Trump allows cheaper, dyed diesel on highways to blunt histo: length 338; stray letters in the Hebrew text",
-   "Gears of War: E-Day review – an alien invasion shouldn’t be : length 422",
-   "Northern Ireland make huge strides despite Georgia frustrati: length 383",
-   "Reverse-engineered games: All the news on video game decomps: length 361",
-   "Ten NHS trusts referred over monitoring consent: length 426",
-   "Trump approves firing-squad execution of Fort Hood shooter, : too close to the source wording; length 413",
-   "Australian consumer confidence plunges to worst level since : too close to the source wording",
-   "Who am I? Guess Premier League star No 78: length 332",
-   "61 Years Later, Clint Eastwood's 132-Minute Legendary Wester: length 808",
-   "Fine scenery, historic towns and great pubs: a weekend walk : too close to the source wording; length 415",
-   "'Life-saving' charity for mums faces closing support: length 407"
-  ],
-  "gemini_calls": 53,
-  "end": "2026-10-06T06:49:42.715Z"
  }
 ]
