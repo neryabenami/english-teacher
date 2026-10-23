@@ -1,5 +1,42 @@
 [
  {
+  "run_id": "2026-10-23T05:55:43.116Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 932,
+  "rejected": 13,
+  "duplicates": 100,
+  "verified": 20,
+  "created": 7,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "health": 1
+  },
+  "errors": [
+   "Nigeria and Kenya Ebola patients may have crossed paths at U: The claim that the husband is quarantined 'beside his wife' is unsupported; the source states only that he is 'also in isolation' while his wife receives treatment in isolation.; The lesson incorrectly attributes the statement about porous borders between Uganda and DR Congo to Dr Mohamed Janabi and Dr Jean Kaseya; in the source, this point was made by Dr Patrick Otim.",
+   "Trump says Musk has restored access to Ukraine's Starlink ne: The text claims that 'Zelensky noted that the network was operating more normally', but the sources attribute this observation to U.S. and Ukrainian officials speaking to The Wall Street Journal, not to Zelensky himself.; The concluding statement that 'The episode underscores the profound geopolitical and military influence wielded by private tech executives during modern conflicts' is editorial commentary not found or supported in the provided sources.",
+   "Zuckerberg wins Meta deal to help him foot bill for possible: The lesson states that Meta's quarterly profit was weighed down by both a $9.9bn charge and a $25bn court penalty in New Mexico, but Source 2 specifies that profits were dragged down by the $9.9bn charge, while the $25bn New Mexico order was a separate case and not cited as a factor in that quarter's profit decline.; The lesson refers to the congressman as 'Democratic Representative Ro Khanna', but the sources do not state his political party affiliation or use the name 'Ro' (calling him 'Rohit Khanna, the US congressman representing California’s 17th congressional district').",
+   "Elon Musk reportedly invests $1bn in David Ellison’s Skydanc: The lesson describes Laurene Powell Jobs as a 'philanthropist' and Steve Jobs as 'Apple co-founder', details that are not present in the sources.; The lesson claims the lawsuit was brought by a 'bipartisan coalition of twelve state attorneys general', but the sources only state it was 'a coalition of 12 states' without mentioning 'bipartisan' or 'attorneys general'.",
+   "US judge orders Trump to sit for deposition in $10bn lawsuit: title",
+   "Meta’s deal to keep Zuckerberg in California adds fuel to we: title",
+   "פיגוע ירי סמוך לחברון: 5 פצועים, שניים מהם אנוש: title",
+   "תל אביב ננעלה בירידות, על רקע הסערה בשווקים ברחבי העולם: length 397",
+   "The rising French star whose dad won Rugby World Cup with En: too close to the source wording",
+   "‘Slow news day at the office’: LeBron James shrugs off Trump: number not in sources: 1997",
+   "El Al too suspends Morocco flights; United expands destinati: too close to the source wording",
+   "‘How green are our valleys?’: in the footsteps of miners on : length 343",
+   "A Greece for all seasons: my autumn roadtrip through the Pel: length 350"
+  ],
+  "gemini_calls": 74,
+  "end": "2026-10-23T06:30:26.050Z"
+ },
+ {
   "run_id": "2026-10-22T08:53:52.761Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1346,37 +1383,5 @@
   ],
   "gemini_calls": 53,
   "end": "2026-10-06T06:49:42.715Z"
- },
- {
-  "run_id": "2026-10-06T00:05:54.910Z",
-  "level": "C1",
-  "sources_checked": 27,
-  "sources_failed": [],
-  "candidates": 611,
-  "rejected": 12,
-  "duplicates": 72,
-  "verified": 15,
-  "created": 3,
-  "published_by_cat": {
-   "world": 1,
-   "travel": 1,
-   "finance": 1
-  },
-  "errors": [
-   "Trump says 'threat' led US to pull bombers from RAF Fairford: too close to the source wording",
-   "Coach services could be cut due to record diesel prices, UK : too close to the source wording",
-   "Gears of War: E-Day review – an alien invasion shouldn’t be : title",
-   "What we learned from Wales' Nations League window: The claim that Northern Ireland faces crucial fixtures in November is not supported by the sources, as Source 2 does not mention Northern Ireland's upcoming schedule or November fixtures.; The lesson states that the Northern Ireland match took place 'in Belfast', but Source 2 does not explicitly state the venue of the match, only mentioning Belfast in the context of Ethan Galbraith's youth.",
-   "Reverse-engineered games: All the news on video game decomps: number not in sources: 1998",
-   "GP 10-minute appointment slots 'making it harder to do cance: length 299",
-   "Right-wing Flávio Bolsonaro wins first round of Brazil elect: length 347",
-   "Mark Thompson will remain chief executive at CNN after Param: too close to the source wording",
-   "OpenAI will start watermarking ChatGPT’s text in the EU: too close to the source wording; length 411",
-   "NHL legend Ovechkin will retire at end of season: length 334",
-   "Physint Update: Hideo Kojima Shares New Info on His Upcoming: length 278; stray letters in the Hebrew text",
-   "From floating saunas to clinical trials: How heat might help: too close to the source wording"
-  ],
-  "gemini_calls": 52,
-  "end": "2026-10-06T00:23:17.659Z"
  }
 ]
