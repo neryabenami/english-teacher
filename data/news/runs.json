@@ -1,5 +1,24 @@
 [
  {
+  "run_id": "2026-10-23T08:49:03.847Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 928,
+  "rejected": 1,
+  "duplicates": 105,
+  "verified": 2,
+  "created": 1,
+  "published_by_cat": {
+   "travel": 1
+  },
+  "errors": [
+   "‘The run ends in the centre of this beautiful village’: read: The lesson claims that in Bad Gastein 'ski slopes end directly next to the station platform', but the source only states that 'the slopes are directly next to the station', without mentioning that the slopes end there or referring to a station platform."
+  ],
+  "gemini_calls": 15,
+  "end": "2026-10-23T08:57:34.061Z"
+ },
+ {
   "run_id": "2026-10-23T07:42:06.391Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1347,31 +1366,5 @@
   ],
   "gemini_calls": 23,
   "end": "2026-10-06T16:08:54.959Z"
- },
- {
-  "run_id": "2026-10-06T14:58:05.777Z",
-  "level": "C1",
-  "sources_checked": 27,
-  "sources_failed": [],
-  "candidates": 604,
-  "rejected": 4,
-  "duplicates": 79,
-  "verified": 11,
-  "created": 6,
-  "published_by_cat": {
-   "sports": 1,
-   "tech": 3,
-   "business": 1,
-   "world": 1
-  },
-  "errors": [
-   "gemini bad json",
-   "Reform MP raises concerns about second homes – then buys one: number not in sources: 2,600",
-   "Paramount takes over Warner Bros in $110bn Hollywood merger: too close to the source wording; length 367",
-   "Gauff condemns racist abuse after China Open win: too close to the source wording; length 380",
-   "Fine scenery, historic towns and great pubs: a weekend walk : stray letters in the Hebrew text"
-  ],
-  "gemini_calls": 54,
-  "end": "2026-10-06T15:18:21.676Z"
  }
 ]
