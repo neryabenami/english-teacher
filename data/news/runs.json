@@ -1,5 +1,43 @@
 [
  {
+  "run_id": "2026-10-24T05:40:01.939Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 931,
+  "rejected": 15,
+  "duplicates": 83,
+  "verified": 22,
+  "created": 6,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "sports": 1,
+   "gaming": 1,
+   "health": 1
+  },
+  "errors": [
+   "UK government to make unprecedented intervention in setting : too close to the source wording",
+   "נעילה אדומה בוול סטריט: דאו ג'ונס איבד יותר מאחוז; מחיר הנפט: length 375",
+   "Now Google says it might use your Gmail and Google Photos da: length 382",
+   "John Healey pledges to use budget to harness power of AI to : length 367",
+   "‘Black October’: cybersecurity experts sound the alarm over : too close to the source wording",
+   "Experts cast doubt on Anthropic report detailing how AI has : length 298",
+   "gemini bad json",
+   "Fired OpenAI researchers say independent safety audits aren': length 365",
+   "דאגה בבאיירן מינכן: וינסנט קומפני התמוטט ופונה לבית החולים: length 382",
+   "Kompany taken to hospital after collapsing at training: length 404",
+   "כדורגלן מהליגה הלאומית נעצר בחשד לאלימות במשפחה: length 297",
+   "פוטרה בתוך 24 שעות בגלל משחק NBA: ההסתבכות של יועצת טראמפ: length 332",
+   "‘The run ends in the centre of this beautiful village’: read: too close to the source wording",
+   "‘How green are our valleys?’: in the footsteps of miners on : The lesson text states 'boasting 300-year-old exposed strata', whereas the source [1] mentions '300m-year-old strata' (300 million years old).",
+   "A Greece for all seasons: my autumn roadtrip through the Pel: length 374"
+  ],
+  "gemini_calls": 86,
+  "end": "2026-10-24T06:03:40.955Z"
+ },
+ {
   "run_id": "2026-10-23T08:49:03.847Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1344,27 +1382,5 @@
   ],
   "gemini_calls": 25,
   "end": "2026-10-06T16:18:27.082Z"
- },
- {
-  "run_id": "2026-10-06T15:53:57.752Z",
-  "level": "C1",
-  "sources_checked": 27,
-  "sources_failed": [],
-  "candidates": 604,
-  "rejected": 3,
-  "duplicates": 82,
-  "verified": 5,
-  "created": 2,
-  "published_by_cat": {
-   "world": 1,
-   "tech": 1
-  },
-  "errors": [
-   "New Warhammer Meets Vampire Survivors Game Sets November Rel: length 362",
-   "Jailed Lego collector’s insurance scam highlights UK’s £1.3b: too close to the source wording; length 326",
-   "Gauff condemns racist abuse after China Open win: too close to the source wording; length 404"
-  ],
-  "gemini_calls": 23,
-  "end": "2026-10-06T16:08:54.959Z"
  }
 ]
