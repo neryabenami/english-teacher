@@ -1,5 +1,23 @@
 [
  {
+  "run_id": "2026-10-24T08:22:51.251Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 936,
+  "rejected": 0,
+  "duplicates": 91,
+  "verified": 2,
+  "created": 2,
+  "published_by_cat": {
+   "tech": 1,
+   "travel": 1
+  },
+  "errors": [],
+  "gemini_calls": 19,
+  "end": "2026-10-24T08:33:43.215Z"
+ },
+ {
   "run_id": "2026-10-24T07:25:17.139Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1366,22 +1384,5 @@
   ],
   "gemini_calls": 59,
   "end": "2026-10-07T06:18:52.707Z"
- },
- {
-  "run_id": "2026-10-06T18:25:13.521Z",
-  "level": "C1",
-  "sources_checked": 27,
-  "sources_failed": [],
-  "candidates": 601,
-  "rejected": 0,
-  "duplicates": 83,
-  "verified": 1,
-  "created": 1,
-  "published_by_cat": {
-   "health": 1
-  },
-  "errors": [],
-  "gemini_calls": 17,
-  "end": "2026-10-06T18:29:15.446Z"
  }
 ]
