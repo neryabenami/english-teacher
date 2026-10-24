@@ -1,5 +1,26 @@
 [
  {
+  "run_id": "2026-10-24T07:25:17.139Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 933,
+  "rejected": 6,
+  "duplicates": 88,
+  "verified": 8,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [
+   "fetch failed",
+   "fetch failed",
+   "Experts cast doubt on Anthropic report detailing how AI has : The source identifies Julián Posada as a 'Yale social scientist', not specifically a 'sociologist'.; The source describes the document as a publicly published report ('in a report Anthropic published on Thursday'), not an 'internal report'.",
+   "‘The run ends in the centre of this beautiful village’: read: too close to the source wording",
+   "‘How green are our valleys?’: in the footsteps of miners on : length 324"
+  ],
+  "gemini_calls": 26,
+  "end": "2026-10-24T07:55:25.339Z"
+ },
+ {
   "run_id": "2026-10-24T05:40:01.939Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1362,25 +1383,5 @@
   "errors": [],
   "gemini_calls": 17,
   "end": "2026-10-06T18:29:15.446Z"
- },
- {
-  "run_id": "2026-10-06T16:12:45.876Z",
-  "level": "C1",
-  "sources_checked": 27,
-  "sources_failed": [],
-  "candidates": 604,
-  "rejected": 1,
-  "duplicates": 84,
-  "verified": 3,
-  "created": 2,
-  "published_by_cat": {
-   "gaming": 1,
-   "finance": 1
-  },
-  "errors": [
-   "One million UK people who have never smoked are now vaping: too close to the source wording"
-  ],
-  "gemini_calls": 25,
-  "end": "2026-10-06T16:18:27.082Z"
  }
 ]
