@@ -1,5 +1,37 @@
 [
  {
+  "run_id": "2026-10-26T05:59:12.744Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 942,
+  "rejected": 8,
+  "duplicates": 84,
+  "verified": 15,
+  "created": 7,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "health": 1
+  },
+  "errors": [
+   "Venezuelan opposition leader María Machado returns after mon: title",
+   "Fri: Tel Aviv 35 down 1.9% for week: too close to the source wording; length 382",
+   "מרכך הכביסה הוקטן והמחיר לא ירד: length 369",
+   "מצב השווקים: נשיא ברזיל בדרך לעוד קדנציה, והמשקיעים מודאגים.: number not in sources: 80,000",
+   "הודה ששכב עם אשתו בלי שטבלה במקווה - וישלם 217 אלף שקל על הכ: number not in sources: 217,000; number not in sources: 500,000",
+   "יונייטד בודקת מחליפים לקאריק: האו ונאגלסמן בין 4 המועמדים: length 357",
+   "Lara Croft is 30! We look at the video game icon’s biggest b: length 372",
+   "Carving out a greener future: how the Swiss ski resort of La: length 393"
+  ],
+  "gemini_calls": 60,
+  "end": "2026-10-26T06:20:39.969Z"
+ },
+ {
   "run_id": "2026-10-25T08:42:05.704Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1331,35 +1363,5 @@
   ],
   "gemini_calls": 31,
   "end": "2026-10-08T13:46:54.817Z"
- },
- {
-  "run_id": "2026-10-08T06:10:44.657Z",
-  "level": "C1",
-  "sources_checked": 41,
-  "sources_failed": [],
-  "candidates": 955,
-  "rejected": 7,
-  "duplicates": 92,
-  "verified": 14,
-  "created": 6,
-  "published_by_cat": {
-   "world": 1,
-   "sports": 1,
-   "tech": 1,
-   "business": 1,
-   "gaming": 1,
-   "health": 1
-  },
-  "errors": [
-   "חמישה דברים שכדאי לדעת לקראת פתיחת המסחר בבורסה: length 364",
-   "gemini bad json",
-   "Fuel prices added to Google Maps as petrol and diesel costs : too close to the source wording",
-   "How to define a measles death: number not in sources: 19; number not in sources: 19",
-   "צחי אבו: \"כל נכסי ארי נדל\"ן ללא יוצא מן הכלל עוברים תכנון מח: number not in sources: 69,000; number not in sources: 66,000",
-   "Microsoft to sell $2,599 Surface Laptop Ultra containing Nvi: The lesson states the Surface Laptop Ultra has an 8-core CPU in the first paragraph's context, but the source [2] contains conflicting information, noting both an 8-core and an 18-core configuration for the base price.; The lesson claims the Surface Laptop Ultra weighs 4.4 pounds, which is mentioned in source [1], but source [2] does not confirm this weight, creating a potential discrepancy in the source material provided.",
-   "\"על עונה כמו של דני אבדיה, לילארד היה סופג שריקות בוז\": The source text describes a hypothetical scenario involving Ja Morant and Damian Lillard playing with Deni Avdija, but the lesson text presents this as if they are currently teammates on the Portland Trail Blazers, which is factually incorrect based on the provided source.; The source text mentions the discussion is about the team's hierarchy, but the lesson text incorrectly states that the debate is about the 'status of Israeli forward Deni Avdija' in the NBA landscape generally, rather than specifically about the hypothetical team composition discussed in the podcast."
-  ],
-  "gemini_calls": 54,
-  "end": "2026-10-08T06:23:16.911Z"
  }
 ]
