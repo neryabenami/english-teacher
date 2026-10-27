@@ -1,5 +1,40 @@
 [
  {
+  "run_id": "2026-10-27T06:09:58.553Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 914,
+  "rejected": 10,
+  "duplicates": 75,
+  "verified": 19,
+  "created": 8,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "fetch failed",
+   "עסקת ענק בענף הנדל\"ן: אאורה רוכשת את בית בכפר ב-1.7 מיליארד : length 403",
+   "Emberville Delays Early Access Launch at the Last Minute: length 374",
+   "Dead by Daylight Devs Explain Chucky's Exit From Stores and : length 341",
+   "Major 'Avatar: Seven Havens’ Korra Reveal May Be Hiding the : too close to the source wording",
+   "Red Rising Director Francis Lawrence Says YA Series' Movie A: length 357",
+   "Phantom Blade Zero release time in your time zone: length 333",
+   "'What does it say if a woman can't give birth in her own cit: too close to the source wording",
+   "Merck's melanoma vaccine trial shows reduced recurrence or d: length 394",
+   "Exercise helps woman recover from partying life: length 378"
+  ],
+  "gemini_calls": 67,
+  "end": "2026-10-27T06:34:55.492Z"
+ },
+ {
   "run_id": "2026-10-26T09:19:33.773Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1332,25 +1367,5 @@
   "errors": [],
   "gemini_calls": 18,
   "end": "2026-10-08T15:22:19.955Z"
- },
- {
-  "run_id": "2026-10-08T15:06:21.619Z",
-  "level": "C1",
-  "sources_checked": 41,
-  "sources_failed": [],
-  "candidates": 962,
-  "rejected": 3,
-  "duplicates": 104,
-  "verified": 3,
-  "created": 1,
-  "published_by_cat": {
-   "tech": 1
-  },
-  "errors": [
-   "Mamdani marks Oct. 7 by accusing Israel of genocide: too close to the source wording; title",
-   "Xbox Announces New XP Entertainment Division to Make Movies,: length 391"
-  ],
-  "gemini_calls": 19,
-  "end": "2026-10-08T15:12:09.993Z"
  }
 ]
