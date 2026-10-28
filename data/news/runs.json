@@ -1,5 +1,36 @@
 [
  {
+  "run_id": "2026-10-28T06:47:36.263Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 921,
+  "rejected": 6,
+  "duplicates": 89,
+  "verified": 14,
+  "created": 8,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "Intel buys Israeli quantum computing co Classiq for $2.2b: title",
+   "דיווח: ארה\"ב למדינות המפרץ - \"תיערכו למערכה קצרה ועצימה באיר: length 348",
+   "Apple unveils new 14-inch MacBook Pro with M6 chip: too close to the source wording; length 360",
+   "Elden Ring Movie Shrouded in Secrecy as New Streaming Deal C: too close to the source wording",
+   "Masahiro Sakurai Shrugs Off AI Games as ‘Unprofitable Titles: length 376; stray letters in the Hebrew text",
+   "The shocking rise of rib remodelling: ‘I wanted that hourgla: length 391"
+  ],
+  "gemini_calls": 53,
+  "end": "2026-10-28T07:04:13.963Z"
+ },
+ {
   "run_id": "2026-10-27T09:18:47.371Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1345,22 +1376,5 @@
   ],
   "gemini_calls": 72,
   "end": "2026-10-09T06:32:28.894Z"
- },
- {
-  "run_id": "2026-10-08T23:23:47.887Z",
-  "level": "C1",
-  "sources_checked": 41,
-  "sources_failed": [],
-  "candidates": 971,
-  "rejected": 0,
-  "duplicates": 94,
-  "verified": 1,
-  "created": 1,
-  "published_by_cat": {
-   "world": 1
-  },
-  "errors": [],
-  "gemini_calls": 13,
-  "end": "2026-10-08T23:27:42.807Z"
  }
 ]
