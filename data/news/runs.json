@@ -1,5 +1,35 @@
 [
  {
+  "run_id": "2026-10-29T06:56:56.359Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [
+   "Geektime https://www.geektime.co.il/feed/"
+  ],
+  "candidates": 884,
+  "rejected": 3,
+  "duplicates": 100,
+  "verified": 11,
+  "created": 8,
+  "published_by_cat": {
+   "world": 1,
+   "business": 1,
+   "finance": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "Fake film deals and emails from top agents: who is behind th: The claim that watchdogs remind writers that 'legitimate agents and traditional publishers earn money through book sales, never by demanding upfront payments' is not contained in the source text.; The lesson states that representatives from the Writers’ Guild of Great Britain, the Society of Authors, and the US Authors Guild all report receiving 'dozens of fraud queries... every week', whereas the source specifies 'at least a dozen reports... each week' only for the Society of Authors (stating the US Authors Guild hears from authors 'every day' and WGGB reports an 'explosion' without a weekly numerical figure).",
+   "ספיר ברמן עברה מבחן כשירות - ותחזור לשפוט בליגת העל בקרוב: length 261",
+   "Cycling in the wild heart of the Netherlands: an autumnal br: stray letters in the Hebrew text"
+  ],
+  "gemini_calls": 51,
+  "end": "2026-10-29T07:16:21.588Z"
+ },
+ {
   "run_id": "2026-10-28T09:59:17.776Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1345,26 +1375,5 @@
   ],
   "gemini_calls": 50,
   "end": "2026-10-10T06:17:38.838Z"
- },
- {
-  "run_id": "2026-10-09T22:41:40.269Z",
-  "level": "C1",
-  "sources_checked": 41,
-  "sources_failed": [
-   "Geektime https://www.geektime.co.il/feed/"
-  ],
-  "candidates": 922,
-  "rejected": 4,
-  "duplicates": 120,
-  "verified": 4,
-  "created": 0,
-  "published_by_cat": {},
-  "errors": [
-   "Christian Bittar has conviction for rigging interest rates q: The claim that traders sought to 'bolster their institutions' trading positions' and that 'public outrage prompted severe regulatory and criminal scrutiny' is not mentioned in the source text.; The text states that all six men 'had previously served prison terms', but the source only states that they were 'sentenced to jail'.",
-   "‘A candlelit spa, followed by an ice-cold plunge and a night: The lesson states that the pool area at Centralbadet is 'illuminated solely by candlelight', whereas the source only says 'candles are lit around the pool' and 'swimming by candlelight is a treat', without claiming that candles are the only source of light.; The lesson claims guests can 'spot dolphins playing in the loch' at West Coast Wellness, but the source only advises to 'keep an eye out for dolphins', without confirming that they are actually spotted or playing there.",
-   "עליות באירופה ובחוזים בניו יורק; מחירי הנפט יורדים: number not in sources: 40; title"
-  ],
-  "gemini_calls": 13,
-  "end": "2026-10-09T22:52:09.377Z"
  }
 ]
