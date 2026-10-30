@@ -1,5 +1,44 @@
 [
  {
+  "run_id": "2026-10-30T06:58:52.913Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 924,
+  "rejected": 22,
+  "duplicates": 83,
+  "verified": 28,
+  "created": 6,
+  "published_by_cat": {
+   "business": 1,
+   "tech": 1,
+   "sports": 1,
+   "gaming": 1,
+   "travel": 1,
+   "health": 1
+  },
+  "errors": [
+   "Nvidia CEO reportedly targeted by an alleged Chinese spy: The sources identify Jensen Huang as the CEO and head of Nvidia, but do not mention that he is a 'co-founder'.; The claim that the United States strives to defend its preeminence 'against foreign adversaries' is not supported by the sources, which state only that the US government is attempting to 'defend its position as a leader in AI development'.",
+   "Google value plunges by $500bn as AI fears rattle Wall Stree: The sources refer only to 'TPUs' or 'in-house AI chips', never mentioning the term 'tensor processing unit'. Expanding the acronym introduces external information not supported by the sources.; The text states that net profit was weighed down by 'an official fine paid to the European Union', whereas Source 2 mentions the EU fine as part of company spending that contributed to Alphabet's negative cash flow gap, not as an explanation for the net profit decline.",
+   "תאונה קטלנית בנגב: נהג אוטובוס נהרג ו-24 נפצעו; הרוג בפלמחים: The source does not state that the accident created 'severe traffic disruptions across the surrounding area', nor that Route 25 was closed 'to enable detailed scene documentation and ensure public safety'. The source only notes that Route 25 was blocked to traffic following the accident.; The source does not specify that the tractor was an 'agricultural' or 'slower-moving' vehicle; it only refers to it as a tractor.",
+   "על רקע ההתייקרות הדרמטית של הדלק: כמה באמת מרוויחה תחנה בישר: number not in sources: 800,000; number not in sources: 150,000",
+   "פריצת הקריפטו הגדולה בהיסטוריה: בייננס איבדה 6.3 מיליארד דול: number not in sources: 20,000; number not in sources: 77,000",
+   "צרפת שוב מגרשת את הישראלים מתערוכה ביטחונית, שווייץ מקדמת עס: number not in sources: 350,000",
+   "ביקוש מואץ: אלביט תציג לראשונה צוללת לא מאוישת: The source refers to the acquired Canadian company only as 'ISE' ('ISE הקנדית'); expanding this acronym to 'International Subsea Technologies' is unsupported by the source text.",
+   "עם חובות של 51 מיליון שקל - חברת האוטוטק שניצלה מפירוק: The text states that REE 'rose to global prominence as an innovative electric vehicle platform creator', which is not mentioned in the source (the source only refers to REE as an 'autotech company').",
+   "נעילה מעורבת ת\"א; מדד הביטוח נפל ב-2%, פאלו אלטו ב-6%: length 334",
+   "US economy grows faster than expected but inflation rises to: length 359",
+   "Elon Musk is a 'real genius', Putin says after satellite tal: length 259",
+   "גאנדלמן פתח לראשונה העונה, לצ'ה הובסה 5:1: length 390",
+   "Dowman to miss three matches after appeal rejected: too close to the source wording",
+   "Patrick Stewart's Greatest Captain Picard Quote Is Still a D: too close to the source wording",
+   "Ubisoft Issues Official Update on Fate of Future Assassin's : length 385; stray letters in the Hebrew text",
+   "Official The Elder Scrolls 6 Announcement Imminent, Report S: length 395"
+  ],
+  "gemini_calls": 75,
+  "end": "2026-10-30T07:53:20.939Z"
+ },
+ {
   "run_id": "2026-10-29T10:22:24.616Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1328,28 +1367,5 @@
   ],
   "gemini_calls": 58,
   "end": "2026-10-11T06:08:58.640Z"
- },
- {
-  "run_id": "2026-10-10T21:47:59.837Z",
-  "level": "C1",
-  "sources_checked": 41,
-  "sources_failed": [],
-  "candidates": 953,
-  "rejected": 5,
-  "duplicates": 104,
-  "verified": 7,
-  "created": 2,
-  "published_by_cat": {
-   "gaming": 1,
-   "travel": 1
-  },
-  "errors": [
-   "fetch failed",
-   "Man named Hitler Mussolini elected mayor in Peru: The claim that local voters in Queropalca were 'far more focused on practical governance and community priorities than on historical nomenclature' is an unsupported addition not mentioned in either source.",
-   "UK savings: 5% interest rate deals may not last, say experts: number not in sources: 5.10",
-   "נשיא ההתאחדות: \"כולנו רוצים את רונאלדו בחזרה בנובמבר\": The text claims that 'According to Proença, maintaining internal stability is crucial as Portugal attempts to defend its Nations League title', but the source does not state that Proença made this specific claim linking internal stability to defending the title."
-  ],
-  "gemini_calls": 27,
-  "end": "2026-10-10T22:06:16.065Z"
  }
 ]
