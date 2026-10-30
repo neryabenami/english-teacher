@@ -1,5 +1,28 @@
 [
  {
+  "run_id": "2026-10-30T08:46:03.559Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 926,
+  "rejected": 4,
+  "duplicates": 93,
+  "verified": 6,
+  "created": 2,
+  "published_by_cat": {
+   "world": 1,
+   "finance": 1
+  },
+  "errors": [
+   "Nvidia CEO reportedly targeted by an alleged Chinese spy: The claim that Nvidia is a 'Silicon Valley semiconductor giant' and that its chips serve as 'essential hardware infrastructure for training and deploying advanced artificial intelligence models worldwide' contains details not mentioned in the source texts.; The statement that American policymakers are attempting to curtail 'Beijing's military and economic capabilities' is not supported by the sources, which only state the US government is defending its position as a leader in AI development and imposed restrictions as a matter of national security.",
+   "עוד יום של ירידות: מדד ת\"א 35 מאבד כמעט 1.5% בפתיחה: length 304",
+   "למה סקרי הבחירות פספסו גם הפעם, ואיפה הכסף הגדול של הסוקרים?: length 341",
+   "צרפת שוב מגרשת את הישראלים מתערוכה ביטחונית, שווייץ מקדמת עס: number not in sources: 350,000"
+  ],
+  "gemini_calls": 31,
+  "end": "2026-10-30T08:56:30.328Z"
+ },
+ {
   "run_id": "2026-10-30T06:58:52.913Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1338,34 +1361,5 @@
   ],
   "gemini_calls": 34,
   "end": "2026-10-11T13:12:50.451Z"
- },
- {
-  "run_id": "2026-10-11T05:52:09.474Z",
-  "level": "C1",
-  "sources_checked": 41,
-  "sources_failed": [],
-  "candidates": 953,
-  "rejected": 7,
-  "duplicates": 109,
-  "verified": 14,
-  "created": 7,
-  "published_by_cat": {
-   "business": 3,
-   "health": 1,
-   "sports": 1,
-   "world": 1,
-   "tech": 1
-  },
-  "errors": [
-   "Four dead and thousands without power after Hurricane Isaias: The claim that Chevron 'moved offshore rigs' is unsupported; Source [2] states that Chevron 'evacuated offshore drilling rigs close to the storm's path' (while moving mobile drilling facilities when possible was described as a general action by oil operators).; Source [1] states that an estimated 500,000 'people' were without power, not 'customers' (utility customers typically represent accounts/meters rather than individuals).",
-   "סיכום קדנציה מזעזע: מחירי המזון בישראל זינקו ב-19% בארבע שני: The source refers only to the 'Faculty of Management at Tel Aviv University' (הפקולטה לניהול); naming it the 'Coller School of Management' introduces outside knowledge not found in the source text.; The source describes 'בורקס גבינה של מעדנות' (Maadanot cheese bourekas) without specifying that they are 'frozen'.",
-   "Blade Runner 2099's New York Comic Con Trailer Teases A New : length 341",
-   "Man named Hitler Mussolini elected mayor in Peru: length 401; stray letters in the Hebrew text",
-   "\"אנשים צפו בחיי נהרסים וראו בזה בידור\": טרולית הקריסה עסק של: number not in sources: 19",
-   "רז שלמה: \"היה חסר לנו מזל. בית\"ר? משחק החוץ הכי קשה עבורנו\": length 387",
-   "Naruto To Get New Manga, Crossover Anime, And More Before Th: stray letters in the Hebrew text"
-  ],
-  "gemini_calls": 58,
-  "end": "2026-10-11T06:08:58.640Z"
  }
 ]
