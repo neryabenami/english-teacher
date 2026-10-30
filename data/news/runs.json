@@ -1,5 +1,20 @@
 [
  {
+  "run_id": "2026-10-30T10:25:32.015Z",
+  "level": "C1",
+  "sources_checked": 41,
+  "sources_failed": [],
+  "candidates": 928,
+  "rejected": 0,
+  "duplicates": 89,
+  "verified": 0,
+  "created": 0,
+  "published_by_cat": {},
+  "errors": [],
+  "gemini_calls": 0,
+  "end": "2026-10-30T10:25:54.477Z"
+ },
+ {
   "run_id": "2026-10-30T08:46:03.559Z",
   "level": "C1",
   "sources_checked": 41,
@@ -1338,28 +1353,5 @@
   ],
   "gemini_calls": 20,
   "end": "2026-10-11T14:08:07.278Z"
- },
- {
-  "run_id": "2026-10-11T12:55:58.270Z",
-  "level": "C1",
-  "sources_checked": 41,
-  "sources_failed": [],
-  "candidates": 949,
-  "rejected": 5,
-  "duplicates": 114,
-  "verified": 9,
-  "created": 4,
-  "published_by_cat": {
-   "business": 1,
-   "world": 1,
-   "tech": 1,
-   "sports": 1
-  },
-  "errors": [
-   "Healing waters: 10 of the best spa towns in Europe for a res: The source does not mention modern wellness retreats popularizing digital detoxes or specialized diets.; The source does not state that Bad Gastein is located in Austria (it only mentions the Hohe Tauern Alps and Salzburg province).",
-   "Service increases access to mental health support: length 261"
-  ],
-  "gemini_calls": 34,
-  "end": "2026-10-11T13:12:50.451Z"
  }
 ]
