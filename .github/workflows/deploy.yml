@@ -43,8 +43,9 @@ jobs:
         if: inputs.check_sources
         run: SOURCES_CHECK=1 node tools/news-pipeline.mjs
 
+      # articles are paused at the user's request (Oct 2026): no new articles are written
       - name: Write today's learning articles from real news
-        if: ${{ !inputs.check_sources && github.event.schedule != '0 11 * * *' && github.event.schedule != '0 17 * * *' }}
+        if: ${{ false }}
         run: node tools/news-pipeline.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

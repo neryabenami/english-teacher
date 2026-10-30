@@ -253,8 +253,8 @@
         </button>
         ${dayCard(ET.item(d.word), 'מילת היום', 'yellow', 'bulb')}
         ${dayCard(ET.item(d.slang), 'סלנג היום', 'pink', 'bubble')}
-        ${art ? `<button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage({ ...art, cat: art.category }, 'ha-img')}<span class="ha-body"><span class="eye">קריאה מומלצת · ${readCat(art.category).he}</span><span class="t" lang="en" dir="ltr">${esc(art.display_title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.reading_time} דק׳ קריאה</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button>`
-          : `<button class="card home-art empty-art" data-act="go" data-arg="reading"><span class="ha-body"><span class="eye">קריאה מומלצת</span><span class="t">כתבות ברמה שלך יופיעו כאן</span></span></button>`}
+        ${'' && art ? `<button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage({ ...art, cat: art.category }, 'ha-img')}<span class="ha-body"><span class="eye">קריאה מומלצת · ${readCat(art.category).he}</span><span class="t" lang="en" dir="ltr">${esc(art.display_title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.reading_time} דק׳ קריאה</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button>`
+          : ''}
       </div>
     </div>`;
   };
@@ -574,7 +574,11 @@
   /* =========================================================
      READING
      ========================================================= */
-  SCREENS.reading = (catArg) => {
+  // articles are paused: the Reading tab only says so (the code below stays for when they come back)
+  SCREENS.reading = () => `<div class="screen">
+      <header class="topbar read-head"><div class="grow"><h1>מה מעניין אותך היום?</h1></div></header>
+      <div class="card empty"><div class="emo">🗞️</div><h2>אין כרגע כתבות</h2></div></div>`;
+  SCREENS.readingPaused = (catArg) => {
     const A = ET.Articles;
     if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'reading') soon(); });
     A.feedEnter();
@@ -1394,6 +1398,8 @@
   // so an article saved before its audio was made gets it as soon as it exists (the server keeps audio only 30 days).
   // The audio list also decides what is shown (only words and articles that already have their audio), so the screen is redrawn.
   const keepFavouriteAudio = () => ET.Audio.load(true).then(() => { soon(); Object.values(S.saved || {}).filter((a) => a.paragraphs).forEach((a) => ET.Audio.keep(a)); });
+  if (Object.keys(S.saved || {}).length) { S.saved = {}; ET.save(true); }
+  if ('caches' in window) ['et-audio-saved', 'et-articles'].forEach((c) => caches.delete(c).catch(() => {}));
   keepFavouriteAudio();
   ET.LevelSync.flushHidden();
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepFavouriteAudio(); });
