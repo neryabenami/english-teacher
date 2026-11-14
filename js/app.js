@@ -630,9 +630,9 @@
     const lvl = RT.libLevel || 'all';
     const tabs = [...LIB_CATS, { id: 'favorites', he: 'מועדפים', icon: '⭐' }];
     const all = cat === 'favorites' ? L.all().filter((a) => L.isSaved(a.id)).sort((x, y) => S.libSaved[y.id] - S.libSaved[x.id]) : L.all().filter((a) => a.cat === cat);
-    // a topic with no level chosen lists its articles from the easiest level to the hardest (favourites stay newest-saved first)
+    // every list (topics and favourites, now and for articles added later) goes from the easiest level to the hardest
     const list = all.filter((a) => lvl === 'all' || a.level === lvl);
-    if (cat !== 'favorites') list.sort((x, y) => x.level - y.level || x.title.localeCompare(y.title));
+    list.sort((x, y) => x.level - y.level || x.title.localeCompare(y.title));
     const body = !L.index ? '<div class="card empty"><p>טוען כתבות…</p></div>'
       : list.length ? `<div class="stack">${list.map((a) => `<button class="card lib-row" data-act="go" data-arg="libarticle/${esc(a.id)}"><span class="t" lang="en" dir="ltr">${esc(a.title)}</span>${L.isSaved(a.id) ? '<span class="lib-star">⭐</span>' : ''}<span class="badge lvl">רמה ${a.level}</span></button>`).join('')}</div>`
       : cat === 'favorites' ? '<div class="card empty"><div class="emo">⭐</div><p>עוד אין כתבות במועדפים</p></div>'
