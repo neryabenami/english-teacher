@@ -634,13 +634,14 @@
     const list = all.filter((a) => lvl === 'all' || a.level === lvl);
     list.sort((x, y) => x.level - y.level || x.title.localeCompare(y.title));
     const body = !L.index ? '<div class="card empty"><p>טוען כתבות…</p></div>'
-      : list.length ? `<div class="stack">${list.map((a) => `<button class="card lib-row" data-act="go" data-arg="libarticle/${esc(a.id)}"><span class="t" lang="en" dir="ltr">${esc(a.title)}</span>${L.isSaved(a.id) ? '<span class="lib-star">⭐</span>' : ''}<span class="badge lvl">רמה ${a.level}</span></button>`).join('')}</div>`
+      : list.length ? `<div class="stack">${list.map((a) => `<button class="card lib-row" data-act="go" data-arg="libarticle/${esc(a.id)}"><span class="lib-main"><span class="t" lang="en" dir="ltr">${esc(a.title)}</span>${S.libTitlesHe && a.titleHe ? `<span class="lib-he">${esc(a.titleHe)}</span>` : ''}</span>${L.isSaved(a.id) ? '<span class="lib-star">⭐</span>' : ''}<span class="badge lvl">רמה ${a.level}</span></button>`).join('')}</div>`
       : cat === 'favorites' ? '<div class="card empty"><div class="emo">⭐</div><p>עוד אין כתבות במועדפים</p></div>'
       : `<div class="card empty"><div class="emo">🗞️</div><p>אין כרגע כתבות ${lvl === 'all' ? 'בנושא הזה' : 'ברמה ' + lvl + ' בנושא הזה'}</p></div>`;
     return `<div class="screen">
       <header class="topbar read-head"><div class="grow"><h1>מה מעניין אותך היום?</h1></div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}</header>
       <div class="lib-cats">${tabs.map((c) => `<button class="lib-cat ${c.id === cat ? 'on' : ''}" data-act="go" data-arg="reading/${c.id}"><span class="e">${c.icon}</span>${c.he}</button>`).join('')}</div>
       <div class="lib-levels">${['all', ...LIB_LEVELS].map((l) => `<button class="chip ${l === lvl ? 'on' : ''}" data-act="lib-level" data-arg="${l}">${l === 'all' ? 'הכל' : l}</button>`).join('')}</div>
+      ${list.length ? `<button class="lib-tr" data-act="lib-tr" role="switch" aria-checked="${!!S.libTitlesHe}"><span>🌐 תרגום לשמות הכתבות</span><span class="sw ${S.libTitlesHe ? 'on' : ''}"></span></button>` : ''}
       ${body}</div>`;
   };
   SCREENS.readingPaused = (catArg) => {
@@ -1125,6 +1126,7 @@
     },
     'ex-tr': (a) => { RT.exTr = RT.exTr === a ? null : a; render(); },
     'lib-fav': (a) => { const on = ET.Library.toggleSave(a); toast(on ? 'נשמר במועדפים ⭐' : 'הוסר מהמועדפים'); render(); },
+    'lib-tr': () => { S.libTitlesHe = !S.libTitlesHe; ET.save(); render(); },
     'lib-level': (a) => { RT.libLevel = a === 'all' ? 'all' : +a; render(); },
     'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); if (el.dataset.q === '5') { RT.sheet = null; toast('מעולה! המילה סומנה כמוכרת ולא תופיע שוב ✓'); } else toast('נוסף לחזרה 🔁'); render(); },
     report: (a) => { const it = ET.item(a); RT.sheet = { type: 'report', id: a, term: it ? it.t : a, kind: null }; renderSheet(); },
