@@ -4,7 +4,7 @@
    - Words, dictionary and the article list are served from the device at once and refreshed in the background;
      when the refreshed copy differs, open pages are told ('data-updated') and show the new content right away.
    - Opened articles and photos stay readable offline. */
-const VERSION = 'et-v4.23.0';
+const VERSION = 'et-v4.24.0';
 const APP = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/data.js', 'js/lex.js', 'js/core.js', 'js/app.js',
@@ -96,7 +96,7 @@ self.addEventListener('fetch', (e) => {
   // Words, dictionary, article list
   if (DATA.includes(path)) { staleWhileRevalidate(e, path); return; }
   // Article bodies: once opened or prefetched, they stay readable offline. Keep the newest 80.
-  if (/^data\/(articles|news)\//.test(path)) {
+  if (/^data\/(articles|news|library)\//.test(path)) {
     e.respondWith(caches.open(ARTICLES).then((c) => c.match(url.pathname).then((hit) => hit || fetch(req).then(async (res) => {
       if (res.ok) {
         await c.put(url.pathname, res.clone());

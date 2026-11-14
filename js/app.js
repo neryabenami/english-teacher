@@ -90,7 +90,7 @@
 
   /* ---------- tab bar ---------- */
   const TABS = [['home', 'home', 'בית'], ['words', 'learn', 'לימוד מילים'], ['reading', 'book', 'קריאה'], ['profile', 'user', 'פרופיל']];
-  const TAB_OF = { savedwords: 'words', dict: 'words', mywords: 'words', article: 'reading', stats: 'profile', storage: 'profile', reports: 'profile', placement: 'profile' };
+  const TAB_OF = { libarticle: 'reading',  savedwords: 'words', dict: 'words', mywords: 'words', article: 'reading', stats: 'profile', storage: 'profile', reports: 'profile', placement: 'profile' };
   const renderTabbar = (name) => {
     const cur = TAB_OF[name] || name;
     tabbarEl.innerHTML = `<nav aria-label="ניווט ראשי">${TABS.map(([id, icon, label]) => `<button class="tab ${cur === id ? 'on' : ''}" data-act="go" data-arg="${id}" ${cur === id ? 'aria-current="page"' : ''}>${ic(icon)}<span>${label}</span></button>`).join('')}</nav>`;
@@ -582,6 +582,25 @@
     { id: 'travel', he: 'טיולים וחוויות', icon: '✈️' }
   ];
   const LIB_LEVELS = [4, 5, 6, 7, 8, 9];
+  SCREENS.libarticle = (id) => {
+    const back = 'reading/' + (RT.libCat || 'business');
+    const st = RT.art && RT.art.id === id ? RT.art : (RT.art = { id, body: null, err: false, loading: false });
+    if (!st.body && !st.err && !st.loading) {
+      st.loading = true;
+      ET.Library.body(id).then((b) => { st.body = { ...b, glossary: [] }; }).catch(() => { st.err = true; }).finally(() => { st.loading = false; if (parse().name === 'libarticle') render(); });
+    }
+    if (!st.body) return `<div class="screen">${topbar('קריאה', back)}${st.err ? '<div class="card empty"><div class="emo">📡</div><h2>הכתבה לא זמינה כרגע</h2><p>צריך חיבור לאינטרנט כדי לפתוח אותה בפעם הראשונה.</p></div>' : '<div class="card empty"><p>טוען את הכתבה…</p></div>'}</div>`;
+    const a = st.body;
+    const saved = ET.Library.isSaved(id);
+    const c = LIB_CATS.find((x) => x.id === a.cat) || { icon: '', he: '' };
+    let n = 0;
+    const paras = a.paragraphs.map((p) => `<p>${splitSentences(p).map((s) => `<span class="sent" data-s="${n++}">${tokenize(s, [])}</span>`).join('')}</p>`).join('');
+    return `<div class="screen">${topbar('', back, `<button class="icon-btn ${saved ? 'active' : ''}" data-act="lib-fav" data-arg="${esc(id)}" aria-label="${saved ? 'הסרה מהמועדפים' : 'שמירה במועדפים'}" aria-pressed="${saved}">${saved ? icFill('bookmark') : ic('bookmark')}</button>`)}
+      <div class="src-line"><span>${c.icon} ${esc(c.he)} · רמה ${a.level}</span></div>
+      <h1 class="art-h" lang="en" dir="ltr">${esc(a.title)}</h1>
+      <p class="small muted">לחיצה על מילה מציגה את הפירוש בעברית, ואפשר לשמור אותה במילים שלי.</p>
+      <article class="reader" lang="en">${paras}</article></div>`;
+  };
   SCREENS.reading = (catArg) => {
     const L = ET.Library;
     if (!L.index && !L.loading) L.load().then(() => { if (parse().name === 'reading') soon(); });
@@ -589,10 +608,10 @@
     RT.libCat = cat;
     const lvl = RT.libLevel || 'all';
     const tabs = [...LIB_CATS, { id: 'favorites', he: 'מועדפים', icon: '⭐' }];
-    const all = cat === 'favorites' ? L.all().filter((a) => L.isSaved(a.id)) : L.all().filter((a) => a.cat === cat);
+    const all = cat === 'favorites' ? L.all().filter((a) => L.isSaved(a.id)).sort((x, y) => S.libSaved[y.id] - S.libSaved[x.id]) : L.all().filter((a) => a.cat === cat);
     const list = all.filter((a) => lvl === 'all' || a.level === lvl);
     const body = !L.index ? '<div class="card empty"><p>טוען כתבות…</p></div>'
-      : list.length ? `<div class="stack">${list.map((a) => `<div class="card lib-row"><span class="t" lang="en" dir="ltr">${esc(a.title)}</span>${L.isSaved(a.id) ? '<span class="lib-star">⭐</span>' : ''}<span class="badge lvl">רמה ${a.level}</span></div>`).join('')}</div>`
+      : list.length ? `<div class="stack">${list.map((a) => `<button class="card lib-row" data-act="go" data-arg="libarticle/${esc(a.id)}"><span class="t" lang="en" dir="ltr">${esc(a.title)}</span>${L.isSaved(a.id) ? '<span class="lib-star">⭐</span>' : ''}<span class="badge lvl">רמה ${a.level}</span></button>`).join('')}</div>`
       : cat === 'favorites' ? '<div class="card empty"><div class="emo">⭐</div><p>עוד אין כתבות במועדפים</p></div>'
       : `<div class="card empty"><div class="emo">🗞️</div><p>אין כרגע כתבות ${lvl === 'all' ? 'בנושא הזה' : 'ברמה ' + lvl + ' בנושא הזה'}</p></div>`;
     return `<div class="screen">
@@ -1073,6 +1092,7 @@
     },
     unsave: (a) => { if ((S.items[a] || {}).saved) ET.toggleSave(a); toast('הוסר מהמילים שלי'); render(); },
     'fav-cat': (a) => { RT.favCat = a; render(); },
+    'lib-fav': (a) => { const on = ET.Library.toggleSave(a); toast(on ? 'נשמר במועדפים ⭐' : 'הוסר מהמועדפים'); render(); },
     'lib-level': (a) => { RT.libLevel = a === 'all' ? 'all' : +a; render(); },
     'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); if (el.dataset.q === '5') { RT.sheet = null; toast('מעולה! המילה סומנה כמוכרת ולא תופיע שוב ✓'); } else toast('נוסף לחזרה 🔁'); render(); },
     report: (a) => { const it = ET.item(a); RT.sheet = { type: 'report', id: a, term: it ? it.t : a, kind: null }; renderSheet(); },

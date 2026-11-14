@@ -718,3 +718,4 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .lib-row { display: flex; align-items: center; gap: 10px; }
 .lib-row .t { flex: 1; font-family: Fredoka, Rubik, sans-serif; font-weight: 600; text-align: left; }
 .lib-star { font-size: 1rem; }
+.lib-row { width: 100%; border: 0; font: inherit; color: inherit; text-align: start; cursor: pointer; }

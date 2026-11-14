@@ -589,7 +589,11 @@
       return this.loading;
     },
     all() { return (this.index && this.index.articles) || []; },
-    isSaved(id) { return !!(S.libSaved || {})[id]; }
+    meta(id) { return this.all().find((a) => a.id === id); },
+    // the article itself (the service worker keeps opened ones for reading offline)
+    body(id) { return fetch(`data/library/${encodeURIComponent(id)}.json`).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }); },
+    isSaved(id) { return !!(S.libSaved || {})[id]; },
+    toggleSave(id) { S.libSaved = S.libSaved || {}; if (S.libSaved[id]) delete S.libSaved[id]; else S.libSaved[id] = Date.now(); ET.save(true); return !!S.libSaved[id]; }
   };
 
   ET.Audio = {
