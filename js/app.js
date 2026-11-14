@@ -232,10 +232,23 @@
   const artImage = (a, cls) => (a.image ? `<span class="${cls}"><img src="${esc(a.image.url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="img-credit" dir="ltr">${esc(a.image.credit)}</span></span>` : `<span class="${cls} noimg"><span class="img-emo">${readCat(a.cat).icon}</span></span>`);
   const dayCard = (it, label, cls, icon) => (!it && !ET.Vocab.ready ? `<div class="card day-card loading" aria-busy="true"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="sk"></span><span class="sk short"></span></div>` : it ? `<button class="card day-card" data-act="item" data-arg="${esc(it.id)}"><span class="dc-top"><span class="lbl">${label}</span><span class="dc-ic ${cls}">${ic(icon)}</span></span><span class="w">${esc(it.t)}</span><span class="dc-row"><span class="he">${esc(it.he)}</span><span class="dc-say" data-act="say" data-arg="${esc(it.t)}" data-id="${esc(it.id)}" role="button" tabindex="0" aria-label="השמעת ${esc(it.t)}">${ic('speaker')}</span></span></button>` : '');
 
+  // today's article on the home screen: picked at random from the library once a day; articles already opened are skipped until all were read
+  const libOfDay = (d) => {
+    const L = ET.Library;
+    const all = L.all();
+    if (!all.length) return null;
+    if (d.libArt && L.meta(d.libArt)) return L.meta(d.libArt);
+    let pool = all.filter((a) => !(S.libOpened || {})[a.id]);
+    if (!pool.length) { S.libOpened = {}; pool = all; }
+    d.libArt = pool[Math.floor(Math.random() * pool.length)].id;
+    ET.save();
+    return L.meta(d.libArt);
+  };
   SCREENS.home = () => {
     const A = ET.Articles;
-    if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'home') soon(); });
+    if (!ET.Library.index && !ET.Library.loading) ET.Library.load().then(() => { if (parse().name === 'home') soon(); });
     const d = ET.daily();
+    const lib = libOfDay(d);
     const h = new Date().getHours();
     const greet = h >= 5 && h < 12 ? 'בוקר טוב' : h >= 12 && h < 17 ? 'צהריים טובים' : 'ערב טוב';
     // today's learning = the new words added today in all topics (at the user's level)
@@ -254,6 +267,7 @@
         </button>
         ${dayCard(ET.item(d.word), 'מילת היום', 'yellow', 'bulb')}
         ${dayCard(ET.item(d.slang), 'סלנג היום', 'pink', 'bubble')}
+        ${lib ? `<button class="card day-card home-lib" data-act="go" data-arg="libarticle/${esc(lib.id)}"><span class="dc-top"><span class="lbl">כתבת היום</span><span class="dc-ic blue">📖</span></span><span class="hl-t" lang="en" dir="ltr">${esc(lib.title)}</span><span class="hl-row"><span class="badge">${(LIB_CATS.find((c) => c.id === lib.cat) || {}).icon || ''} ${esc((LIB_CATS.find((c) => c.id === lib.cat) || {}).he || '')}</span><span class="badge lvl">רמה ${lib.level}</span></span><span class="hl-go">לקריאה ${ic('chev', 'chev')}</span></button>` : ''}
         ${'' && art ? `<button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage({ ...art, cat: art.category }, 'ha-img')}<span class="ha-body"><span class="eye">קריאה מומלצת · ${readCat(art.category).he}</span><span class="t" lang="en" dir="ltr">${esc(art.display_title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.reading_time} דק׳ קריאה</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button>`
           : ''}
       </div>
@@ -585,6 +599,7 @@
   const LIB_LEVELS = [4, 5, 6, 7, 8, 9];
   SCREENS.libarticle = (id) => {
     const back = 'reading/' + (RT.libCat || 'business');
+    if (!(S.libOpened || {})[id]) { S.libOpened = { ...(S.libOpened || {}), [id]: Date.now() }; ET.save(); }
     const st = RT.art && RT.art.id === id ? RT.art : (RT.art = { id, body: null, err: false, loading: false });
     if (!st.body && !st.err && !st.loading) {
       st.loading = true;

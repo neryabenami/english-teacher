@@ -728,3 +728,12 @@ body:has(.lib-art) { background: var(--surface); }
 .lib-art .he-title { background: var(--accent-soft); color: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: .88rem; margin-top: -4px; }
 .lib-art .reader { font-family: Literata, Georgia, serif; font-size: 16.5px; line-height: 1.6; }
 .lib-art .reader p { margin-bottom: 12px; }
+
+/* v30: today's article on the home screen; English article titles sit on the right like the rest of the page */
+.home-lib { text-align: right; }
+.home-lib .dc-ic.blue { background: #DCE8FB; color: #3B6FD4; font-size: 15px; }
+.home-lib .hl-t { display: block; font-family: var(--font-display, Fredoka), sans-serif; font-weight: 600; font-size: 1.15rem; line-height: 1.3; text-align: right; margin: 8px 0 10px; }
+.home-lib .hl-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.home-lib .hl-go { display: inline-flex; align-items: center; gap: 2px; margin-top: 12px; color: var(--accent); font-weight: 700; font-size: .88rem; }
+.home-lib .hl-go .chev { width: 16px; height: 16px; }
+.lib-row .t { text-align: right; }
