@@ -358,7 +358,11 @@
       <dt>אזור</dt><dd>${esc(it.region)}</dd>
       <dt>נפוצות</dt><dd>${FREQ[it.freq] || ''}</dd></dl>`;
   const exSource = (it) => (it.src === 't' ? '<div class="ex-src">משפט לדוגמה · Tatoeba</div>' : it.src && it.src.s ? `<div class="ex-src">מתוך כתבה ב־<a href="${esc(it.src.u)}" target="_blank" rel="noopener">${esc(it.src.s)}</a>, ${esc(fmtDate(it.src.d))}</div>` : '');
-  const exampleBox = (it) => (it.ex ? `<div class="example"><div class="row"><div class="en-line grow">${esc(it.ex)}</div>${speakBtn(it.ex, it.id, '', 'sm')}</div>${it.exHe ? `<div class="small muted">${esc(it.exHe)}</div>` : ''}${exSource(it)}</div>` : '');
+  // the Hebrew translation of an example sentence shows only after a tap on "תרגום המשפט" (hidden again for the next word)
+  const exTr = (id, he) => (!he ? '' : RT.exTr === id
+    ? `<div class="tw-tr">${esc(he)}</div><button class="tr-btn" data-act="ex-tr" data-arg="${esc(id)}">הסתרת התרגום</button>`
+    : `<button class="tr-btn" data-act="ex-tr" data-arg="${esc(id)}">🌐 תרגום המשפט</button>`);
+  const exampleBox = (it) => (it.ex ? `<div class="example"><div class="row"><div class="en-line grow">${esc(it.ex)}</div>${speakBtn(it.ex, it.id, '', 'sm')}</div>${exTr(it.id, it.exHe)}${exSource(it)}</div>` : '');
   const flashcard = (it, rev) => {
     const r = ET.rec(it.id) || {};
     return `<article class="flash" ${rev ? '' : 'data-act="reveal"'}>
@@ -909,7 +913,7 @@
         ${c.m ? `<div class="tw-box"><div class="tw-h">משמעות 📄</div><p>${esc(c.m)}</p></div>` : ''}
         ${c.ex ? `<div class="tw-box ex"><div class="tw-h">דוגמה במשפט 💬</div>
           <div class="tw-ex" lang="en" dir="ltr">${speakBtn(c.ex, it.id, '', 'sm tw-spk')}<span>${expr ? highlightPhrase(c.ex, it.t) : highlight(c.ex, it.t)}</span></div>
-          ${c.exHe ? `<div class="tw-tr">${esc(c.exHe)}</div>` : ''}</div>` : ''}
+          ${exTr(it.id, c.exHe)}</div>` : ''}
         ${sheetGrade(sh, it)}
         <button class="btn tw-add ${r.saved ? 'soft' : ''}" data-act="save" data-arg="${esc(it.id)}">${r.saved ? 'נמצא במילים שלי ✓' : 'הוסף למילים שלי ⭐'}</button>
         <button class="link small tw-report" data-act="report" data-arg="${esc(it.id)}">דיווח על טעות ${ic('flag')}</button>`;
@@ -1119,6 +1123,7 @@
       if (!st.titleHe) st.titleErr = true;
       if (RT.art === st) render();
     },
+    'ex-tr': (a) => { RT.exTr = RT.exTr === a ? null : a; render(); },
     'lib-fav': (a) => { const on = ET.Library.toggleSave(a); toast(on ? 'נשמר במועדפים ⭐' : 'הוסר מהמועדפים'); render(); },
     'lib-level': (a) => { RT.libLevel = a === 'all' ? 'all' : +a; render(); },
     'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); if (el.dataset.q === '5') { RT.sheet = null; toast('מעולה! המילה סומנה כמוכרת ולא תופיע שוב ✓'); } else toast('נוסף לחזרה 🔁'); render(); },

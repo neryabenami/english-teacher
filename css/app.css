@@ -749,3 +749,7 @@ body:has(.lib-art) { background: var(--surface); }
 .home-lib .hl-t { font-size: 1.02rem; margin: 4px 0 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .home-lib .hl-row { align-items: center; }
 .home-lib .hl-go { margin: 0; margin-inline-start: auto; }
+
+/* v32: "תרגום המשפט" button under example sentences (the translation is hidden until tapped) */
+.tr-btn { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; background: var(--surface); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); color: var(--accent); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; justify-self: start; }
+.example .tr-btn { align-self: flex-start; }
