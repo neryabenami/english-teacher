@@ -267,7 +267,7 @@
         </button>
         ${dayCard(ET.item(d.word), 'מילת היום', 'yellow', 'bulb')}
         ${dayCard(ET.item(d.slang), 'סלנג היום', 'pink', 'bubble')}
-        ${lib ? `<button class="card day-card home-lib" data-act="go" data-arg="libarticle/${esc(lib.id)}"><span class="dc-top"><span class="lbl">כתבת היום</span><span class="dc-ic blue">📖</span></span><span class="hl-t" lang="en" dir="ltr">${esc(lib.title)}</span><span class="hl-row"><span class="badge">${(LIB_CATS.find((c) => c.id === lib.cat) || {}).icon || ''} ${esc((LIB_CATS.find((c) => c.id === lib.cat) || {}).he || '')}</span><span class="badge lvl">רמה ${lib.level}</span><span class="hl-go">לקריאה ${ic('chev', 'chev')}</span></span></button>` : ''}
+        ${lib ? `<button class="card day-card home-lib" data-act="go" data-arg="libarticle/${esc(lib.id)}/home"><span class="dc-top"><span class="lbl">כתבת היום</span><span class="dc-ic blue">📖</span></span><span class="hl-t" lang="en" dir="ltr">${esc(lib.title)}</span><span class="hl-row"><span class="badge">${(LIB_CATS.find((c) => c.id === lib.cat) || {}).icon || ''} ${esc((LIB_CATS.find((c) => c.id === lib.cat) || {}).he || '')}</span><span class="badge lvl">רמה ${lib.level}</span><span class="hl-go">לקריאה ${ic('chev', 'chev')}</span></span></button>` : ''}
         ${'' && art ? `<button class="card home-art" data-act="go" data-arg="article/${esc(art.id)}">${artImage({ ...art, cat: art.category }, 'ha-img')}<span class="ha-body"><span class="eye">קריאה מומלצת · ${readCat(art.category).he}</span><span class="t" lang="en" dir="ltr">${esc(art.display_title)}</span><span class="row wrap" style="gap:6px"><span class="badge lvl">${art.reading_time} דק׳ קריאה</span>${S.stats.articles[art.id] ? '<span class="badge good">נקרא ✓</span>' : ''}</span></span></button>`
           : ''}
       </div>
@@ -597,8 +597,9 @@
     { id: 'travel', he: 'טיולים וחוויות', icon: '✈️' }
   ];
   const LIB_LEVELS = [4, 5, 6, 7, 8, 9];
-  SCREENS.libarticle = (id) => {
-    const back = 'reading/' + (RT.libCat || 'business');
+  // opened from the home screen (libarticle/<id>/home): Back returns home; otherwise to the article's topic list
+  SCREENS.libarticle = (id, from) => {
+    const back = from === 'home' ? 'home' : 'reading/' + (RT.libCat || 'business');
     if (!(S.libOpened || {})[id]) { S.libOpened = { ...(S.libOpened || {}), [id]: Date.now() }; ET.save(); }
     const st = RT.art && RT.art.id === id ? RT.art : (RT.art = { id, body: null, err: false, loading: false });
     if (!st.body && !st.err && !st.loading) {
