@@ -595,10 +595,10 @@
     const c = LIB_CATS.find((x) => x.id === a.cat) || { icon: '', he: '' };
     let n = 0;
     const paras = a.paragraphs.map((p) => `<p>${splitSentences(p).map((s) => `<span class="sent" data-s="${n++}">${tokenize(s, [])}</span>`).join('')}</p>`).join('');
-    return `<div class="screen">${topbar('', back, `<button class="icon-btn ${saved ? 'active' : ''}" data-act="lib-fav" data-arg="${esc(id)}" aria-label="${saved ? 'הסרה מהמועדפים' : 'שמירה במועדפים'}" aria-pressed="${saved}">${saved ? icFill('bookmark') : ic('bookmark')}</button>`)}
+    return `<div class="screen lib-art">${topbar('', back, `<button class="icon-btn ${saved ? 'active' : ''}" data-act="lib-fav" data-arg="${esc(id)}" aria-label="${saved ? 'הסרה מהמועדפים' : 'שמירה במועדפים'}" aria-pressed="${saved}">${saved ? icFill('bookmark') : ic('bookmark')}</button>`)}
       <div class="src-line"><span>${c.icon} ${esc(c.he)} · רמה ${a.level}</span></div>
-      <h1 class="art-h" lang="en" dir="ltr">${esc(a.title)}</h1>
-      <p class="small muted">לחיצה על מילה מציגה את הפירוש בעברית, ואפשר לשמור אותה במילים שלי.</p>
+      <h1 class="art-h" lang="en" dir="ltr" data-act="lib-title" role="button" tabindex="0">${esc(a.title)}</h1>
+      ${st.titleOpen ? `<div class="he-title">${st.titleHe ? esc(st.titleHe) : st.titleErr ? 'אין כרגע תרגום (צריך אינטרנט)' : 'מתרגם…'}</div>` : ''}
       <article class="reader" lang="en">${paras}</article></div>`;
   };
   SCREENS.reading = (catArg) => {
@@ -1092,6 +1092,14 @@
     },
     unsave: (a) => { if ((S.items[a] || {}).saved) ET.toggleSave(a); toast('הוסר מהמילים שלי'); render(); },
     'fav-cat': (a) => { RT.favCat = a; render(); },
+    'lib-title': async () => {
+      const st = RT.art; if (!st || !st.body) return;
+      st.titleOpen = !st.titleOpen; render();
+      if (!st.titleOpen || st.titleHe) return;
+      try { st.titleHe = await ET.TranslationProvider.translate(st.body.title); } catch (e) { st.titleErr = true; }
+      if (!st.titleHe) st.titleErr = true;
+      if (RT.art === st) render();
+    },
     'lib-fav': (a) => { const on = ET.Library.toggleSave(a); toast(on ? 'נשמר במועדפים ⭐' : 'הוסר מהמועדפים'); render(); },
     'lib-level': (a) => { RT.libLevel = a === 'all' ? 'all' : +a; render(); },
     'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); if (el.dataset.q === '5') { RT.sheet = null; toast('מעולה! המילה סומנה כמוכרת ולא תופיע שוב ✓'); } else toast('נוסף לחזרה 🔁'); render(); },

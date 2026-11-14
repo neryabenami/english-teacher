@@ -719,3 +719,12 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .lib-row .t { flex: 1; font-family: Fredoka, Rubik, sans-serif; font-weight: 600; text-align: left; }
 .lib-star { font-size: 1rem; }
 .lib-row { width: 100%; border: 0; font: inherit; color: inherit; text-align: start; cursor: pointer; }
+
+/* v29: library article "like a book": white page, book font, smaller and tighter text so more fits on screen */
+body:has(.lib-art) { background: var(--surface); }
+.lib-art .topbar { background: var(--surface); }
+.lib-art .src-line { margin-bottom: -6px; }
+.lib-art .art-h { font-size: 1.3rem; cursor: pointer; }
+.lib-art .he-title { background: var(--accent-soft); color: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: .88rem; margin-top: -4px; }
+.lib-art .reader { font-family: Literata, Georgia, serif; font-size: 16.5px; line-height: 1.6; }
+.lib-art .reader p { margin-bottom: 12px; }
