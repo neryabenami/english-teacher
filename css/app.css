@@ -706,3 +706,15 @@ button.sw-term { background: none; border: 0; padding: 0; color: inherit; font: 
 .sheet.full > .tw-word { margin-top: 0; }
 .sheet.full > .tw-report { margin-bottom: 0; }
 @keyframes card-pop { from { opacity: 0; transform: scale(.94); } }
+
+/* v28: Reading tab = article library: 6 equal topic tabs (3 a row), a level row (all, 4-9), the articles below */
+.lib-cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lib-cat { background: var(--surface); border-radius: 16px; padding: 8px 4px; min-height: 60px; display: grid; place-items: center; align-content: center; gap: 2px; font: inherit; font-size: .8rem; font-weight: 600; color: var(--ink); text-align: center; box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.06)); border: 0; }
+.lib-cat .e { font-size: 1.1rem; line-height: 1; }
+.lib-cat.on { background: var(--accent); color: var(--accent-ink, #fff); }
+.lib-levels { display: flex; gap: 6px; justify-content: center; margin: 14px 0 12px; }
+.lib-levels .chip { min-width: 36px; justify-content: center; }
+.lib-levels .chip.on { background: var(--ink); color: var(--bg); }
+.lib-row { display: flex; align-items: center; gap: 10px; }
+.lib-row .t { flex: 1; font-family: Fredoka, Rubik, sans-serif; font-weight: 600; text-align: left; }
+.lib-star { font-size: 1rem; }

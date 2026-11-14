@@ -574,10 +574,33 @@
   /* =========================================================
      READING
      ========================================================= */
-  // articles are paused: the Reading tab only says so (the code below stays for when they come back)
-  SCREENS.reading = () => `<div class="screen">
-      <header class="topbar read-head"><div class="grow"><h1>מה מעניין אותך היום?</h1></div></header>
-      <div class="card empty"><div class="emo">🗞️</div><h2>אין כרגע כתבות</h2></div></div>`;
+  /* Reading tab: the article library by topic (data/library/index.json: { articles: [{ id, title, cat, level }] }), level 4-9.
+     For now it is the frame only: the library is empty until articles are added. */
+  const LIB_CATS = [
+    { id: 'business', he: 'עסקים ופוליטיקה', icon: '💼' }, { id: 'culture', he: 'תרבות וחברה', icon: '🎭' },
+    { id: 'health', he: 'בריאות ואורח חיים', icon: '🍏' }, { id: 'science', he: 'מדע וטכנולוגיה', icon: '🔬' },
+    { id: 'travel', he: 'טיולים וחוויות', icon: '✈️' }
+  ];
+  const LIB_LEVELS = [4, 5, 6, 7, 8, 9];
+  SCREENS.reading = (catArg) => {
+    const L = ET.Library;
+    if (!L.index && !L.loading) L.load().then(() => { if (parse().name === 'reading') soon(); });
+    const cat = catArg || RT.libCat || 'business';
+    RT.libCat = cat;
+    const lvl = RT.libLevel || 'all';
+    const tabs = [...LIB_CATS, { id: 'favorites', he: 'מועדפים', icon: '⭐' }];
+    const all = cat === 'favorites' ? L.all().filter((a) => L.isSaved(a.id)) : L.all().filter((a) => a.cat === cat);
+    const list = all.filter((a) => lvl === 'all' || a.level === lvl);
+    const body = !L.index ? '<div class="card empty"><p>טוען כתבות…</p></div>'
+      : list.length ? `<div class="stack">${list.map((a) => `<div class="card lib-row"><span class="t" lang="en" dir="ltr">${esc(a.title)}</span>${L.isSaved(a.id) ? '<span class="lib-star">⭐</span>' : ''}<span class="badge lvl">רמה ${a.level}</span></div>`).join('')}</div>`
+      : cat === 'favorites' ? '<div class="card empty"><div class="emo">⭐</div><p>עוד אין כתבות במועדפים</p></div>'
+      : `<div class="card empty"><div class="emo">🗞️</div><p>אין כרגע כתבות ${lvl === 'all' ? 'בנושא הזה' : 'ברמה ' + lvl + ' בנושא הזה'}</p></div>`;
+    return `<div class="screen">
+      <header class="topbar read-head"><div class="grow"><h1>מה מעניין אותך היום?</h1></div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}</header>
+      <div class="lib-cats">${tabs.map((c) => `<button class="lib-cat ${c.id === cat ? 'on' : ''}" data-act="go" data-arg="reading/${c.id}"><span class="e">${c.icon}</span>${c.he}</button>`).join('')}</div>
+      <div class="lib-levels">${['all', ...LIB_LEVELS].map((l) => `<button class="chip ${l === lvl ? 'on' : ''}" data-act="lib-level" data-arg="${l}">${l === 'all' ? 'הכל' : l}</button>`).join('')}</div>
+      ${body}</div>`;
+  };
   SCREENS.readingPaused = (catArg) => {
     const A = ET.Articles;
     if (!A.index && !A.failed && !A.loading) A.load().then(() => { if (parse().name === 'reading') soon(); });
@@ -1050,6 +1073,7 @@
     },
     unsave: (a) => { if ((S.items[a] || {}).saved) ET.toggleSave(a); toast('הוסר מהמילים שלי'); render(); },
     'fav-cat': (a) => { RT.favCat = a; render(); },
+    'lib-level': (a) => { RT.libLevel = a === 'all' ? 'all' : +a; render(); },
     'know-item': (a, el) => { ET.grade(a, el.dataset.q === '5' ? 5 : 1); if (el.dataset.q === '5') { RT.sheet = null; toast('מעולה! המילה סומנה כמוכרת ולא תופיע שוב ✓'); } else toast('נוסף לחזרה 🔁'); render(); },
     report: (a) => { const it = ET.item(a); RT.sheet = { type: 'report', id: a, term: it ? it.t : a, kind: null }; renderSheet(); },
     'save-lex': () => {
@@ -1335,6 +1359,7 @@
       if (m.path === 'data/vocab.json') ET.Vocab.load(true).then(soon);
       if (m.path === 'data/meanings.json') ET.Meanings.load(true).then(soon);
       if (m.path === 'data/news/index.json') ET.Articles.load(true).then(soon);
+      if (m.path === 'data/library/index.json') ET.Library.load().then(soon);
       if (m.path === ET.Audio.BASE + 'index.json') ET.Audio.load(true).then(soon);
       if (m.path === 'data/dict-en-he.json') { ET.DictionarySource.entries = null; ET.DictionarySource.loading = null; ET.DictionarySource.load(); }
     });

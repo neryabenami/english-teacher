@@ -578,6 +578,20 @@
     return [h0, h1, h2, h3, h4].map((h) => h.toString(16).padStart(8, '0')).join('');
   };
   ET.splitSentences = (text) => text.match(/[^.!?]+(?:[.!?]+["”’)\]]*\s*|$)/g) || [text];
+  /* the reading library (articles by topic and level 4-9); empty until articles are added */
+  ET.Library = {
+    index: null,
+    loading: null,
+    load() {
+      if (this.loading) return this.loading;
+      this.loading = fetch('data/library/index.json').then((r) => (r.ok ? r.json() : { articles: [] })).catch(() => ({ articles: [] }))
+        .then((j) => { this.index = j; this.loading = null; return j; });
+      return this.loading;
+    },
+    all() { return (this.index && this.index.articles) || []; },
+    isSaved(id) { return !!(S.libSaved || {})[id]; }
+  };
+
   ET.Audio = {
     BASE: 'https://neryabenami.github.io/english-teacher-audio/',
     words: null,
