@@ -762,3 +762,5 @@ body:has(.lib-art) { background: var(--surface); }
 .lib-tr .sw.on::after { right: 20px; }
 .lib-main { flex: 1; display: grid; gap: 3px; min-width: 0; }
 .lib-he { font-size: .8rem; color: var(--accent); font-weight: 600; text-align: right; line-height: 1.35; }
+/* without today's article (empty library) the three home cards share the screen again */
+.home-cards:not(:has(.home-lib)) { grid-template-rows: 1.35fr 1fr 1fr; }
