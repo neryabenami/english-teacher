@@ -768,3 +768,6 @@ body:has(.lib-art) { background: var(--surface); }
 /* v34: the date a library article was added, small, at the side of its topic line */
 .lib-art .src-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .lib-date { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+
+/* v35: number of articles under each topic tab */
+.lib-cat .n { font-size: .68rem; font-weight: 500; opacity: .75; }

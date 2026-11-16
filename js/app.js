@@ -629,6 +629,8 @@
     RT.libCat = cat;
     const lvl = RT.libLevel || 'all';
     const tabs = [...LIB_CATS, { id: 'favorites', he: 'מועדפים', icon: '⭐' }];
+    // how many articles each tab has (all levels; favourites = saved ones), counted every time the screen is drawn
+    const tabCount = (id) => { const n = id === 'favorites' ? L.all().filter((a) => L.isSaved(a.id)).length : L.all().filter((a) => a.cat === id).length; return n ? `<span class="n">${n === 1 ? 'כתבה אחת' : n.toLocaleString('en-US') + ' כתבות'}</span>` : ''; };
     const all = cat === 'favorites' ? L.all().filter((a) => L.isSaved(a.id)).sort((x, y) => S.libSaved[y.id] - S.libSaved[x.id]) : L.all().filter((a) => a.cat === cat);
     // every list (topics and favourites, now and for articles added later) goes from the easiest level to the hardest
     const list = all.filter((a) => lvl === 'all' || a.level === lvl);
@@ -639,7 +641,7 @@
       : `<div class="card empty"><div class="emo">🗞️</div><p>אין כרגע כתבות ${lvl === 'all' ? 'בנושא הזה' : 'ברמה ' + lvl + ' בנושא הזה'}</p></div>`;
     return `<div class="screen">
       <header class="topbar read-head"><div class="grow"><h1>מה מעניין אותך היום?</h1></div>${RT.online ? '' : '<span class="offline-pill">לא מקוון</span>'}</header>
-      <div class="lib-cats">${tabs.map((c) => `<button class="lib-cat ${c.id === cat ? 'on' : ''}" data-act="go" data-arg="reading/${c.id}"><span class="e">${c.icon}</span>${c.he}</button>`).join('')}</div>
+      <div class="lib-cats">${tabs.map((c) => `<button class="lib-cat ${c.id === cat ? 'on' : ''}" data-act="go" data-arg="reading/${c.id}"><span class="e">${c.icon}</span>${c.he}${tabCount(c.id)}</button>`).join('')}</div>
       <div class="lib-levels">${['all', ...LIB_LEVELS].map((l) => `<button class="chip ${l === lvl ? 'on' : ''}" data-act="lib-level" data-arg="${l}">${l === 'all' ? 'הכל' : l}</button>`).join('')}</div>
       ${list.length ? `<button class="lib-tr" data-act="lib-tr" role="switch" aria-checked="${!!S.libTitlesHe}"><span>🌐 תרגום לשמות הכתבות</span><span class="sw ${S.libTitlesHe ? 'on' : ''}"></span></button>` : ''}
       ${body}</div>`;
