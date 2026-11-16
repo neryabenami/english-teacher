@@ -24,11 +24,16 @@ export async function gemini(system, user) {
     let last = '';
     for (let a = 0; a < 4; a++) {
       geminiCalls++;
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY },
-        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.3 } })
-      });
+      // a model that hangs (it happens when Google is busy) is given up after 2 minutes, then the next one is tried
+      let r;
+      try {
+        r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          signal: AbortSignal.timeout(120000),
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY },
+          body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.3 } })
+        });
+      } catch (e) { last = 'timeout or network error'; if (a >= 1) break; continue; }
       if (r.ok) {
         const j = await r.json();
         try { return JSON.parse(j.candidates[0].content.parts[0].text); } catch (e) { last = 'bad json'; continue; }
