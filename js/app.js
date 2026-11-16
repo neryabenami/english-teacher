@@ -617,7 +617,7 @@
     let n = 0;
     const paras = a.paragraphs.map((p) => `<p>${splitSentences(p).map((s) => `<span class="sent" data-s="${n++}">${tokenize(s, [])}</span>`).join('')}</p>`).join('');
     return `<div class="screen lib-art">${topbar('', back, `<button class="icon-btn ${saved ? 'active' : ''}" data-act="lib-fav" data-arg="${esc(id)}" aria-label="${saved ? 'הסרה מהמועדפים' : 'שמירה במועדפים'}" aria-pressed="${saved}">${saved ? icFill('bookmark') : ic('bookmark')}</button>`)}
-      <div class="src-line"><span>${c.icon} ${esc(c.he)} · רמה ${a.level}</span></div>
+      <div class="src-line"><span>${c.icon} ${esc(c.he)} · רמה ${a.level}</span>${(ET.Library.meta(id) || {}).added ? `<span class="lib-date">נוספה ${ET.Library.meta(id).added.split('-').reverse().join('.')}</span>` : ''}</div>
       <h1 class="art-h" lang="en" dir="ltr" data-act="lib-title" role="button" tabindex="0">${esc(a.title)}</h1>
       ${st.titleOpen ? `<div class="he-title">${st.titleHe ? esc(st.titleHe) : st.titleErr ? 'אין כרגע תרגום (צריך אינטרנט)' : 'מתרגם…'}</div>` : ''}
       <article class="reader" lang="en">${paras}</article></div>`;

@@ -3,7 +3,8 @@
      with "Title:" / "Level:" lines on top and the text after the ARTICLE line;
    - a plain folder: "Business & Politics/<title> - Level <n>.txt" with only the text (paragraphs separated by blank lines).
    Usage: node tools/import-library.mjs "<folder>" [per-topic, default all]
-   Articles already imported are kept and never added twice. */
+   Articles already imported are kept and never added twice. Each one keeps the date it was added; after 30 days it is removed
+   (and an engoo-daily file fetched more than 30 days ago is not imported again), so the library always holds recent articles. */
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -20,6 +21,15 @@ const OUT = 'data/library';
 fs.mkdirSync(OUT, { recursive: true });
 const indexFile = path.join(OUT, 'index.json');
 const index = fs.existsSync(indexFile) ? JSON.parse(fs.readFileSync(indexFile, 'utf8')) : { articles: [] };
+const KEEP_DAYS = 30;
+const today = new Date().toISOString().slice(0, 10);
+const cutoff = new Date(Date.now() - KEEP_DAYS * 864e5).toISOString().slice(0, 10);
+// articles from before dates were kept count from today; older than 30 days are deleted
+for (const a of index.articles) if (!a.added) a.added = today;
+const old = index.articles.filter((a) => a.added < cutoff);
+for (const a of old) fs.rmSync(path.join(OUT, a.id + '.json'), { force: true });
+index.articles = index.articles.filter((a) => a.added >= cutoff);
+if (old.length) console.log(`removed ${old.length} articles added more than ${KEEP_DAYS} days ago`);
 const have = new Set(index.articles.map((a) => a.id));
 const slug = (t) => t.toLowerCase().replace(/['’"]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70);
 // Engoo markup: {{prn:4,600|four thousand...}} -> 4,600 ; _Book Title_ -> Book Title
@@ -31,7 +41,8 @@ function read(file, name) {
   if (head) { // engoo-daily layout
     const level = +((text.match(/^Level:\s*(\d+)/m) || [])[1] || (name.match(/_level(\d+)\.txt$/i) || [])[1]);
     const body = text.split(/^ARTICLE\s*\n-+\s*$/m)[1] || '';
-    return { title: clean(head[1]), level, paragraphs: body.split(/\n\s*\n/).map(clean).filter(Boolean) };
+    const fetched = (text.match(/^Fetched:\s*(\d{4}-\d{2}-\d{2})/m) || [])[1] || '';
+    return { title: clean(head[1]), level, fetched, paragraphs: body.split(/\n\s*\n/).map(clean).filter(Boolean) };
   }
   const m = name.match(/^(.*?)\s*-\s*Level\s*(\d+)\.txt$/i);
   if (!m) return null;
@@ -50,10 +61,11 @@ for (const [cat, folders] of Object.entries(TOPICS)) {
       if (!a || !a.title || !(a.level >= 1)) { console.warn('skipped (no title or level):', f); continue; }
       const id = cat + '-' + slug(a.title);
       if (have.has(id)) continue;
+      if (a.fetched && a.fetched < cutoff) continue; // older than 30 days: it was (or would be) removed already
       if (a.paragraphs.length < 2 || a.paragraphs.join(' ').split(/\s+/).length < 80) { console.warn('skipped (too short):', f); continue; }
       const words = a.paragraphs.join(' ').split(/\s+/).length;
       fs.writeFileSync(path.join(OUT, id + '.json'), JSON.stringify({ id, title: a.title, cat, level: a.level, paragraphs: a.paragraphs }));
-      index.articles.push({ id, title: a.title, cat, level: a.level, minutes: Math.max(1, Math.round(words / 150)) });
+      index.articles.push({ id, title: a.title, cat, level: a.level, minutes: Math.max(1, Math.round(words / 150)), added: today });
       have.add(id); added++;
     }
   }

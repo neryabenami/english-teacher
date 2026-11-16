@@ -764,3 +764,7 @@ body:has(.lib-art) { background: var(--surface); }
 .lib-he { font-size: .8rem; color: var(--accent); font-weight: 600; text-align: right; line-height: 1.35; }
 /* without today's article (empty library) the three home cards share the screen again */
 .home-cards:not(:has(.home-lib)) { grid-template-rows: 1.35fr 1fr 1fr; }
+
+/* v34: the date a library article was added, small, at the side of its topic line */
+.lib-art .src-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.lib-date { font-size: .72rem; color: var(--muted); white-space: nowrap; }
