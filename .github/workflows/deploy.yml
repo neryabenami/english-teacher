@@ -59,6 +59,19 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           READING_LEVEL: ${{ vars.READING_LEVEL }}
 
+      # the reading library: new articles fetched every night (03:00 Israel time) by github.com/neryabenami/engoo-daily
+      - name: Get the newest reading-library articles
+        if: ${{ !inputs.check_sources }}
+        uses: actions/checkout@v4
+        with:
+          repository: neryabenami/engoo-daily
+          path: engoo
+        continue-on-error: true
+
+      - name: Add them to the reading library
+        if: ${{ !inputs.check_sources && hashFiles('engoo/scripts/fetch_daily.py') != '' }}
+        run: node tools/import-library.mjs engoo
+
       - name: Translate the titles of new library articles
         if: ${{ !inputs.check_sources }}
         run: node tools/translate-library-titles.mjs
