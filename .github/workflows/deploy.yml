@@ -1,5 +1,6 @@
-# Writes the day's articles and words early in the morning (three attempts, the last at Israel 06:30 in summer / 05:30 in winter;
-# a later attempt only completes what is missing), and fills missing meanings / examples later in the day.
+# Writes the day's words and imports the library articles. Started on time from outside by cron-job.org (Israel time:
+# 03:20, backup 05:00 - GitHub's own schedule was hours late); the schedule below is only a fallback, plus two runs later in
+# the day that add whatever the busy AI left missing (every run tops each category up to 5; nothing is added twice).
 # Also runs on demand from the app when the level changes.
 # then publishes the app to GitHub Pages (free for public repos).
 # Code changes are published separately and at once by pages.yml, so they never wait for this long job.
@@ -7,9 +8,7 @@ name: Update articles and deploy
 
 on:
   schedule:
-    - cron: '7 1 * * *'    # the day's new words and articles (Israel 04:00 summer / 03:00 winter)
-    - cron: '22 2 * * *'   # complete what is missing (5 words per category, one article per category; nothing is added twice)
-    - cron: '37 3 * * *'   # last attempt - its audio is made at 04:20 UTC, all ready before 08:00 Israel time
+    - cron: '17 4 * * *'   # fallback in case cron-job.org did not start the morning run
     - cron: '0 11 * * *'   # fill gaps only
     - cron: '0 17 * * *'   # fill gaps only
   workflow_dispatch:
